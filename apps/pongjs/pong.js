@@ -1,585 +1,528 @@
-// P2P Pong Game - derlocke-ng
-let pc = null;
-let dataChannel = null;
-let isHost = false;
-let gameStarted = false;
-let myName = 'PLAYER';
-let opponentName = 'PLAYER';
+// PONG.JS — two browsers find each other over gun (a link, a QR code or the
+// open-games lobby) and play over a direct WebRTC data channel, or through
+// gun when no direct path exists. The host runs the game; the guest sends its
+// paddle and draws the host's snapshots, predicting the ball in between.
 
-// Game state
-const canvas = document.getElementById('pong');
-const ctx = canvas.getContext('2d');
-const paddleWidth = 12, paddleHeight = 80;
-const ballSize = 12;
-const paddleOffset = 15;
-let paddleSpeed = 8;
+import { Room, createGun, randomSecret, relaysUp, DEFAULT_RELAYS } from '../shared/p2p.js';
+import { qrSvg } from '../shared/qr.js';
+import { W, H, PW, PH, PX, BALL, WIN, PADDLE_SPEED, clampPaddle, newGame, step, cpuMove, snapshot, extrapolate } from './game.js';
 
-let leftY, rightY, leftScore, rightScore, ballX, ballY, ballVX, ballVY;
-let hitCount = 0;
-let ballPaused = false;
-let pauseTimer = 0;
+const $ = (id) => document.getElementById(id);
+const LOBBY = 'wjs-pong-lobby-1';
+const DT = 1 / 120;
 
-// Delta time for smooth physics
-let lastTime = 0;
-const TARGET_FPS = 60;
-const FIXED_DT = 1000 / TARGET_FPS;
+function setting(key, fallback = null) {
+  try {
+    return JSON.parse(localStorage.getItem(`pong.${key}`)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+const save = (key, value) => {
+  try {
+    localStorage.setItem(`pong.${key}`, JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
+};
 
-// Ball physics (pixels per fixed frame)
-const BALL_START_SPEED = 3;
-const BALL_MAX_SPEED = 10;
-const BALL_SPEED_Y_MAX = 5;
-const SPEED_INCREMENT = 0.3;
+const relayList = setting('relays') || DEFAULT_RELAYS;
+const forceRelay = new URLSearchParams(location.search).has('relay') || setting('forceRelay') === true;
+const gun = createGun(relayList);
 
-function initGameState() {
-    canvas.width = Math.min(600, window.innerWidth - 40);
-    canvas.height = 400;
-    leftY = canvas.height / 2 - paddleHeight / 2;
-    rightY = canvas.height / 2 - paddleHeight / 2;
-    leftScore = 0;
-    rightScore = 0;
-    hitCount = 0;
-    resetBall(true);
+// ------------------------------------------------------------- screens
+
+function show(id) {
+  for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
+  document.body.dataset.screen = id;
 }
 
-// UI Elements
-const menu = document.getElementById('menu');
-const hostPanel = document.getElementById('hostPanel');
-const joinPanel = document.getElementById('joinPanel');
-const gameContainer = document.getElementById('gameContainer');
-const gameStatus = document.getElementById('gameStatus');
-const leftNameEl = document.getElementById('leftName');
-const rightNameEl = document.getElementById('rightName');
-// PeerJS UI
-const peerjsPanel = document.getElementById('peerjsPanel');
-const peerjsHost = document.getElementById('peerjsHost');
-const peerjsJoin = document.getElementById('peerjsJoin');
-const peerjsRoomCode = document.getElementById('peerjsRoomCode');
-const copyPeerjsRoom = document.getElementById('copyPeerjsRoom');
-const peerjsHostStatus = document.getElementById('peerjsHostStatus');
-const peerjsJoinCode = document.getElementById('peerjsJoinCode');
-const peerjsJoinBtn = document.getElementById('peerjsJoinBtn');
-const peerjsJoinStatus = document.getElementById('peerjsJoinStatus');
-const connectionMode = document.getElementById('connectionMode');
+const nameInput = $('name');
+nameInput.value = setting('name', '') || '';
+nameInput.addEventListener('input', () => save('name', nameInput.value.trim().toUpperCase()));
+const myName = () => (nameInput.value.trim().toUpperCase() || 'PLAYER').slice(0, 12);
+const clean = (s, fallback) => (String(s || '').replace(/[^\p{L}\p{N} ._-]/gu, '').trim().toUpperCase() || fallback).slice(0, 12);
 
-let peer = null;
-let peerConn = null;
-let usingPeerJS = false;
+setInterval(() => {
+  const up = relaysUp(gun);
+  $('relays').textContent = `RELAYS ${up}/${relayList.length}`;
+  $('relays').className = up ? '' : 'dim';
+}, 1500);
 
-// Show/hide panels based on connection mode
-function showPanel(panel) {
-    hostPanel.style.display = 'none';
-    joinPanel.style.display = 'none';
-    peerjsPanel.style.display = 'none';
-    if (panel) panel.style.display = 'block';
+// ------------------------------------------------------------- sound
+
+let audio = null;
+let muted = setting('mute', false);
+function beep(freq, ms = 60, vol = 0.05) {
+  if (muted) return;
+  try {
+    audio ||= new AudioContext();
+    const o = audio.createOscillator();
+    const g = audio.createGain();
+    o.type = 'square';
+    o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g).connect(audio.destination);
+    o.start();
+    o.stop(audio.currentTime + ms / 1000);
+  } catch {
+    /* no audio */
+  }
 }
-
-// Listen for connection mode changes
-connectionMode.addEventListener('change', () => {
-    showPanel(null);
+function drawMute() {
+  $('muteBtn').textContent = muted ? '[SOUND OFF]' : '[SOUND ON]';
+}
+$('muteBtn').addEventListener('click', () => {
+  muted = !muted;
+  save('mute', muted);
+  drawMute();
 });
-// ICE config for NAT traversal
-const ICE_CONFIG = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ]
-};
+drawMute();
 
-// Compress/decompress for shorter codes
-function compress(obj) {
-    return btoa(JSON.stringify(obj));
-}
-function decompress(str) {
-    try {
-        return JSON.parse(atob(str.trim()));
-    } catch(e) {
-        return null;
-    }
-}
+// ------------------------------------------------------------- input
 
-// Get username
-function getUsername() {
-    const input = document.getElementById('username').value.trim().toUpperCase();
-    return input || 'PLAYER';
-}
-
-// HOST: Create game
-document.getElementById('hostBtn').onclick = async () => {
-    myName = getUsername();
-    isHost = true;
-    menu.style.display = 'none';
-    if (connectionMode.value === 'peerjs') {
-        usingPeerJS = true;
-        showPanel(peerjsPanel);
-        peerjsHost.style.display = 'block';
-        peerjsJoin.style.display = 'none';
-        // Start PeerJS host logic
-        startPeerjsHost();
-    } else {
-        usingPeerJS = false;
-        showPanel(hostPanel);
-        document.getElementById('hostStatus').textContent = 'GENERATING CODE...';
-        // ...existing manual WebRTC host logic...
-        pc = new RTCPeerConnection(ICE_CONFIG);
-        dataChannel = pc.createDataChannel('pong');
-        setupDataChannel(dataChannel);
-        pc.onicecandidate = (e) => {
-            if (pc.iceGatheringState === 'complete') {
-                const code = compress(pc.localDescription);
-                document.getElementById('hostCode').value = code;
-                document.getElementById('hostStatus').textContent = 'SEND CODE TO FRIEND';
-            }
-        };
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-    }
-};
-
-// PeerJS host logic
-function startPeerjsHost() {
-    peer = new Peer(undefined, { debug: 2 });
-    peer.on('open', (id) => {
-        // Use full peer id so joiners can connect reliably
-        peerjsRoomCode.value = id;
-        peerjsHostStatus.textContent = 'WAITING FOR PLAYER...';
-    });
-    peer.on('connection', (conn) => {
-        peerConn = conn;
-        setupPeerjsDataChannel(conn);
-        peerjsHostStatus.textContent = 'CONNECTED!';
-        // Hide panel and start game
-        setTimeout(() => { showPanel(null); startGame(); }, 500);
-    });
-
-    // Copy room code button (add listener only once)
-    if (!copyPeerjsRoom._bound) {
-        copyPeerjsRoom.addEventListener('click', () => {
-            const code = peerjsRoomCode.value || '';
-            if (!code) return;
-            navigator.clipboard.writeText(code).then(() => {
-                peerjsHostStatus.textContent = '*** COPIED ***';
-                setTimeout(() => { peerjsHostStatus.textContent = 'WAITING FOR PLAYER...'; }, 1200);
-            }).catch(() => {
-                peerjsHostStatus.textContent = 'COPY FAILED';
-            });
-        });
-        copyPeerjsRoom._bound = true;
-    }
-    peer.on('error', (err) => {
-        peerjsHostStatus.textContent = 'ERROR: ' + err;
-    });
-}
-// HOST: Connect with answer
-document.getElementById('hostConnect').onclick = async () => {
-    const answer = decompress(document.getElementById('hostAnswer').value);
-    if (!answer) {
-        document.getElementById('hostStatus').textContent = 'INVALID CODE!';
-        return;
-    }
-    try {
-        await pc.setRemoteDescription(answer);
-        document.getElementById('hostStatus').textContent = 'CONNECTING...';
-    } catch(e) {
-        document.getElementById('hostStatus').textContent = 'CONNECTION FAILED';
-    }
-};
-
-// JOIN: Show panel
-document.getElementById('joinBtn').onclick = () => {
-    myName = getUsername();
-    isHost = false;
-    menu.style.display = 'none';
-    if (connectionMode.value === 'peerjs') {
-        usingPeerJS = true;
-        showPanel(peerjsPanel);
-        peerjsHost.style.display = 'none';
-        peerjsJoin.style.display = 'block';
-    } else {
-        usingPeerJS = false;
-        showPanel(joinPanel);
-    }
-};
-
-// PeerJS join logic
-peerjsJoinBtn.addEventListener('click', () => {
-    const code = peerjsJoinCode.value.trim();
-    if (!code) return;
-    peerjsJoinStatus.textContent = 'CONNECTING...';
-    peer = new Peer(undefined, { debug: 2 });
-    peer.on('open', () => {
-        peerConn = peer.connect(code);
-        peerConn.on('open', () => {
-            setupPeerjsDataChannel(peerConn);
-            peerjsJoinStatus.textContent = 'CONNECTED!';
-            setTimeout(() => { showPanel(null); startGame(); }, 500);
-        });
-        peerConn.on('error', (err) => {
-            peerjsJoinStatus.textContent = 'ERROR: ' + err;
-        });
-    });
-    peer.on('error', (err) => {
-        peerjsJoinStatus.textContent = 'ERROR: ' + err;
-    });
-});
-
-// PeerJS data channel setup (create a small shim that looks like an RTCDataChannel)
-function setupPeerjsDataChannel(conn) {
-    const shim = {
-        _onopen: null,
-        _onclose: null,
-        _onmessage: null,
-        send: (s) => conn.send(typeof s === 'string' ? s : JSON.stringify(s)),
-        get readyState() { return conn.open ? 'open' : 'closed'; },
-        set onopen(fn) { this._onopen = fn; },
-        set onclose(fn) { this._onclose = fn; },
-        set onmessage(fn) { this._onmessage = fn; }
-    };
-
-    conn.on('open', () => { if (shim._onopen) shim._onopen(); });
-    conn.on('close', () => { if (shim._onclose) shim._onclose(); gameStatus.textContent = '*** DISCONNECTED ***'; gameStarted = false; });
-    conn.on('data', (data) => {
-        if (shim._onmessage) shim._onmessage({ data: typeof data === 'string' ? data : JSON.stringify(data) });
-    });
-
-    dataChannel = shim;
-    setupDataChannel(shim);
-}
-// JOIN: Process host code
-document.getElementById('joinConnect').onclick = async () => {
-    const offer = decompress(document.getElementById('joinCode').value);
-    if (!offer) {
-        document.getElementById('joinStatus').textContent = 'INVALID CODE!';
-        return;
-    }
-
-    document.getElementById('joinStatus').textContent = 'GENERATING RESPONSE...';
-
-    pc = new RTCPeerConnection(ICE_CONFIG);
-    
-    pc.ondatachannel = (e) => {
-        dataChannel = e.channel;
-        setupDataChannel(dataChannel);
-    };
-
-    pc.onicecandidate = (e) => {
-        if (pc.iceGatheringState === 'complete') {
-            const code = compress(pc.localDescription);
-            document.getElementById('joinAnswer').value = code;
-            document.getElementById('joinStatus').textContent = 'SEND RESPONSE TO HOST';
-        }
-    };
-
-    try {
-        await pc.setRemoteDescription(offer);
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-    } catch(e) {
-        document.getElementById('joinStatus').textContent = 'ERROR: ' + e.message;
-    }
-};
-
-// Copy buttons
-document.getElementById('copyHostCode').onclick = () => {
-    const code = document.getElementById('hostCode');
-    code.select();
-    navigator.clipboard.writeText(code.value);
-    document.getElementById('hostStatus').textContent = '*** COPIED ***';
-};
-document.getElementById('copyJoinAnswer').onclick = () => {
-    const code = document.getElementById('joinAnswer');
-    code.select();
-    navigator.clipboard.writeText(code.value);
-    document.getElementById('joinStatus').textContent = '*** COPIED ***';
-};
-
-// Setup data channel
-function setupDataChannel(channel) {
-    channel.onopen = () => {
-        channel.send(JSON.stringify({ type: 'name', name: myName }));
-    };
-    
-    channel.onclose = () => {
-        gameStatus.textContent = '*** DISCONNECTED ***';
-        gameStarted = false;
-    };
-    
-    channel.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-        
-        if (msg.type === 'name') {
-            opponentName = msg.name || 'PLAYER';
-            if (isHost) {
-                startGame();
-                send({ type: 'start', hostName: myName });
-            }
-        }
-        if (msg.type === 'start') {
-            opponentName = msg.hostName || 'PLAYER';
-            startGame();
-        }
-        if (msg.type === 'state' && !isHost) {
-            leftY = msg.leftY;
-            rightY = msg.rightY;
-            leftScore = msg.leftScore;
-            rightScore = msg.rightScore;
-            ballX = msg.ballX;
-            ballY = msg.ballY;
-        }
-        if (msg.type === 'paddle' && isHost) {
-            rightY = msg.y;
-        }
-    };
-}
-
-function send(obj) {
-    if (dataChannel && dataChannel.readyState === 'open') {
-        dataChannel.send(JSON.stringify(obj));
-    }
-}
-
-function startGame() {
-    hostPanel.style.display = 'none';
-    joinPanel.style.display = 'none';
-    gameContainer.style.display = 'block';
-    gameStarted = true;
-    initGameState();
-    
-    if (isHost) {
-        leftNameEl.textContent = 'P1: ' + myName;
-        rightNameEl.textContent = 'P2: ' + opponentName;
-        gameStatus.textContent = '< YOU ARE LEFT PADDLE >';
-    } else {
-        leftNameEl.textContent = 'P1: ' + opponentName;
-        rightNameEl.textContent = 'P2: ' + myName;
-        gameStatus.textContent = '< YOU ARE RIGHT PADDLE >';
-    }
-}
-
-// Game rendering
-function draw() {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#33ff33';
-    const dashHeight = 15, dashGap = 10;
-    for (let y = 0; y < canvas.height; y += dashHeight + dashGap) {
-        ctx.fillRect(canvas.width / 2 - 2, y, 4, dashHeight);
-    }
-
-    ctx.shadowColor = '#33ff33';
-    ctx.shadowBlur = 10;
-    ctx.fillRect(paddleOffset, leftY, paddleWidth, paddleHeight);
-    ctx.fillRect(canvas.width - paddleOffset - paddleWidth, rightY, paddleWidth, paddleHeight);
-    ctx.fillRect(ballX, ballY, ballSize, ballSize);
-    ctx.shadowBlur = 0;
-
-    ctx.font = 'bold 60px Courier New, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(leftScore, canvas.width / 4, 70);
-    ctx.fillText(rightScore, 3 * canvas.width / 4, 70);
-}
-
-// Game logic (host only)
-function update() {
-    if (!gameStarted || !isHost) return;
-
-    if (ballPaused) {
-        pauseTimer--;
-        if (pauseTimer <= 0) ballPaused = false;
-        send({ type: 'state', leftY, rightY, leftScore, rightScore, ballX, ballY });
-        return;
-    }
-
-    ballX += ballVX;
-    ballY += ballVY;
-
-    if (ballY <= 0) { ballY = 0; ballVY = -ballVY; }
-    if (ballY + ballSize >= canvas.height) { ballY = canvas.height - ballSize; ballVY = -ballVY; }
-
-    const leftPaddleRight = paddleOffset + paddleWidth;
-    if (ballX <= leftPaddleRight && ballX + ballSize >= paddleOffset &&
-        ballY + ballSize >= leftY && ballY <= leftY + paddleHeight && ballVX < 0) {
-        ballX = leftPaddleRight;
-        hitCount++;
-        const newSpeed = Math.min(Math.abs(ballVX) + SPEED_INCREMENT, BALL_MAX_SPEED);
-        ballVX = newSpeed;
-        const hitPoint = ((ballY + ballSize/2) - (leftY + paddleHeight/2)) / (paddleHeight/2);
-        ballVY += hitPoint * 1.5;
-        ballVY = Math.max(-BALL_SPEED_Y_MAX, Math.min(BALL_SPEED_Y_MAX, ballVY));
-    }
-
-    const rightPaddleLeft = canvas.width - paddleOffset - paddleWidth;
-    if (ballX + ballSize >= rightPaddleLeft && ballX <= canvas.width - paddleOffset &&
-        ballY + ballSize >= rightY && ballY <= rightY + paddleHeight && ballVX > 0) {
-        ballX = rightPaddleLeft - ballSize;
-        hitCount++;
-        const newSpeed = Math.min(Math.abs(ballVX) + SPEED_INCREMENT, BALL_MAX_SPEED);
-        ballVX = -newSpeed;
-        const hitPoint = ((ballY + ballSize/2) - (rightY + paddleHeight/2)) / (paddleHeight/2);
-        ballVY += hitPoint * 1.5;
-        ballVY = Math.max(-BALL_SPEED_Y_MAX, Math.min(BALL_SPEED_Y_MAX, ballVY));
-    }
-
-    if (ballX + ballSize < 0) { rightScore++; resetBall(false); }
-    if (ballX > canvas.width) { leftScore++; resetBall(true); }
-
-    send({ type: 'state', leftY, rightY, leftScore, rightScore, ballX, ballY });
-}
-
-function resetBall(goLeft) {
-    ballX = canvas.width / 2 - ballSize / 2;
-    ballY = canvas.height / 2 - ballSize / 2;
-    hitCount = 0;
-    ballVX = BALL_START_SPEED * (goLeft ? -1 : 1);
-    ballVY = (Math.random() - 0.5) * 1.5;
-    ballPaused = true;
-    pauseTimer = 60;
-}
-
-function moveUp() {
-    if (!gameStarted) return;
-    if (isHost) {
-        leftY = Math.max(0, leftY - paddleSpeed);
-    } else {
-        rightY = Math.max(0, rightY - paddleSpeed);
-        send({ type: 'paddle', y: rightY });
-    }
-}
-
-function moveDown() {
-    if (!gameStarted) return;
-    if (isHost) {
-        leftY = Math.min(canvas.height - paddleHeight, leftY + paddleSpeed);
-    } else {
-        rightY = Math.min(canvas.height - paddleHeight, rightY + paddleSpeed);
-        send({ type: 'paddle', y: rightY });
-    }
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); moveUp(); }
-    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { e.preventDefault(); moveDown(); }
-    // Speed control with +/- keys
-    if (e.key === '+' || e.key === '=') { paddleSpeed = Math.min(paddleSpeed + 2, 20); showSpeedMsg(); }
-    if (e.key === '-' || e.key === '_') { paddleSpeed = Math.max(paddleSpeed - 2, 4); showSpeedMsg(); }
-});
-
-function showSpeedMsg() {
-    gameStatus.textContent = 'SPEED: ' + paddleSpeed;
-    setTimeout(() => {
-        if (gameStarted) {
-            gameStatus.textContent = isHost ? '< YOU ARE LEFT PADDLE >' : '< YOU ARE RIGHT PADDLE >';
-        }
-    }, 1000);
-}
-
-// Mouse control for paddle
-canvas.addEventListener('mousemove', (e) => {
-    if (!gameStarted) return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseY = e.clientY - rect.top;
-    const targetY = mouseY - paddleHeight / 2;
-    const clampedY = Math.max(0, Math.min(canvas.height - paddleHeight, targetY));
-    
-    if (isHost) {
-        leftY = clampedY;
-    } else {
-        rightY = clampedY;
-        send({ type: 'paddle', y: rightY });
-    }
-});
-
-// Touch move on canvas for mobile
-canvas.addEventListener('touchmove', (e) => {
-    if (!gameStarted) return;
+const input = { up: false, down: false, target: null };
+const KEYS = { ArrowUp: 'up', w: 'up', W: 'up', ArrowDown: 'down', s: 'down', S: 'down' };
+addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (KEYS[e.key] && session) {
     e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touchY = e.touches[0].clientY - rect.top;
-    const targetY = touchY - paddleHeight / 2;
-    const clampedY = Math.max(0, Math.min(canvas.height - paddleHeight, targetY));
-    
-    if (isHost) {
-        leftY = clampedY;
-    } else {
-        rightY = clampedY;
-        send({ type: 'paddle', y: rightY });
-    }
-}, { passive: false });
-
-const upBtn = document.getElementById('upBtn');
-const downBtn = document.getElementById('downBtn');
-let upInterval, downInterval;
-// Keyboard hold/repeat for paddle movement
-let keyUpHeld = false, keyDownHeld = false;
-let keyUpInterval, keyDownInterval;
-
-function startKeyUp() {
-    if (!keyUpHeld) {
-        keyUpHeld = true;
-        moveUp();
-        keyUpInterval = setInterval(moveUp, 30);
-    }
-}
-function stopKeyUp() {
-    keyUpHeld = false;
-    clearInterval(keyUpInterval);
-}
-function startKeyDown() {
-    if (!keyDownHeld) {
-        keyDownHeld = true;
-        moveDown();
-        keyDownInterval = setInterval(moveDown, 30);
-    }
-}
-function stopKeyDown() {
-    keyDownHeld = false;
-    clearInterval(keyDownInterval);
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.repeat) return;
-    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); startKeyUp(); }
-    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { e.preventDefault(); startKeyDown(); }
+    input[KEYS[e.key]] = true;
+    input.target = null;
+  }
+  if (e.key === 'm' || e.key === 'M') $('muteBtn').click();
 });
-window.addEventListener('keyup', (e) => {
-    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { stopKeyUp(); }
-    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { stopKeyDown(); }
+addEventListener('keyup', (e) => {
+  if (KEYS[e.key]) input[KEYS[e.key]] = false;
 });
+addEventListener('blur', () => (input.up = input.down = false));
 
-upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveUp(); upInterval = setInterval(moveUp, 30); });
-upBtn.addEventListener('touchend', () => clearInterval(upInterval));
-upBtn.addEventListener('mousedown', () => { moveUp(); upInterval = setInterval(moveUp, 30); });
-upBtn.addEventListener('mouseup', () => clearInterval(upInterval));
-upBtn.addEventListener('mouseleave', () => clearInterval(upInterval));
-
-downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveDown(); downInterval = setInterval(moveDown, 30); });
-downBtn.addEventListener('touchend', () => clearInterval(downInterval));
-downBtn.addEventListener('mousedown', () => { moveDown(); downInterval = setInterval(moveDown, 30); });
-downBtn.addEventListener('mouseup', () => clearInterval(downInterval));
-downBtn.addEventListener('mouseleave', () => clearInterval(downInterval));
-
-// Fixed timestep game loop for consistent physics
-let accumulator = 0;
-
-function gameLoop(currentTime) {
-    if (lastTime === 0) lastTime = currentTime;
-    const deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-    
-    // Accumulate time and run physics in fixed steps
-    accumulator += deltaTime;
-    
-    // Prevent spiral of death
-    if (accumulator > 200) accumulator = 200;
-    
-    while (accumulator >= FIXED_DT) {
-        update();
-        accumulator -= FIXED_DT;
-    }
-    
-    draw();
-    requestAnimationFrame(gameLoop);
+const canvas = $('pong');
+function pointerTarget(e) {
+  const r = canvas.getBoundingClientRect();
+  input.target = clampPaddle(((e.clientY - r.top) / r.height) * H - PH / 2);
+}
+canvas.addEventListener('pointermove', (e) => (e.pointerType === 'mouse' || e.buttons) && pointerTarget(e));
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  pointerTarget(e);
+});
+for (const [id, key] of [
+  ['upBtn', 'up'],
+  ['downBtn', 'down'],
+]) {
+  const b = $(id);
+  const on = (e) => {
+    e.preventDefault();
+    input[key] = true;
+    input.target = null;
+  };
+  const off = () => (input[key] = false);
+  b.addEventListener('pointerdown', on);
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, off);
 }
 
-initGameState();
-requestAnimationFrame(gameLoop);
+/** Move the local paddle: keys at paddle speed, pointer a bit faster but not instantly. */
+function steer(y, dt) {
+  if (input.up || input.down) return clampPaddle(y + ((input.down ? 1 : 0) - (input.up ? 1 : 0)) * PADDLE_SPEED * dt);
+  if (input.target == null) return y;
+  const max = PADDLE_SPEED * 2.2 * dt;
+  return clampPaddle(y + Math.max(-max, Math.min(max, input.target - y)));
+}
+
+// ------------------------------------------------------------- session
+
+/**
+ * mode: 'cpu' | 'host' | 'guest'. The local player is left for cpu/host and
+ * right for the guest.
+ */
+let session = null;
+let room = null;
+let lobbyTimer = null;
+
+function begin(mode, opts = {}) {
+  session = {
+    mode,
+    side: mode === 'guest' ? 'r' : 'l',
+    s: newGame(),
+    names: opts.names,
+    ch: opts.ch || null,
+    remoteY: (H - PH) / 2,
+    snap: null,
+    snapAt: 0,
+    lastSend: 0,
+    lastY: null,
+    seq: 0,
+    rtt: null,
+    counters: { h: 0, k: 0, p: 0 },
+    acc: 0,
+  };
+  input.target = null;
+  if (globalThis.__pongTest) globalThis.__pongTest.session = session; // read-only view for the e2e test
+  $('leftName').textContent = session.names.l;
+  $('rightName').textContent = session.names.r;
+  $('overlay').hidden = true;
+  show('game');
+  drawNet();
+}
+
+function end() {
+  if (session?.ch) {
+    clearInterval(session.pinger);
+    session.ch.close('left');
+  }
+  session = null;
+  stopLobby();
+  room?.leave();
+  room = null;
+  history.replaceState(null, '', location.pathname + location.search);
+  show('menu');
+}
+
+function drawNet() {
+  if (!session) return;
+  const el = $('netInfo');
+  if (session.mode === 'cpu') el.textContent = 'PRACTICE';
+  else el.textContent = `${session.ch?.kind === 'direct' ? 'DIRECT' : 'VIA RELAY'}${session.rtt != null ? ` · ${session.rtt} MS` : ''}`;
+}
+
+function overlay(html, buttons) {
+  const o = $('overlay');
+  o.innerHTML = `<div>${html}</div><div class="buttons">${buttons.map(([id, label]) => `<button type="button" data-act="${id}">${label}</button>`).join('')}</div>`;
+  o.hidden = false;
+}
+
+$('overlay').addEventListener('click', (e) => {
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'rematch') rematch();
+  if (act === 'menu') end();
+  if (act === 'wait') waitAgain();
+});
+$('menuBtn').addEventListener('click', end);
+
+function rematch() {
+  if (!session) return;
+  $('overlay').hidden = true;
+  if (session.mode === 'guest') session.ch?.send({ t: 'rematch' });
+  else {
+    session.s = newGame();
+    session.counters = { h: 0, k: 0, p: 0 };
+  }
+}
+
+// ------------------------------------------------------------- networking
+
+function wire(ch) {
+  session.ch = ch;
+  ch.on('message', onMessage);
+  ch.on('close', () => {
+    if (!session || session.ch !== ch) return;
+    clearInterval(session.pinger);
+    session.ch = null;
+    beep(110, 300);
+    overlay(
+      '<h2>OPPONENT LEFT</h2>',
+      session.mode === 'host'
+        ? [
+            ['wait', '[WAIT FOR A NEW PLAYER]'],
+            ['menu', '[MENU]'],
+          ]
+        : [['menu', '[MENU]']],
+    );
+  });
+  session.pinger = setInterval(() => ch.send({ t: 'ping', ts: performance.now() }), 2000);
+}
+
+function onMessage(msg) {
+  if (!session) return;
+  if (msg.t === 'ping') return session.ch?.send({ t: 'pong', ts: msg.ts });
+  if (msg.t === 'pong') {
+    session.rtt = Math.round(performance.now() - msg.ts);
+    return drawNet();
+  }
+  if (session.mode === 'host') {
+    if (msg.t === 'p') session.remoteY = clampPaddle(Number(msg.y) || 0);
+    else if (msg.t === 'rematch' && session.s.ph === 'over') rematch();
+    else if (msg.t === 'hello') session.ch?.send({ t: 'start', name: myName() });
+  } else if (msg.t === 's' && msg.n > (session.snap?.n ?? -1)) {
+    session.snap = msg;
+    session.snapAt = performance.now();
+  }
+}
+
+// Host: open a room, show the link, wait for a guest.
+async function hostGame() {
+  room?.leave();
+  const secret = randomSecret(16);
+  room = new Room(gun, { secret, role: 'host', name: myName(), forceRelay, channel: { ordered: true } });
+  await room.join();
+  room.secret = secret;
+  const link = `${location.href.split('#')[0]}#${secret}`;
+  $('link').value = link;
+  $('qr').innerHTML = qrSvg(link);
+  show('wait');
+  publishLobby();
+  room.on('channel', (ch) => {
+    if (session?.ch?.open) {
+      ch.send({ t: 'full' });
+      setTimeout(() => ch.close('full'), 500);
+      return;
+    }
+    const off = ch.on('message', (msg) => {
+      if (msg.t !== 'hello' || (session?.ch?.open && session.ch !== ch)) return;
+      off();
+      stopLobby();
+      const guest = clean(msg.name, 'PLAYER 2');
+      ch.send({ t: 'start', name: myName() });
+      if (session?.mode === 'host') {
+        // A new player after the last one left: keep the session, reset the game.
+        session.names.r = guest;
+        $('rightName').textContent = guest;
+        session.s = newGame();
+        $('overlay').hidden = true;
+      } else begin('host', { names: { l: myName(), r: guest } });
+      wire(ch);
+      drawNet();
+      beep(660, 120);
+    });
+  });
+}
+
+function waitAgain() {
+  $('overlay').hidden = true;
+  if (!room) return end();
+  overlay('<h2>WAITING FOR A NEW PLAYER<span class="blink">_</span></h2><p class="dim">SAME LINK AS BEFORE</p>', [['menu', '[MENU]']]);
+  if ($('listPublic').checked) publishLobby();
+}
+
+function publishLobby() {
+  stopLobby();
+  const put = () => {
+    if (!room || !$('listPublic').checked) return;
+    gun.get(LOBBY).get(room.peerId).put(JSON.stringify({ name: myName(), secret: room.secret, t: Date.now() }));
+  };
+  put();
+  lobbyTimer = setInterval(put, 4000);
+}
+
+function stopLobby() {
+  clearInterval(lobbyTimer);
+  lobbyTimer = null;
+  if (room?.peerId) gun.get(LOBBY).get(room.peerId).put(null);
+}
+
+$('listPublic').checked = setting('listPublic', false);
+$('listPublic').addEventListener('change', () => {
+  save('listPublic', $('listPublic').checked);
+  if ($('listPublic').checked) publishLobby();
+  else stopLobby();
+});
+
+// Guest: find the host of a link and connect.
+async function joinGame(secret) {
+  room?.leave();
+  show('joining');
+  const status = (t) => ($('joinStatus').textContent = t);
+  status('LOOKING FOR THE HOST…');
+  room = new Room(gun, { secret, role: 'guest', name: myName(), forceRelay, channel: { ordered: true } });
+  const mine = room;
+  await room.join();
+  const slow = setTimeout(() => status('WAITING FOR THE HOST — THEIR GAME HAS TO BE OPEN.'), 8000);
+  const host = await new Promise((resolve) => {
+    const find = () => [...mine.peers.values()].find((p) => p.role === 'host');
+    if (find()) return resolve(find());
+    const off = mine.on('peer', () => find() && (off(), resolve(find())));
+  });
+  clearTimeout(slow);
+  if (room !== mine) return;
+  status(`CONNECTING TO ${clean(host.name, 'HOST')}…`);
+  const ch = await mine.connect(host.id);
+  if (room !== mine) return ch.close();
+  const hello = () => ch.send({ t: 'hello', name: myName() });
+  hello();
+  const again = setInterval(hello, 2000);
+  ch.on('message', function first(msg) {
+    if (msg.t === 'full') {
+      clearInterval(again);
+      status('THIS GAME IS ALREADY FULL.');
+    }
+    if (msg.t !== 'start' || session) return;
+    clearInterval(again);
+    begin('guest', { names: { l: clean(msg.name, 'HOST'), r: myName() } });
+    wire(ch);
+    beep(660, 120);
+  });
+  ch.on('close', () => clearInterval(again));
+}
+
+$('hostBtn').addEventListener('click', () => hostGame());
+$('cpuBtn').addEventListener('click', () => begin('cpu', { names: { l: myName(), r: 'CPU' } }));
+$('cancelWait').addEventListener('click', end);
+$('cancelJoin').addEventListener('click', end);
+$('copyLink').addEventListener('click', async () => {
+  await navigator.clipboard.writeText($('link').value).catch(() => {});
+  $('copyLink').textContent = '[COPIED]';
+  setTimeout(() => ($('copyLink').textContent = '[COPY]'), 1500);
+});
+$('link').addEventListener('focus', (e) => e.target.select());
+$('joinForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = e.target.code.value.trim();
+  const secret = v.includes('#') ? v.slice(v.indexOf('#') + 1) : v;
+  if (/^[\w-]{22}$/.test(secret)) location.hash = secret;
+  else e.target.code.value = '';
+});
+
+// Open games: hosts who chose to be listed, seen in the last few seconds.
+const lobby = new Map();
+gun
+  .get(LOBBY)
+  .map()
+  .on((v, k) => {
+    if (v == null) return lobby.delete(k);
+    try {
+      const g = JSON.parse(v);
+      if (/^[\w-]{22}$/.test(g.secret)) lobby.set(k, { name: clean(g.name, 'HOST'), secret: g.secret, t: Number(g.t) || 0 });
+    } catch {
+      /* not a game */
+    }
+  });
+setInterval(() => {
+  const ul = $('lobby');
+  const fresh = [...lobby.values()].filter((g) => Date.now() - g.t < 12_000 && g.secret !== room?.secret);
+  ul.innerHTML = fresh.length ? '' : '<li class="dim">NONE RIGHT NOW</li>';
+  for (const g of fresh) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `▶ ${g.name}`;
+    b.addEventListener('click', () => (location.hash = g.secret));
+    li.append(b);
+    ul.append(li);
+  }
+}, 1500);
+
+// ------------------------------------------------------------- loop & drawing
+
+const ctx = canvas.getContext('2d');
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+canvas.width = W * dpr;
+canvas.height = H * dpr;
+ctx.scale(dpr, dpr);
+const GREEN = '#33ff33';
+
+function sounds(c) {
+  const before = session.counters;
+  if (c.h > before.h) beep(520);
+  if (c.k > before.k) beep(300, 40);
+  if (c.p > before.p) beep(180, 250);
+  session.counters = c;
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (session) tick(dt, now);
+  draw(now);
+  requestAnimationFrame(frame);
+}
+
+function tick(dt, now) {
+  const S = session;
+  const s = S.s;
+  if (S.mode === 'guest') {
+    s.r = steer(s.r, dt);
+    const every = S.ch?.kind === 'direct' ? 33 : 80;
+    if (S.ch && now - S.lastSend > every && s.r !== S.lastY) {
+      S.ch.send({ t: 'p', y: Math.round(s.r * 10) / 10 });
+      S.lastSend = now;
+      S.lastY = s.r;
+    }
+    const snap = S.snap;
+    if (snap) {
+      s.l += (snap.l - s.l) * Math.min(1, dt * 18);
+      s.ls = snap.ls;
+      s.rs = snap.rs;
+      s.ph = snap.ph;
+      s.w = snap.w;
+      sounds({ h: snap.h, k: snap.k, p: snap.p });
+      Object.assign(s, extrapolate(snap, now - S.snapAt));
+    }
+    return showEnd();
+  }
+  // cpu / host: the authoritative simulation
+  S.acc += dt;
+  while (S.acc >= DT) {
+    s.l = steer(s.l, DT);
+    if (S.mode === 'cpu') cpuMove(s, DT);
+    else s.r += (S.remoteY - s.r) * Math.min(1, DT * 30);
+    step(s, DT);
+    S.acc -= DT;
+  }
+  sounds({ h: s.hits, k: s.walls, p: s.points });
+  if (S.mode === 'host' && S.ch) {
+    const every = S.ch.kind === 'direct' ? 33 : 80;
+    if (now - S.lastSend > every) {
+      S.ch.send(snapshot(s, ++S.seq));
+      S.lastSend = now;
+    }
+  }
+  showEnd();
+}
+
+function showEnd() {
+  const S = session;
+  if (S.s.ph !== 'over') {
+    S.shownEnd = false;
+    return;
+  }
+  if (S.shownEnd || !$('overlay').hidden) return;
+  S.shownEnd = true;
+  const mine = S.s.w === S.side;
+  beep(mine ? 880 : 140, 400);
+  const name = S.s.w === 'l' ? S.names.l : S.names.r;
+  overlay(`<h2>${mine ? 'YOU WIN' : `${name} WINS`}</h2><p>${S.s.ls} : ${S.s.rs}</p>`, [
+    ['rematch', S.mode === 'guest' ? '[ASK FOR REMATCH]' : '[REMATCH]'],
+    ['menu', '[MENU]'],
+  ]);
+}
+
+function draw(now) {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = GREEN;
+  ctx.shadowColor = GREEN;
+  for (let y = 8; y < H; y += 26) ctx.fillRect(W / 2 - 2, y, 4, 14);
+  const s = session?.s;
+  if (!s) return;
+  ctx.font = 'bold 64px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(s.ls), W / 4, 76);
+  ctx.fillText(String(s.rs), (3 * W) / 4, 76);
+  ctx.shadowBlur = 12;
+  ctx.fillRect(PX, s.l, PW, PH);
+  ctx.fillRect(W - PX - PW, s.r, PW, PH);
+  if (s.ph === 'play' || Math.floor(now / 250) % 2) ctx.fillRect(s.bx, s.by, BALL, BALL);
+  ctx.shadowBlur = 0;
+  // Mark your own paddle.
+  ctx.fillRect(session.side === 'l' ? PX - 8 : W - PX + 4, (session.side === 'l' ? s.l : s.r) + PH / 2 - 3, 4, 6);
+  if (s.ph === 'serve' && s.ls + s.rs === 0) {
+    ctx.font = 'bold 22px "Courier New", monospace';
+    ctx.fillText(`FIRST TO ${WIN}`, W / 2, H - 40);
+  }
+}
+requestAnimationFrame(frame);
+
+// ------------------------------------------------------------- start
+
+function route() {
+  const secret = location.hash.slice(1);
+  if (/^[\w-]{22}$/.test(secret)) {
+    if (session) end();
+    joinGame(secret);
+  }
+}
+addEventListener('hashchange', route);
+show('menu');
+route();

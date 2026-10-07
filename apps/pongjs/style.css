@@ -1,299 +1,315 @@
+/* PONG.JS — green phosphor CRT, scales from phones to desktops. */
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:root {
+  --green: #33ff33;
+  --dim: rgb(51 255 51 / 0.55);
+  color-scheme: dark;
 }
 
 body {
-    background: #0a0a0a;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Courier New', monospace;
-    overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: #0a0a0a;
+  font-family: 'Courier New', ui-monospace, monospace;
+  color: var(--green);
 }
 
 .crt {
-    position: relative;
-    /* rich radial background for a retro CRT bezel (square corners) */
-    background: radial-gradient(circle at 20% 10%, #071a07, #000 70%);
-    border: 6px solid #092209;
-    border-radius: 0;
-    box-shadow:
-        inset 0 0 120px rgba(0,255,51,0.06),
-        0 0 40px rgba(0,255,51,0.25),
-        0 10px 30px rgba(0,0,0,0.7);
-    overflow: hidden;
-    max-width: 100vw;
-    max-height: 100vh;
-}
-
-/* subtle inner rim for CRT bezel (square corners) */
-.crt::after {
-    content: "";
-    position: absolute;
-    inset: 8px;
-    border-radius: 0;
-    pointer-events: none;
-    box-shadow: inset 0 0 0 2px rgba(51,255,51,0.04);
-    background: linear-gradient(180deg, rgba(51,255,51,0.02), transparent);
-    mix-blend-mode: screen;
-    z-index: 1;
+  position: relative;
+  width: min(880px, 100%);
+  background: radial-gradient(circle at 20% 10%, #071a07, #000 70%);
+  border: 6px solid #092209;
+  box-shadow:
+    inset 0 0 120px rgb(0 255 51 / 0.06),
+    0 0 40px rgb(0 255 51 / 0.25),
+    0 10px 30px rgb(0 0 0 / 0.7);
+  overflow: hidden;
 }
 
 .scanlines {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.3) 0px,
-        rgba(0, 0, 0, 0.3) 1px,
-        transparent 1px,
-        transparent 2px
-    );
-    pointer-events: none;
-    z-index: 100;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.3) 0, rgb(0 0 0 / 0.3) 1px, transparent 1px, transparent 2px);
+  pointer-events: none;
+  z-index: 100;
 }
 
 .content {
-    position: relative;
-    z-index: 200;
-    padding: 20px;
-    color: #33ff33;
-    text-align: center;
-    text-shadow: 0 0 10px #33ff33;
-    min-width: 320px;
+  position: relative;
+  z-index: 1;
+  padding: clamp(14px, 3vw, 24px);
+  text-align: center;
+  text-shadow: 0 0 8px var(--green);
 }
 
 h1 {
-    font-size: 3em;
-    letter-spacing: 0.3em;
-    margin-bottom: 5px;
-    animation: flicker 0.1s infinite alternate;
+  font-size: clamp(2rem, 7vw, 3rem);
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+  animation: flicker 0.1s infinite alternate;
+}
+
+h1 a {
+  color: inherit;
+  text-decoration: none;
 }
 
 h2 {
-    font-size: 1.5em;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #33ff33;
-    padding-bottom: 10px;
+  font-size: 1.15rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 0.5rem;
 }
 
 .subtitle {
-    font-size: 0.9em;
-    margin-bottom: 30px;
-    opacity: 0.8;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.screen {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.dim {
+  color: var(--dim);
 }
 
 .blink {
-    animation: blink 1s infinite;
+  animation: blink 1s infinite;
 }
 
 @keyframes blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes flicker {
-    0% { opacity: 0.97; }
-    100% { opacity: 1; }
-}
-
-.input-group {
-    margin: 20px 0;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 0.9em;
-}
-
-/* Retro-styled connection selector */
-.input-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-}
-
-#connectionMode {
-    -webkit-appearance: none;
-    appearance: none;
-    background: linear-gradient(#001100, #002200);
-    border: 2px solid #33ff33;
-    color: #33ff33;
-    padding: 10px 16px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.95em;
-    border-radius: 8px;
-    box-shadow: 0 0 18px rgba(51,255,51,0.15), inset 0 0 6px rgba(0,0,0,0.6);
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    min-width: 200px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'><polygon fill='%2333ff33' points='7,9 12,14 17,9'/></svg>");
-    background-repeat: no-repeat;
-    background-position: calc(100% - 12px) center;
-}
-
-#connectionMode:focus {
-    outline: none;
-    box-shadow: 0 0 30px rgba(51,255,51,0.25);
-}
-
-#connectionMode option {
-    background: #001100;
-    color: #33ff33;
-}
-
-@media (max-width: 420px) {
-    #connectionMode { min-width: 140px; }
-}
-
-
-input[type="text"], textarea {
-    background: #001100;
-    border: 2px solid #33ff33;
-    color: #33ff33;
-    padding: 10px;
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
-    text-align: center;
-    width: 100%;
-    text-shadow: 0 0 5px #33ff33;
-}
-
-textarea {
-    height: 80px;
-    resize: none;
-    text-align: left;
-    font-size: 0.7em;
-    word-break: break-all;
-}
-
-input[type="text"]:focus, textarea:focus {
-    outline: none;
-    box-shadow: 0 0 15px #33ff33;
-}
-
-input[type="text"]::placeholder, textarea::placeholder {
-    color: #116611;
+  0% {
+    opacity: 0.97;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 button {
-    background: transparent;
-    border: 2px solid #33ff33;
-    color: #33ff33;
-    padding: 15px 30px;
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
-    cursor: pointer;
-    margin: 10px 5px;
-    text-shadow: 0 0 5px #33ff33;
-    transition: all 0.1s;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--green);
+  background: transparent;
+  border: 2px solid var(--green);
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  text-shadow: inherit;
+  box-shadow: 0 0 6px rgb(51 255 51 / 0.35);
 }
 
-button:hover, button:active {
-    background: #33ff33;
-    color: #000;
-    box-shadow: 0 0 20px #33ff33;
+button:hover,
+button:focus-visible {
+  background: var(--green);
+  color: #000;
+  text-shadow: none;
+  outline: none;
 }
 
-.panel {
-    margin: 20px 0;
-    text-align: left;
+input {
+  font: inherit;
+  color: var(--green);
+  background: #000;
+  border: 2px solid var(--green);
+  padding: 0.5rem 0.6rem;
+  text-transform: uppercase;
+  min-width: 0;
+  width: 100%;
 }
 
-.panel p {
-    margin: 10px 0;
-    font-size: 0.9em;
+input:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgb(51 255 51 / 0.5);
 }
 
-.panel button {
-    padding: 10px 20px;
-    font-size: 0.9em;
+#link {
+  text-transform: none;
+  font-size: 0.8rem;
 }
 
-#hostStatus, #joinStatus {
-    text-align: center;
-    font-weight: bold;
-    margin-top: 15px !important;
+.field {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-weight: bold;
+  width: min(100%, 360px);
 }
 
-#gameContainer {
-    margin-top: 20px;
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
 }
 
-#playerNames {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 10px;
-    margin-bottom: 10px;
-    font-size: 1.2em;
+.row {
+  display: flex;
+  gap: 0.5rem;
+  width: min(100%, 520px);
+}
+
+.row button {
+  white-space: nowrap;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.check input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--green);
+}
+
+.lobby {
+  width: min(100%, 520px);
+  margin-top: 0.5rem;
+}
+
+.lobby ul {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.lobby button {
+  width: 100%;
+  text-align: left;
+}
+
+.qr svg {
+  width: min(200px, 60vw);
+  height: auto;
+}
+
+/* Dark modules on a light background: inverted codes confuse some scanners. */
+.qr-bg {
+  fill: var(--green);
+}
+
+.qr-fg {
+  fill: #000;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+#netInfo {
+  font-size: 0.75rem;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
 }
 
 canvas {
-    border: 3px solid #33ff33;
-    box-shadow: 0 0 20px #33ff33;
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  border: 2px solid var(--green);
+  box-shadow: 0 0 20px rgb(51 255 51 / 0.3);
+  touch-action: none;
+  cursor: ns-resize;
 }
 
-#touchControls {
-    margin-top: 15px;
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  background: rgb(0 0 0 / 0.78);
+  padding: 1rem;
+}
+
+.overlay h2 {
+  border: 0;
+  font-size: clamp(1.3rem, 5vw, 2rem);
+}
+
+.touch {
+  display: none;
+  gap: 1rem;
+  width: 100%;
+}
+
+.touch button {
+  flex: 1;
+  font-size: 1.6rem;
+  padding: 0.9rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (pointer: coarse) {
+  .touch {
     display: flex;
-    justify-content: center;
-    gap: 20px;
+  }
 }
 
-#touchControls button {
-    padding: 20px 30px;
-    font-size: 1.2em;
-    touch-action: manipulation;
-    user-select: none;
-    -webkit-user-select: none;
+.hint {
+  font-size: 0.72rem;
+  opacity: 0.7;
 }
 
-#gameStatus {
-    margin-top: 15px;
-    font-size: 1.1em;
+footer {
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  opacity: 0.75;
 }
 
-.controls-hint {
-    margin-top: 10px;
-    font-size: 0.7em;
-    opacity: 0.6;
+footer a {
+  color: inherit;
 }
 
-.footer {
-    margin-top: 30px;
-    font-size: 0.7em;
-    opacity: 0.5;
-}
-
-@media (max-width: 400px) {
-    .content {
-        padding: 15px;
-        min-width: 280px;
-    }
-    
-    h1 {
-        font-size: 2em;
-    }
-    
-    button {
-        padding: 12px 20px;
-        font-size: 0.9em;
-    }
-    
-    textarea {
-        height: 60px;
-        font-size: 0.6em;
-    }
+@media (prefers-reduced-motion: reduce) {
+  h1,
+  .blink {
+    animation: none;
+  }
 }

@@ -1,96 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>pongjs - 2 player</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https: wss: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Two-player Pong between two browsers: find each other over gun.js, play over a direct WebRTC link.">
+  <meta name="theme-color" content="#000000">
+  <title>PONG.JS — 2 player, peer to peer</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../shared/gun.js"></script>
+  <script type="module" src="pong.js"></script>
 </head>
 <body>
-    <div class="crt">
-        <div class="scanlines"></div>
-        <div class="content">
+  <div class="crt">
+    <div class="scanlines"></div>
+    <div class="content">
+      <header>
+        <h1><a href="./">PONG.JS</a></h1>
+        <p class="subtitle">*** 2 PLAYER · PEER TO PEER ***</p>
+      </header>
 
-            <h1>PONGJS</h1>
-            <p class="subtitle">*** 2 PLAYER NETWORK ***</p>
-
-            <div id="menu">
-                <p class="blink">- SELECT MODE -</p>
-                <div class="input-group">
-                    <label>ENTER NAME:</label>
-                    <input type="text" id="username" placeholder="PLAYER1" maxlength="10">
-                </div>
-                <div class="input-group">
-                    <label>CONNECTION:</label>
-                    <select id="connectionMode">
-                        <option value="peerjs">Auto (PeerJS)</option>
-                        <option value="manual">Manual (WebRTC)</option>
-                    </select>
-                </div>
-                <button id="hostBtn">[1] HOST GAME</button>
-                <button id="joinBtn">[2] JOIN GAME</button>
-            </div>
-
-            <!-- PeerJS UI -->
-            <div id="peerjsPanel" class="panel" style="display:none;">
-                <h2 id="peerjsTitle">PEERJS</h2>
-                <div id="peerjsHost" style="display:none;">
-                    <p>ROOM CODE:</p>
-                    <textarea id="peerjsRoomCode" readonly></textarea>
-                    <button id="copyPeerjsRoom">[COPY]</button>
-                    <p id="peerjsHostStatus">WAITING FOR PLAYER...</p>
-                </div>
-                <div id="peerjsJoin" style="display:none;">
-                    <p>ENTER ROOM CODE:</p>
-                    <textarea id="peerjsJoinCode" placeholder="paste full room id"></textarea>
-                    <button id="peerjsJoinBtn">[JOIN]</button>
-                    <p id="peerjsJoinStatus"></p>
-                </div>
-            </div>
-
-            <div id="hostPanel" class="panel" style="display:none;">
-                <h2>HOST GAME</h2>
-                <p>1. COPY THIS CODE:</p>
-                <textarea id="hostCode" readonly></textarea>
-                <button id="copyHostCode">[COPY]</button>
-                <p>2. PASTE FRIEND'S RESPONSE:</p>
-                <textarea id="hostAnswer" placeholder="PASTE RESPONSE HERE"></textarea>
-                <button id="hostConnect">[CONNECT]</button>
-                <p id="hostStatus">WAITING...</p>
-            </div>
-
-            <div id="joinPanel" class="panel" style="display:none;">
-                <h2>JOIN GAME</h2>
-                <p>1. PASTE HOST CODE:</p>
-                <textarea id="joinCode" placeholder="PASTE HOST CODE HERE"></textarea>
-                <button id="joinConnect">[GENERATE RESPONSE]</button>
-                <p>2. SEND THIS TO HOST:</p>
-                <textarea id="joinAnswer" readonly></textarea>
-                <button id="copyJoinAnswer">[COPY]</button>
-                <p id="joinStatus">WAITING...</p>
-            </div>
-
-            <div id="gameContainer" style="display:none;">
-                <div id="playerNames">
-                    <span id="leftName">P1</span>
-                    <span id="rightName">P2</span>
-                </div>
-                <canvas id="pong"></canvas>
-                <div id="touchControls">
-                    <button id="upBtn">[ UP ]</button>
-                    <button id="downBtn">[DOWN]</button>
-                </div>
-                <p id="gameStatus"></p>
-                <p class="controls-hint">MOUSE/TOUCH: MOVE | +/-: SPEED</p>
-            </div>
-
-            <p class="footer">(C) 2026 - derlocke-ng</p>
+      <section id="menu" class="screen">
+        <label class="field">NAME <input id="name" maxlength="12" autocomplete="nickname" spellcheck="false"></label>
+        <div class="buttons">
+          <button type="button" id="hostBtn">[1] HOST GAME</button>
+          <button type="button" id="cpuBtn">[2] PRACTICE VS CPU</button>
         </div>
-    </div>
+        <form id="joinForm" class="row">
+          <input name="code" placeholder="PASTE A GAME LINK" autocomplete="off" spellcheck="false" aria-label="Game link">
+          <button>[3] JOIN</button>
+        </form>
+        <div class="lobby">
+          <h2>OPEN GAMES</h2>
+          <ul id="lobby"><li class="dim">NONE RIGHT NOW</li></ul>
+        </div>
+      </section>
 
-    <script src="pong.js"></script>
+      <section id="wait" class="screen" hidden>
+        <h2>WAITING FOR PLAYER 2<span class="blink">_</span></h2>
+        <p>SEND THEM THIS LINK</p>
+        <div class="row">
+          <input id="link" readonly aria-label="Game link" spellcheck="false">
+          <button type="button" id="copyLink">[COPY]</button>
+        </div>
+        <div id="qr" class="qr"></div>
+        <label class="check"><input type="checkbox" id="listPublic"> LIST UNDER OPEN GAMES</label>
+        <button type="button" id="cancelWait">[CANCEL]</button>
+      </section>
+
+      <section id="joining" class="screen" hidden>
+        <h2>JOINING<span class="blink">_</span></h2>
+        <p id="joinStatus">LOOKING FOR THE HOST…</p>
+        <button type="button" id="cancelJoin">[CANCEL]</button>
+      </section>
+
+      <section id="game" class="screen" hidden>
+        <div class="hud"><span id="leftName">P1</span><span id="netInfo" class="dim"></span><span id="rightName">P2</span></div>
+        <div class="stage">
+          <canvas id="pong" width="800" height="500" aria-label="Pong field"></canvas>
+          <div id="overlay" class="overlay" hidden></div>
+        </div>
+        <div class="touch">
+          <button type="button" id="upBtn" aria-label="Paddle up">▲</button>
+          <button type="button" id="downBtn" aria-label="Paddle down">▼</button>
+        </div>
+        <p class="hint">W/S OR ↑/↓ · MOUSE OR TOUCH · M: SOUND · FIRST TO 7</p>
+        <div class="buttons">
+          <button type="button" id="muteBtn">[SOUND ON]</button>
+          <button type="button" id="menuBtn">[MENU]</button>
+        </div>
+      </section>
+
+      <footer><span id="relays">RELAYS …</span> · <a href="../">WEAPONIZED.JS</a></footer>
+    </div>
+  </div>
 </body>
-</body>
-<!-- PeerJS CDN for automatic signaling -->
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </html>
