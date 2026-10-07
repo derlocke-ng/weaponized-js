@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 Encrypted P2P File Share — Gun.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface2: #1a1a1a;
+            --border: rgba(255,255,255,0.08);
+            --green: #22c55e;
+            --green-dim: rgba(34,197,94,0.15);
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --text: #e4e4e7;
+            --text2: rgba(255,255,255,0.5);
+            --text3: rgba(255,255,255,0.3);
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+        .header h1 {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .header p { color: var(--text2); font-size: 0.85em; }
+
+        /* Status bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            font-size: 0.8em;
+        }
+        .status-item { display: flex; align-items: center; gap: 6px; }
+        .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--red);
+            animation: pulse 2s infinite;
+        }
+        .dot.on { background: var(--green); }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .card h2 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .card-info {
+            font-size: 0.8em;
+            color: var(--text2);
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border-left: 3px solid var(--green);
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+        .upload-zone .icon { font-size: 2.5em; margin-bottom: 8px; }
+        .upload-zone p { color: var(--text2); font-size: 0.85em; }
+        .upload-zone .limit { color: var(--text3); font-size: 0.75em; margin-top: 6px; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-green {
+            background: var(--green);
+            color: #000;
+        }
+        .btn-green:hover:not(:disabled) { background: #16a34a; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover:not(:disabled) { background: var(--surface2); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8em; width: auto; }
+
+        /* Share link box */
+        .share-box {
+            background: var(--surface2);
+            border: 1px solid var(--green);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+        .share-box.show { display: block; }
+        .share-box h3 {
+            font-size: 0.9em;
+            color: var(--green);
+            margin-bottom: 8px;
+        }
+        .share-link {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 0.75em;
+            word-break: break-all;
+            color: var(--text2);
+            margin-bottom: 10px;
+            user-select: all;
+        }
+        .share-warning {
+            font-size: 0.75em;
+            color: var(--text3);
+            margin-top: 8px;
+        }
+
+        /* Progress */
+        .progress-wrap {
+            margin-top: 16px;
+            display: none;
+        }
+        .progress-wrap.show { display: block; }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: var(--surface2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        /* Receive mode */
+        .receive-card {
+            text-align: center;
+        }
+        .receive-card .file-icon { font-size: 3em; margin-bottom: 12px; }
+        .receive-card .file-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 4px;
+        }
+        .receive-card .file-meta {
+            font-size: 0.8em;
+            color: var(--text2);
+            margin-bottom: 20px;
+        }
+
+        /* Download link */
+        .dl-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green);
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+        .dl-link:hover { background: #16a34a; transform: translateY(-1px); }
+
+        /* Log */
+        .log-card { margin-top: 16px; }
+        .log {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 0.72em;
+            max-height: 200px;
+            overflow-y: auto;
+            color: var(--text3);
+        }
+        .log div { margin: 2px 0; }
+        .log .ok { color: var(--green); }
+        .log .err { color: var(--red); }
+        .log .info { color: var(--blue); }
+
+        /* Modes */
+        .mode-send, .mode-receive { display: none; }
+        body.send .mode-send { display: block; }
+        body.receive .mode-receive { display: block; }
+
+        /* Misc */
+        input[type="file"] { display: none; }
+        .hidden { display: none !important; }
+        .mt { margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔒 Encrypted File Share</h1>
+            <p>Peer-to-peer via Gun.js — end-to-end encrypted, no server storage</p>
+        </div>
+
+        <!-- Status -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="dot" id="gunDot"></span>
+                <span>Gun: <span id="gunStatus">connecting...</span></span>
+            </div>
+            <div class="status-item">
+                <span id="peerCount">0</span> peers
+            </div>
+        </div>
+
+        <!-- ============ SEND MODE ============ -->
+        <div class="mode-send">
+            <div class="card">
+                <h2>📤 Share a file</h2>
+                <div class="card-info">
+                    Files are encrypted with AES-256 in your browser, chunked, and sent through Gun.js relays.
+                    The decryption key only exists in the share link — never on any server.
+                </div>
+
+                <div class="upload-zone" id="uploadZone">
+                    <div class="icon">📁</div>
+                    <p><strong>Click or drop a file here</strong></p>
+                    <p class="limit">Max ~10 MB recommended</p>
+                </div>
+                <input type="file" id="fileInput">
+
+                <!-- Selected file info -->
+                <div id="fileInfo" class="hidden mt">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--surface2); border-radius:8px;">
+                        <div>
+                            <div style="font-weight:600; font-size:0.9em;" id="fileName"></div>
+                            <div style="font-size:0.75em; color:var(--text2);" id="fileMeta"></div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="clearFile">✕</button>
+                    </div>
+                    <button class="btn btn-green mt" id="sendBtn">🔒 Encrypt & Share</button>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-wrap" id="sendProgress">
+                    <div class="progress-label">
+                        <span id="sendPhase">Encrypting...</span>
+                        <span id="sendPct">0%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="sendFill"></div></div>
+                </div>
+
+                <!-- Share link output -->
+                <div class="share-box" id="shareBox">
+                    <h3>✅ Ready to share!</h3>
+                    <div class="share-link" id="shareLink"></div>
+                    <button class="btn btn-green btn-sm" id="copyBtn">📋 Copy Link</button>
+                    <p class="share-warning">
+                        ⚠️ Keep this tab open! Data lives in memory and transfers in real-time.
+                        <br>Link contains the encryption key — anyone with it can download.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ RECEIVE MODE ============ -->
+        <div class="mode-receive">
+            <div class="card receive-card">
+                <div class="file-icon">📄</div>
+                <div class="file-name" id="rxFileName">Loading...</div>
+                <div class="file-meta" id="rxFileMeta"></div>
+
+                <!-- Progress -->
+                <div class="progress-wrap show" id="rxProgress">
+                    <div class="progress-label">
+                        <span id="rxPhase">Connecting to sender...</span>
+                        <span id="rxPct">0%</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="rxFill"></div></div>
+                </div>
+
+                <!-- Download button (hidden until complete) -->
+                <div id="rxDone" class="hidden mt">
+                    <a class="dl-link" id="rxDownload" href="#" download>💾 Save File</a>
+                </div>
+
+                <!-- Error state -->
+                <div id="rxError" class="hidden mt" style="color:var(--red); font-size:0.85em;"></div>
+            </div>
+        </div>
+
+        <!-- Log (always visible) -->
+        <div class="card log-card">
+            <h2>📊 Log</h2>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════
+    // CONFIG
+    // ═══════════════════════════════════════════════════════
+    const GUN_PEERS = [
+        'https://gun2.kiwi-network.eu/herbhub-relay/gun',
+        'https://gun.kiwi-network.eu/herbhub-relay/gun',
+        'https://gun.defucc.me/gun',
+        'https://gun.o8.is/gun',
+        'https://relay.peer.ooo/gun'
+    ];
+    const CHUNK_SIZE = 150 * 1024;   // 150KB raw → ~200KB base64
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB hard limit
+    const NS = 'herbhub-share-v1';   // Gun namespace
+    const CHUNK_TIMEOUT = 30000;     // 30s per chunk timeout
+    const META_TIMEOUT = 15000;      // 15s to find file metadata
+    const SENDER_HEARTBEAT = 5000;   // 5s heartbeat interval
+
+    // ═══════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════
+    let gun, peerCount = 0;
+    let selectedFile = null;
+
+    // ═══════════════════════════════════════════════════════
+    // DOM
+    // ═══════════════════════════════════════════════════════
+    const $ = id => document.getElementById(id);
+    const el = {
+        gunDot: $('gunDot'), gunStatus: $('gunStatus'), peerCount: $('peerCount'),
+        uploadZone: $('uploadZone'), fileInput: $('fileInput'),
+        fileInfo: $('fileInfo'), fileName: $('fileName'), fileMeta: $('fileMeta'),
+        clearFile: $('clearFile'), sendBtn: $('sendBtn'),
+        sendProgress: $('sendProgress'), sendPhase: $('sendPhase'),
+        sendPct: $('sendPct'), sendFill: $('sendFill'),
+        shareBox: $('shareBox'), shareLink: $('shareLink'), copyBtn: $('copyBtn'),
+        rxFileName: $('rxFileName'), rxFileMeta: $('rxFileMeta'),
+        rxProgress: $('rxProgress'), rxPhase: $('rxPhase'),
+        rxPct: $('rxPct'), rxFill: $('rxFill'),
+        rxDone: $('rxDone'), rxDownload: $('rxDownload'), rxError: $('rxError'),
+        log: $('log'),
+    };
+
+    // ═══════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════
+    function log(msg, type) {
+        const d = document.createElement('div');
+        if (type) d.className = type;
+        d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+        el.log.appendChild(d);
+        el.log.scrollTop = el.log.scrollHeight;
+    }
+
+    function fmtB(b) {
+        if (!b) return '0 B';
+        const k = 1024, s = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(b) / Math.log(k));
+        return (b / Math.pow(k, i)).toFixed(1) + ' ' + s[i];
+    }
+
+    function genId(len = 12) {
+        const chars = 'abcdefghijkmnopqrstuvwxyz23456789';
+        let r = '';
+        const arr = crypto.getRandomValues(new Uint8Array(len));
+        for (const b of arr) r += chars[b % chars.length];
+        return r;
+    }
+
+    function genKey(len = 32) {
+        const arr = crypto.getRandomValues(new Uint8Array(len));
+        return btoa(String.fromCharCode(...arr)).replace(/[+/=]/g, c =>
+            c === '+' ? '-' : c === '/' ? '_' : ''
+        );
+    }
+
+    function arrayBufToBase64(buf) {
+        let binary = '';
+        const bytes = new Uint8Array(buf);
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    }
+
+    function base64ToArrayBuf(b64) {
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    }
+
+    function parseHash() {
+        const h = window.location.hash.substring(1);
+        const params = {};
+        for (const part of h.split('&')) {
+            const [k, v] = part.split('=');
+            if (k && v) params[k] = decodeURIComponent(v);
+        }
+        return params;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // GUN INIT
+    // ═══════════════════════════════════════════════════════
+    function initGun() {
+        gun = Gun({ peers: GUN_PEERS, localStorage: false });
+        gun.on('hi', () => {
+            peerCount++;
+            el.peerCount.textContent = peerCount;
+            el.gunDot.classList.add('on');
+            el.gunStatus.textContent = 'connected';
+            log('Gun relay connected (' + peerCount + ')', 'ok');
+        });
+        gun.on('bye', () => {
+            peerCount = Math.max(0, peerCount - 1);
+            el.peerCount.textContent = peerCount;
+            if (peerCount === 0) {
+                el.gunDot.classList.remove('on');
+                el.gunStatus.textContent = 'disconnected';
+            }
+        });
+        log('Connecting to ' + GUN_PEERS.length + ' Gun relays...', 'info');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // ENCRYPT / DECRYPT (Web Crypto AES-GCM)
+    // ═══════════════════════════════════════════════════════
+    async function deriveKey(passphrase) {
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: enc.encode(NS), iterations: 100000, hash: 'SHA-256' },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptChunk(data, key) {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encrypted = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv }, key, data
+        );
+        // Prepend IV to ciphertext
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
+        combined.set(iv);
+        combined.set(new Uint8Array(encrypted), iv.length);
+        return arrayBufToBase64(combined.buffer);
+    }
+
+    async function decryptChunk(b64, key) {
+        const combined = base64ToArrayBuf(b64);
+        const iv = combined.slice(0, 12);
+        const ciphertext = combined.slice(12);
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv }, key, ciphertext
+        );
+        return new Uint8Array(decrypted);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // SEND
+    // ═══════════════════════════════════════════════════════
+    async function sendFile(file) {
+        const shareId = genId();
+        const passphrase = genKey();
+        const cryptoKey = await deriveKey(passphrase);
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        log('Share ID: ' + shareId, 'info');
+        log('File: ' + file.name + ' (' + fmtB(file.size) + ', ' + totalChunks + ' chunks)', 'info');
+        log('Encrypting with AES-256-GCM...', 'info');
+
+        el.sendBtn.disabled = true;
+        el.sendProgress.classList.add('show');
+
+        const topic = gun.get(NS + '-' + shareId);
+
+        // Write metadata
+        topic.get('meta').put({
+            name: file.name,
+            size: file.size,
+            type: file.type || 'application/octet-stream',
+            chunks: totalChunks,
+            ts: Date.now()
+        });
+
+        // Sender heartbeat — so receiver knows we're still online
+        const heartbeat = setInterval(() => {
+            topic.get('heartbeat').put({ ts: Date.now() });
+        }, SENDER_HEARTBEAT);
+
+        // Read file as ArrayBuffer
+        const fileData = new Uint8Array(await file.arrayBuffer());
+
+        // Encrypt & upload chunks
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = fileData.slice(start, end);
+
+            el.sendPhase.textContent = 'Encrypting chunk ' + (i + 1) + '/' + totalChunks;
+            const pct = Math.round(((i + 1) / totalChunks) * 100);
+            el.sendPct.textContent = pct + '%';
+            el.sendFill.style.width = pct + '%';
+
+            const encrypted = await encryptChunk(chunk, cryptoKey);
+            topic.get('chunk-' + i).put({ data: encrypted, idx: i });
+
+            // Small delay to not overwhelm Gun relays
+            if (i < totalChunks - 1) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+        }
+
+        // Mark upload complete
+        topic.get('status').put({ complete: true, ts: Date.now() });
+
+        log('✅ All ' + totalChunks + ' chunks encrypted & uploaded!', 'ok');
+        el.sendPhase.textContent = 'Done!';
+        el.sendPct.textContent = '100%';
+        el.sendFill.style.width = '100%';
+
+        // Generate share link
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareUrl = baseUrl + '#id=' + shareId + '&key=' + encodeURIComponent(passphrase);
+        el.shareLink.textContent = shareUrl;
+        el.shareBox.classList.add('show');
+
+        log('Share link generated — key is in URL fragment (never sent to server)', 'ok');
+
+        // Cleanup on close
+        window.addEventListener('beforeunload', () => {
+            clearInterval(heartbeat);
+            topic.get('heartbeat').put({ ts: 0 });
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // RECEIVE
+    // ═══════════════════════════════════════════════════════
+    async function receiveFile(shareId, passphrase) {
+        const cryptoKey = await deriveKey(passphrase);
+        const topic = gun.get(NS + '-' + shareId);
+
+        log('Looking for file ' + shareId + '...', 'info');
+        el.rxPhase.textContent = 'Looking for file...';
+
+        // Fetch metadata with timeout
+        const meta = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('File not found — sender may be offline')), META_TIMEOUT);
+            topic.get('meta').once((data) => {
+                clearTimeout(timer);
+                if (data && data.name) {
+                    resolve(data);
+                } else {
+                    // Retry once after a beat — Gun may need a moment
+                    setTimeout(() => {
+                        topic.get('meta').once((data2) => {
+                            if (data2 && data2.name) resolve(data2);
+                            else reject(new Error('File metadata not found'));
+                        });
+                    }, 2000);
+                }
+            });
+        });
+
+        el.rxFileName.textContent = meta.name;
+        el.rxFileMeta.textContent = fmtB(meta.size) + ' • ' + meta.chunks + ' chunks • ' + (meta.type || 'unknown type');
+        log('Found: ' + meta.name + ' (' + fmtB(meta.size) + ', ' + meta.chunks + ' chunks)', 'ok');
+        el.rxPhase.textContent = 'Downloading & decrypting...';
+
+        // Download chunks
+        const chunks = new Array(meta.chunks);
+        let received = 0;
+
+        for (let i = 0; i < meta.chunks; i++) {
+            const chunkData = await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('Chunk ' + i + ' timeout')), CHUNK_TIMEOUT);
+
+                topic.get('chunk-' + i).once((data) => {
+                    clearTimeout(timer);
+                    if (data && data.data) {
+                        resolve(data.data);
+                    } else {
+                        // Retry — chunk might not have propagated yet
+                        setTimeout(() => {
+                            topic.get('chunk-' + i).once((data2) => {
+                                if (data2 && data2.data) resolve(data2.data);
+                                else reject(new Error('Chunk ' + i + ' not available'));
+                            });
+                        }, 1000);
+                    }
+                });
+            });
+
+            try {
+                chunks[i] = await decryptChunk(chunkData, cryptoKey);
+                received++;
+                const pct = Math.round((received / meta.chunks) * 100);
+                el.rxPct.textContent = pct + '%';
+                el.rxFill.style.width = pct + '%';
+                el.rxPhase.textContent = 'Chunk ' + received + '/' + meta.chunks;
+            } catch (e) {
+                throw new Error('Decryption failed on chunk ' + i + ' — wrong key?');
+            }
+        }
+
+        // Reassemble
+        el.rxPhase.textContent = 'Reassembling...';
+        const totalSize = chunks.reduce((a, c) => a + c.length, 0);
+        const assembled = new Uint8Array(totalSize);
+        let offset = 0;
+        for (const chunk of chunks) {
+            assembled.set(chunk, offset);
+            offset += chunk.length;
+        }
+
+        // Create download
+        const blob = new Blob([assembled], { type: meta.type || 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        el.rxDownload.href = url;
+        el.rxDownload.download = meta.name;
+
+        el.rxProgress.classList.remove('show');
+        el.rxDone.classList.remove('hidden');
+        log('✅ File decrypted and ready! ' + fmtB(totalSize), 'ok');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // INIT & EVENTS
+    // ═══════════════════════════════════════════════════════
+    function init() {
+        initGun();
+
+        // Check if we're in receive mode (URL has #id=...&key=...)
+        const params = parseHash();
+        if (params.id && params.key) {
+            document.body.classList.add('receive');
+            log('Receive mode — share ID: ' + params.id, 'info');
+
+            // Wait a moment for Gun connections, then start receiving
+            const tryReceive = () => {
+                receiveFile(params.id, params.key).catch(err => {
+                    log('❌ ' + err.message, 'err');
+                    el.rxPhase.textContent = 'Failed';
+                    el.rxError.textContent = '❌ ' + err.message;
+                    el.rxError.classList.remove('hidden');
+                });
+            };
+
+            // Start after 2s or when Gun connects, whichever is first
+            let started = false;
+            const start = () => { if (!started) { started = true; tryReceive(); } };
+            setTimeout(start, 2500);
+            gun.on('hi', () => setTimeout(start, 500));
+        } else {
+            document.body.classList.add('send');
+            log('Send mode — select a file to share', 'info');
+        }
+
+        // Upload zone events
+        el.uploadZone.addEventListener('click', () => el.fileInput.click());
+        el.uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            el.uploadZone.classList.add('dragover');
+        });
+        el.uploadZone.addEventListener('dragleave', () => {
+            el.uploadZone.classList.remove('dragover');
+        });
+        el.uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            el.uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) selectFile(e.dataTransfer.files[0]);
+        });
+        el.fileInput.addEventListener('change', e => {
+            if (e.target.files.length) selectFile(e.target.files[0]);
+        });
+
+        // Buttons
+        el.clearFile.addEventListener('click', () => {
+            selectedFile = null;
+            el.fileInfo.classList.add('hidden');
+            el.uploadZone.classList.remove('hidden');
+            el.fileInput.value = '';
+        });
+
+        el.sendBtn.addEventListener('click', () => {
+            if (!selectedFile) return;
+            sendFile(selectedFile).catch(err => {
+                log('❌ Send failed: ' + err.message, 'err');
+                el.sendPhase.textContent = 'Failed';
+                el.sendBtn.disabled = false;
+            });
+        });
+
+        el.copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(el.shareLink.textContent).then(() => {
+                el.copyBtn.textContent = '✅ Copied!';
+                setTimeout(() => { el.copyBtn.textContent = '📋 Copy Link'; }, 2000);
+                log('Link copied to clipboard', 'ok');
+            });
+        });
+    }
+
+    function selectFile(file) {
+        if (file.size > MAX_FILE_SIZE) {
+            log('❌ File too large! Max ' + fmtB(MAX_FILE_SIZE), 'err');
+            alert('File too large! Max ' + fmtB(MAX_FILE_SIZE) + '.\nYour file: ' + fmtB(file.size));
+            return;
+        }
+        selectedFile = file;
+        el.fileName.textContent = file.name;
+        el.fileMeta.textContent = fmtB(file.size) + ' • ' + (file.type || 'unknown type');
+        el.fileInfo.classList.remove('hidden');
+        el.uploadZone.classList.add('hidden');
+        log('Selected: ' + file.name + ' (' + fmtB(file.size) + ')', 'info');
+    }
+
+    init();
+    </script>
+</body>
+</html>

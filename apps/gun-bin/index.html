@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gun.Bin // DECENTRALIZED</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="container">
+      <nav>
+        <a href="./" class="logo">GUN_BIN <span style="color: var(--color-primary);">//</span></a>
+
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1 class="glitch" data-text="ENCRYPT / SHARE">ENCRYPT / SHARE</h1>
+      <p
+        style="max-width: 600px; margin: 0 auto; margin-bottom: 3rem; color: var(--color-text-muted); font-family: 'Rajdhani', sans-serif; letter-spacing: 1px;">
+        Client-side encrypted pastebin. Zero knowledge. Markdown supported.
+      </p>
+      <details style="max-width: 1000px; margin: -2rem auto 2rem auto; text-align: left; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden;">
+        <summary style="cursor: pointer; color: var(--color-primary); font-family: var(--font-heading); letter-spacing: 1px; padding: 1rem 1.5rem; background: rgba(0,243,255,0.05); border-bottom: 1px solid var(--border-color);">MARKDOWN HELP</summary>
+        <div style="padding: 1.5rem; color: var(--color-text); font-size: 0.9rem; line-height: 1.5;">
+          
+          <!-- Headings -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;"># Heading 1</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><h1 style="font-size: 1.4rem; margin: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Heading 1</h1></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">## Heading 2</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><h2 style="font-size: 1.2rem; margin: 0; color: var(--color-primary);">Heading 2</h2></div>
+          </div>
+
+          <!-- Text Formatting -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">**bold text**</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><strong>bold text</strong></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">*italic text*</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><em>italic text</em></div>
+          </div>
+
+          <!-- Link -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">[Link](https://example.com)</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><a href="#" style="color: var(--color-accent); text-decoration: underline;">Link</a></div>
+          </div>
+
+          <!-- Code -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">`inline code`</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><code style="background: rgba(255,255,255,0.1); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;">inline code</code></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">```js<br>code block<br>```</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><pre style="background: rgba(0,0,0,0.5); padding: 0.5rem; border-radius: 4px; margin: 0;"><code style="font-family: monospace;">code block</code></pre></div>
+          </div>
+
+          <!-- Lists -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">- Bullet item<br>- Another item</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><ul style="margin: 0; padding-left: 1.5rem;"><li>Bullet item</li><li>Another item</li></ul></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">1. Numbered<br>2. Items</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><ol style="margin: 0; padding-left: 1.5rem;"><li>Numbered</li><li>Items</li></ol></div>
+          </div>
+
+          <!-- Task List -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">- [ ] Todo<br>- [x] Done</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><ul style="margin: 0; padding-left: 1.5rem; list-style: none;"><li><input type="checkbox" disabled style="margin-right: 0.5rem; width: auto;"> Todo</li><li><input type="checkbox" checked disabled style="margin-right: 0.5rem; width: auto;"> Done</li></ul></div>
+          </div>
+
+          <!-- Blockquote -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">&gt; Quote text</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><blockquote style="border-left: 4px solid var(--color-secondary); padding-left: 1rem; margin: 0; color: var(--color-text-muted);">Quote text</blockquote></div>
+          </div>
+
+          <!-- Horizontal Rule -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: rgba(0,0,0,0.4); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">---</div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px;"><hr style="border: none; border-top: 1px solid var(--border-color); margin: 0;"></div>
+          </div>
+
+        </div>
+      </details>
+
+      <!-- Pastebin UI App Container -->
+      <div id="app-container" class="glass-card">
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="create">Transmit</button>
+          <button class="tab-btn" data-tab="retrieve">Receive</button>
+        </div>
+
+        <!-- Create Panel -->
+        <div id="create-panel" class="panel active">
+          <!-- Sub-tabs for Edit/Preview -->
+          <div class="sub-tabs"
+            style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+            <button class="sub-tab-btn active" data-view="edit">Edit</button>
+            <button class="sub-tab-btn" id="btn-create-preview" data-view="preview">Preview</button>
+          </div>
+
+          <div id="create-edit-view">
+            <div class="form-group">
+              <textarea id="paste-content" placeholder="Enter confidential data (Markdown supported)..."></textarea>
+            </div>
+          </div>
+
+          <div id="create-preview-view" class="markdown-body"
+            style="display: none; min-height: 200px; padding: 1rem; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+            <!-- Rendered Markdown here -->
+          </div>
+
+          <div class="form-group">
+            <label for="paste-passphrase">ENCRYPTION KEY</label>
+            <input type="password" id="paste-passphrase" placeholder="Secret passphrase">
+          </div>
+
+          <div class="form-group" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+              <label for="paste-ttl">SELF-DESTRUCT TIMER</label>
+              <select id="paste-ttl">
+                <!-- Options populated by JS -->
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 200px; padding-top: 2rem;">
+              <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" id="paste-burn"
+                  style="width: auto; margin-right: 0.5rem; background: var(--color-accent);">
+                <span style="color: var(--color-accent);">BURN AFTER READING</span>
+              </label>
+            </div>
+          </div>
+
+          <button id="btn-create" class="primary-btn">INITIATE ENCRYPTION</button>
+
+          <div id="create-error" class="error-message"></div>
+          <div id="create-success" class="success-message"></div>
+
+          <div id="create-result" class="result-area">
+            <h3>SECURE LINK GENERATED</h3>
+            <div class="form-group" style="display: flex; gap: 0.5rem;">
+              <input type="text" id="result-id" readonly>
+              <button class="copy-btn" id="btn-copy-id">COPY</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Retrieve Panel -->
+        <div id="retrieve-panel" class="panel">
+          <div class="form-group">
+            <label for="retrieve-id">ACCESS LINK / ID</label>
+            <input type="text" id="retrieve-id" placeholder="Paste ID or Link">
+          </div>
+
+          <div class="form-group">
+            <label for="retrieve-passphrase">DECRYPTION KEY</label>
+            <input type="password" id="retrieve-passphrase" placeholder="Secret passphrase">
+          </div>
+
+          <button id="btn-retrieve" class="primary-btn">DECRYPT SIGNAL</button>
+
+          <div id="retrieve-error" class="error-message"></div>
+
+          <div id="retrieve-result" class="result-area">
+            <h3>DECRYPTED PAYLOAD:</h3>
+            <!-- Toggle between Source/Markdown -->
+            <div class="sub-tabs"
+              style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+              <button class="sub-tab-btn active" id="btn-view-render">Rendered</button>
+              <button class="sub-tab-btn" id="btn-view-source">Source</button>
+            </div>
+
+            <div id="retrieve-render-view" class="markdown-body"
+              style="min-height: 150px; padding: 1rem; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+            </div>
+            <textarea id="result-content" readonly style="min-height: 150px; display: none;"></textarea>
+
+            <div id="retrieve-meta" style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- End App Container -->
+
+    </div>
+  </section>
+
+
+
+  <footer>
+    <div class="container">
+      <a href="./" class="logo">GUN_BIN <span style="color: var(--color-primary);">//</span></a>
+      <br>
+      <p>© 2024 DECENTRALIZED NETWORK</p>
+    </div>
+  </footer>
+
+  <!-- Main Entry Point -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
