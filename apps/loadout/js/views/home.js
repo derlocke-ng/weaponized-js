@@ -66,7 +66,6 @@ function card(b) {
         </span>
         <span class="board-badges">
           ${b.pinned ? `<span class="chip" title="Pinned">${icon('pin')}</span>` : ''}
-          ${b.enc ? `<span class="chip" title="Private: end-to-end encrypted">${icon('lock')}</span>` : `<span class="chip" title="Public: anyone with the address can read it">${icon('globe')}</span>`}
           ${b.w ? '' : `<span class="chip" title="View only">${icon('eye')}</span>`}
         </span>
       </a>
@@ -111,13 +110,7 @@ export function newBoardDialog({ kind = 'check', title = '' } = {}) {
             .join('')}
         </div>
         <label class="field">Title<input name="title" maxlength="${LIMITS.title}" required value="${h(title)}" placeholder="Groceries" autofocus></label>
-        <fieldset class="choices">
-          <legend>Who can read it?</legend>
-          <label class="choice"><input type="radio" name="privacy" value="private" checked>
-            <span>${icon('lock')}<b>Private</b><small>End-to-end encrypted. Only people with a link you share can read it.</small></span></label>
-          <label class="choice"><input type="radio" name="privacy" value="public">
-            <span>${icon('globe')}<b>Public</b><small>Readable by anyone who has the address, like a rentry page. Only edit links can change it.</small></span></label>
-        </fieldset>
+        <p class="hint">${icon('lock')} Encrypted in your browser. Only people you give a link can read it — and they can pass that link on.</p>
         <div class="modal-actions">
           <button type="button" class="btn" data-close>Cancel</button>
           <button type="submit" class="btn btn-primary">Create</button>
@@ -136,7 +129,6 @@ export function newBoardDialog({ kind = 'check', title = '' } = {}) {
             type: k === 'note' ? 'note' : 'list',
             mode: k === 'count' ? 'count' : 'check',
             title: String(data.get('title')).trim().slice(0, LIMITS.title) || 'Untitled',
-            enc: data.get('privacy') !== 'public',
           });
           await app.wallet.upsert(entry);
           close(true);

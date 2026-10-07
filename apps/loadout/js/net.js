@@ -14,6 +14,7 @@ const OUTBOX_KEY = 'loadout.outbox';
 
 export let gun = null;
 const listeners = new Set();
+const connectListeners = new Set();
 const writers = new Map();
 let outbox = new Map(Object.entries(store.get(OUTBOX_KEY, {})));
 
@@ -31,9 +32,10 @@ export function saveRelays(list) {
 
 export function initGun() {
   gun = Gun({ peers: relays(), localStorage: false, file: STORE_FILE });
-  gun.on('hi', () => {
+  gun.on('hi', (peer) => {
     emit();
     setTimeout(flush, 400);
+    for (const fn of connectListeners) fn(peer);
   });
   gun.on('bye', () => emit());
   setInterval(emit, 4000); // sockets can die without a 'bye'
@@ -62,6 +64,12 @@ function emit() {
   if (key === last) return;
   last = key;
   for (const fn of listeners) fn(s);
+}
+
+/** Called every time a relay connects or reconnects. */
+export function onRelayConnect(fn) {
+  connectListeners.add(fn);
+  return () => connectListeners.delete(fn);
 }
 
 export function onStatus(fn) {

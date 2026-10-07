@@ -38,12 +38,10 @@ test('parses pasted links and bare addresses', () => {
 });
 
 test('builds share links', () => {
-  const priv = { pub: PUB, w: PRIV, k: KEY, enc: true };
-  assert.equal(shareLink(BASE, priv, 'edit'), `${BASE}#/b/${PUB}?w=${PRIV}`);
-  assert.equal(shareLink(BASE, priv, 'view'), `${BASE}#/b/${PUB}?k=${KEY}`);
-  const pub = { pub: PUB, w: PRIV, k: null, enc: false };
-  assert.equal(shareLink(BASE, pub, 'view'), `${BASE}#/b/${PUB}`);
-  assert.throws(() => shareLink(BASE, { pub: PUB, enc: true, k: KEY }, 'edit'));
-  assert.throws(() => shareLink(BASE, { pub: PUB, enc: true }, 'view'));
-  assert.deepEqual(parseRoute(boardHash(priv)), { name: 'board', pub: PUB, w: PRIV, k: null });
+  const board = { pub: PUB, w: PRIV, k: KEY };
+  assert.equal(shareLink(BASE, board, 'edit'), `${BASE}#/b/${PUB}?w=${PRIV}`);
+  assert.equal(shareLink(BASE, board, 'view'), `${BASE}#/b/${PUB}?k=${KEY}`);
+  assert.throws(() => shareLink(BASE, { pub: PUB, k: KEY }, 'edit'), /edit key/);
+  assert.throws(() => shareLink(BASE, { pub: PUB }, 'view'), /read key/);
+  assert.deepEqual(parseRoute(boardHash(board)), { name: 'board', pub: PUB, w: PRIV, k: null });
 });

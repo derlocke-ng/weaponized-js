@@ -1,9 +1,9 @@
 // Board links. Everything secret lives in the URL fragment, which browsers
 // never send to a server:
 //
-//   #/b/<pub>            public board, read only
-//   #/b/<pub>?w=<priv>   can edit (for private boards the read key is derived from priv)
-//   #/b/<pub>?k=<key>    private board, read only
+//   #/b/<pub>?w=<priv>   can edit (the read key is derived from priv)
+//   #/b/<pub>?k=<key>    read only
+//   #/b/<pub>            a board already in your wallet
 //
 // <pub> is the board's SEA public key (its address in gun), <priv> its signing
 // key and <key> the symmetric key its content is encrypted with.
@@ -49,7 +49,7 @@ export function boardHash({ pub, w = null, k = null }) {
 /**
  * Share link for a board.
  * @param {string} base  page URL without hash, e.g. https://x.github.io/weaponized-js/loadout/
- * @param {{pub: string, w?: string|null, k?: string|null, enc: boolean}} board
+ * @param {{pub: string, w?: string|null, k?: string|null}} board
  * @param {'edit'|'view'} role
  */
 export function shareLink(base, board, role) {
@@ -57,6 +57,6 @@ export function shareLink(base, board, role) {
     if (!board.w) throw new Error('No edit key for this board');
     return base + boardHash({ pub: board.pub, w: board.w });
   }
-  if (board.enc && !board.k) throw new Error('No read key for this board');
-  return base + boardHash({ pub: board.pub, k: board.enc ? board.k : null });
+  if (!board.k) throw new Error('No read key for this board');
+  return base + boardHash({ pub: board.pub, k: board.k });
 }

@@ -1,5 +1,6 @@
 import { app } from '../app.js';
 import { Board, createBoard } from '../boards.js';
+import { healBoard } from '../heal.js';
 import { boardHash, parseBoardInput } from '../links.js';
 import { $, icon, toast, openMenu, confirmDialog, copyText, download, safeFilename, modal } from '../ui.js';
 import { h } from '../util.js';
@@ -45,7 +46,10 @@ export function renderBoard(view, route) {
       } else if (what === 'all') {
         body.dispatchEvent(new CustomEvent('board:info'));
       }
-      if (what === 'all') remember();
+      if (what === 'all') {
+        remember();
+        healBoard(board.pub).catch(() => {});
+      }
       return;
     }
     child?.();
@@ -57,10 +61,10 @@ export function renderBoard(view, route) {
 
   async function remember() {
     const entry = app.wallet.get(board.pub);
-    const fields = { type: board.info.type, mode: board.info.mode, title: board.info.title, enc: board.enc };
-    if (!entry && (cameWithKeys || keys.w || keys.k)) {
+    const fields = { type: board.info.type, mode: board.info.mode, title: board.info.title };
+    if (!entry) {
       await app.wallet.upsert({ pub: board.pub, w: keys.w, k: keys.k, ...fields });
-    } else if (entry && (entry.title !== fields.title || entry.enc !== fields.enc || (keys.w && !entry.w) || (keys.k && !entry.k))) {
+    } else if (entry.title !== fields.title || (keys.w && !entry.w) || (keys.k && !entry.k)) {
       await app.wallet.upsert({ ...entry, ...fields, w: keys.w || entry.w, k: keys.k || entry.k });
     }
     app.wallet.setLocal(board.pub, { opened: Date.now() });
@@ -68,20 +72,18 @@ export function renderBoard(view, route) {
 
   function drawHead() {
     const name = $('#boardName', view);
-    const title = board.info?.title || (board.state === 'locked' ? 'Private board' : board.state === 'deleted' ? 'Deleted board' : 'Loading…');
+    const title = board.info?.title || (board.state === 'locked' ? 'Locked board' : board.state === 'deleted' ? 'Deleted board' : 'Loading…');
     name.textContent = title;
     name.title = board.canEdit && board.state === 'ready' ? 'Click to rename' : '';
     name.classList.toggle('editable', board.canEdit && board.state === 'ready');
     document.title = `${title} · Loadout`;
     const tags = [];
-    if (board.enc != null) tags.push(board.enc ? `<span class="tag">${icon('lock')}Private</span>` : `<span class="tag">${icon('globe')}Public</span>`);
     if (board.state === 'ready') tags.push(board.canEdit ? `<span class="tag">${icon('pencil')}Can edit</span>` : `<span class="tag">${icon('eye')}View only</span>`);
     $('#boardTags', view).innerHTML = tags.join('');
     const saved = app.wallet.get(board.pub);
     $('#boardActions', view).innerHTML =
       board.state === 'ready'
-        ? `${!saved ? `<button type="button" class="btn btn-sm" data-act="save">${icon('pin')}<span>Save</span></button>` : ''}
-           <button type="button" class="btn btn-sm" data-act="share">${icon('share-2')}<span>Share</span></button>
+        ? `<button type="button" class="btn btn-sm" data-act="share">${icon('share-2')}<span>Share</span></button>
            <button type="button" class="icon-btn" data-act="menu" aria-label="More">${icon('ellipsis')}</button>`
         : saved || board.state !== 'loading'
           ? `<button type="button" class="icon-btn" data-act="menu" aria-label="More">${icon('ellipsis')}</button>`
@@ -97,7 +99,7 @@ export function renderBoard(view, route) {
     if (state === 'locked')
       return `<div class="state">
         ${icon('lock', 'big')}
-        <p>This board is private. Open it with the full link you were given.</p>
+        <p>Boards are encrypted. Open this one with the full link you were given.</p>
         <form id="unlock" class="unlock">
           <input name="link" placeholder="Paste the full link" autocomplete="off" spellcheck="false" required>
           <button class="btn btn-primary">Open</button>
@@ -118,11 +120,6 @@ export function renderBoard(view, route) {
     if (e.target.closest('#boardName.editable')) return rename();
     if (!act) return;
     if (act === 'share') return shareDialog(board);
-    if (act === 'save') {
-      await app.wallet.upsert({ pub: board.pub, w: keys.w, k: keys.k, enc: board.enc, type: board.info.type, mode: board.info.mode, title: board.info.title });
-      toast('Saved to your boards', 'success');
-      return drawHead();
-    }
     if (act === 'menu') return openMenu(e.target.closest('[data-act]'), menuItems());
   }
 
@@ -187,10 +184,6 @@ export function renderBoard(view, route) {
         <form class="form">
           <p class="modal-text">Makes a new board with a copy of everything in this one and new links. Use it to cut off people you shared the old links with.</p>
           <label class="field">Title<input name="title" maxlength="${LIMITS.title}" value="${h(`${board.info.title} (copy)`)}" required></label>
-          <fieldset class="choices">
-            <label class="choice"><input type="radio" name="privacy" value="private" ${board.enc !== false ? 'checked' : ''}><span>${icon('lock')}<b>Private</b><small>End-to-end encrypted</small></span></label>
-            <label class="choice"><input type="radio" name="privacy" value="public" ${board.enc === false ? 'checked' : ''}><span>${icon('globe')}<b>Public</b><small>Readable with the address</small></span></label>
-          </fieldset>
           <div class="modal-actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn btn-primary">Duplicate</button></div>
         </form>`,
       onOpen: (el, close) => {
@@ -198,7 +191,7 @@ export function renderBoard(view, route) {
           e.preventDefault();
           e.submitter && (e.submitter.disabled = true);
           try {
-            const pub = await copyBoard(board, { title: e.target.title.value.trim() || board.info.title, enc: e.target.privacy.value === 'private' });
+            const pub = await copyBoard(board, { title: e.target.title.value.trim() || board.info.title });
             close(true);
             app.go(boardHash({ pub }));
           } catch (err) {
@@ -259,10 +252,9 @@ export function renderBoard(view, route) {
 }
 
 /** New board with the same content; returns its pub. */
-export async function copyBoard(src, { title, enc }) {
-  const entry = await createBoard({ type: src.info.type, mode: src.info.mode, title, enc });
+export async function copyBoard(src, { title }) {
+  const entry = await createBoard({ type: src.info.type, mode: src.info.mode, title });
   const copy = new Board(entry);
-  copy.enc = enc;
   if (src.info.type === 'note') {
     if (src.doc?.md) await copy.setDoc(src.doc.md);
   } else {

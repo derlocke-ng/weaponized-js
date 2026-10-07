@@ -3,14 +3,14 @@
 //
 // Each board lives in a slot named by a keyed hash of its address, so relays
 // can't tell which boards you have. Entry:
-//   { pub, w, k, enc, type, title, mode, pinned, added, u }
+//   { pub, w, k, type, title, mode, pinned, added, u }
 // Per-device extras (last opened, item counts) stay in localStorage only.
 
 /* global SEA */
 import { gun, write, setWriter } from './net.js';
 import { sha256, store } from './util.js';
 
-const SYNCED = ['pub', 'w', 'k', 'enc', 'type', 'title', 'mode', 'pinned', 'added', 'u'];
+const SYNCED = ['pub', 'w', 'k', 'type', 'title', 'mode', 'pinned', 'added', 'u'];
 
 export class Wallet {
   constructor(pair) {

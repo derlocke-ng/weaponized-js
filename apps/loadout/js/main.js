@@ -1,7 +1,8 @@
-import { initGun, onStatus } from './net.js';
+import { initGun, onStatus, onRelayConnect } from './net.js';
 import { loadIdentity, authPair } from './identity.js';
 import { Wallet } from './wallet.js';
 import { initBoards } from './boards.js';
+import { healAll } from './heal.js';
 import { parseRoute } from './links.js';
 import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
@@ -85,6 +86,36 @@ async function boot() {
   updateAccountBadge();
   window.addEventListener('hashchange', render);
   render();
+  startHealing();
+}
+
+/** Re-seed relays from this device's copy whenever a relay (re)connects. */
+function startHealing() {
+  let running = false;
+  let again = false;
+  let last = 0;
+  const run = async () => {
+    if (running) return void (again = true);
+    running = true;
+    last = Date.now();
+    try {
+      await healAll(app.identity, app.wallet);
+    } catch (err) {
+      console.warn('heal:', err);
+    } finally {
+      running = false;
+      if (again) {
+        again = false;
+        schedule();
+      }
+    }
+  };
+  let timer = null;
+  const schedule = () => {
+    clearTimeout(timer);
+    timer = setTimeout(run, Math.max(1500, 60_000 - (Date.now() - last)));
+  };
+  onRelayConnect(schedule);
 }
 
 boot().catch((err) => {

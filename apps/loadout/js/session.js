@@ -2,10 +2,11 @@
 // and building backups. Boards you had under the old key are carried over.
 
 import { app } from './app.js';
-import { gun, clearOutbox } from './net.js';
+import { gun, clearOutbox, online } from './net.js';
 import { authPair, saveIdentity, forgetIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
-import { Board, initBoards, settled } from './boards.js';
+import { Board, initBoards, settled, boardSouls } from './boards.js';
+import { rawNodes, reseed, userSouls } from './heal.js';
 import { STORE_FILE } from './config.js';
 import { store } from './util.js';
 
@@ -13,9 +14,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * @param {() => Promise<object>} getPair  authenticates gun as the new key, resolves with its pair
- * @param {{ alias?: string|null, boards?: object[], snapshots?: object, onProgress?: (msg: string) => void }} opt
+ * @param {{ alias?: string|null, boards?: object[], raw?: object, snapshots?: object, onProgress?: (msg: string) => void }} opt
  */
-export async function switchIdentity(getPair, { alias = null, boards = [], snapshots = null, onProgress = () => {} } = {}) {
+export async function switchIdentity(getPair, { alias = null, boards = [], raw = null, snapshots = null, onProgress = () => {} } = {}) {
   const carry = [...app.wallet.list(), ...boards];
   const oldPair = app.identity.pair;
   let pair;
@@ -25,6 +26,11 @@ export async function switchIdentity(getPair, { alias = null, boards = [], snaps
     gun.user().leave();
     await authPair(oldPair).catch(() => {});
     throw err;
+  }
+  if (raw && reseed(raw)) {
+    // Put the backup's signed data back on the relays first; gun keeps whatever is newer.
+    onProgress('Uploading your backup…');
+    await sleep(1500);
   }
   onProgress('Loading your boards…');
   app.wallet.stop();
@@ -60,7 +66,6 @@ async function restoreSnapshots(wallet, snapshots, onProgress) {
       board.close();
       continue;
     }
-    if (board.enc == null) board.enc = entry.enc !== false;
     if (!board.info && snap.info) {
       await board.put('meta', 'info', snap.info);
       restored++;
@@ -78,6 +83,7 @@ async function restoreSnapshots(wallet, snapshots, onProgress) {
     board.close();
   }
   if (restored) onProgress(`Restored ${restored} missing entries`);
+  if (!online()) onProgress('Offline — restored items will sync later');
 }
 
 /** Everything needed to rebuild this account elsewhere. */
@@ -95,7 +101,11 @@ export async function buildBackup(onProgress = () => {}) {
       onProgress(`Collected ${++n} of ${boards.length} boards…`);
     }),
   );
-  return { app: 'loadout', v: 1, created: new Date().toISOString(), identity: { pair: app.identity.pair, alias: app.identity.alias }, boards, snapshots };
+  // The signed, encrypted nodes as gun holds them: a restore can put them back
+  // as they were, even for boards you can only view.
+  const { pair, alias } = app.identity;
+  const raw = await rawNodes([...userSouls(pair.pub, alias), ...boards.flatMap((b) => boardSouls(b.pub))]);
+  return { app: 'loadout', v: 1, created: new Date().toISOString(), identity: { pair, alias }, boards, raw, snapshots };
 }
 
 /** Forget this device's key, boards and cached data. */

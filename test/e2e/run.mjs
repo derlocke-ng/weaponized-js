@@ -18,12 +18,24 @@ const WEB_PORT = RELAY_PORT + 1000;
 const RELAY = `http://localhost:${RELAY_PORT}/gun`;
 const APP = `http://localhost:${WEB_PORT}/loadout/`;
 
-const procs = [
-  spawn(process.execPath, [path.join(root, 'scripts/relay.cjs'), String(RELAY_PORT)], { env: { ...process.env, RADATA: path.join(tmp, 'radata') }, stdio: 'ignore' }),
-  spawn(process.execPath, [path.join(root, 'scripts/serve.mjs'), path.join(root, 'apps'), String(WEB_PORT)], { stdio: 'ignore' }),
-];
-const stop = () => procs.forEach((p) => p.kill());
+let relayRuns = 0;
+const startRelay = () =>
+  spawn(process.execPath, [path.join(root, 'scripts/relay.cjs'), String(RELAY_PORT)], { env: { ...process.env, RADATA: path.join(tmp, `radata-${relayRuns++}`) }, stdio: 'ignore' });
+let relay = startRelay();
+const web = spawn(process.execPath, [path.join(root, 'scripts/serve.mjs'), path.join(root, 'apps'), String(WEB_PORT)], { stdio: 'ignore' });
+const stop = () => [relay, web].forEach((p) => p.kill());
 process.on('exit', stop);
+
+/** Simulate relays losing all their data: restart ours with an empty disk. */
+async function wipeRelay() {
+  const old = relay;
+  await new Promise((r) => {
+    old.once('exit', r);
+    old.kill();
+  });
+  relay = startRelay();
+  await until(() => fetch(`http://localhost:${RELAY_PORT}/`).then(() => true), 'relay restart');
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const executablePath = process.env.CHROMIUM_PATH || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
@@ -65,11 +77,10 @@ async function until(fn, what, ms = 10000) {
   throw new Error(`Timed out waiting for ${what} (last: ${last})`);
 }
 
-async function newBoard(page, kind, title, privacy = 'private') {
+async function newBoard(page, kind, title) {
   await page.click(`[data-new="${kind === 'note' ? 'note' : 'check'}"]`);
   await page.check(`#newBoard input[name=kind][value=${kind}]`, { force: true });
   await page.fill('#newBoard input[name=title]', title);
-  await page.check(`#newBoard input[name=privacy][value=${privacy}]`, { force: true });
   await page.click('#newBoard [type=submit]');
   await page.waitForSelector('#boardName', { timeout: 15000 });
   await until(async () => (await page.textContent('#boardName')) === title, 'board title');
@@ -181,10 +192,10 @@ try {
   await D.click('#unlock button');
   await until(async () => (await texts(D, '#active .text')).includes('milk'), 'unlocked with the view link');
 
-  step('public note: markdown renders, scripts do not');
+  step('note: markdown renders, scripts do not');
   await A.goto(APP);
   await A.waitForSelector('.home');
-  await newBoard(A, 'note', 'Readme', 'public');
+  await newBoard(A, 'note', 'Readme');
   await A.waitForSelector('#md');
   const md = [
     '# Hello',
@@ -205,8 +216,7 @@ try {
   await A.waitForSelector('#noteView h1');
   const note = await A.evaluate(() => location.hash.split('/')[2]);
   const noteLinks = await shareLinks(A);
-  assert.equal(noteLinks.view, `${APP}#/b/${note}`, 'public view link has no secret');
-  await D.goto(`${APP}#/b/${note}`);
+  await D.goto(noteLinks.view);
   await until(async () => (await D.$('#noteView h1')) !== null, 'note on D');
   const rendered = await D.$eval('#noteView', (el) => ({ html: el.innerHTML, xss: window.__xss, boxes: [...el.querySelectorAll('input')].map((i) => i.disabled) }));
   assert.equal(rendered.xss, undefined, 'no script ran');
@@ -214,7 +224,6 @@ try {
   assert.ok(rendered.html.includes('<table>') && rendered.html.includes('<strong>bold</strong>'));
   assert.deepEqual(rendered.boxes, [true, true], 'viewers can’t tick tasks');
   assert.ok(rendered.html.includes('rel="noopener noreferrer nofollow ugc"'));
-  assert.ok(await D.$('[data-act=save]'), 'public view-only board offers Save');
 
   step('A ticks a task in the rendered note; D sees it');
   await A.click('#noteView input[data-task="0"]');
@@ -228,6 +237,21 @@ try {
   await until(async () => (await texts(A, '#active .count')).join() === '4,1', 'counts');
   await A.click('#active li:has-text("Light bulbs") [data-step="-1"]');
   await until(async () => (await A.$('#active li.is-zero')) !== null, 'zero count marked');
+
+  step('delete for everyone');
+  await A.goto(APP);
+  await A.waitForSelector('.home');
+  await newBoard(A, 'check', 'Temp');
+  await addItems(A, ['scratch']);
+  const tempLinks = await shareLinks(A);
+  await C.goto(tempLinks.view);
+  await until(async () => (await texts(C, '#active .text')).includes('scratch'), 'temp list on C');
+  await A.click('[data-act=menu]');
+  await A.click('.menu button:has-text("Delete for everyone")');
+  await A.click('dialog [data-ok]');
+  await A.waitForSelector('.home');
+  await until(async () => (await C.$('.board .state')) && (await C.textContent('.board .state')).includes('deleted'), 'deletion seen by viewer C');
+  assert.ok(!(await texts(A, '.board-title')).includes('Temp'), 'deleted board left the wallet');
 
   step('A creates an account; E signs in and gets every board');
   const alias = `e2e${Date.now().toString(36)}`;
@@ -294,14 +318,50 @@ try {
   await until(async () => (await texts(F, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards restored on F');
   assert.equal(await F.evaluate(() => JSON.parse(localStorage.getItem('loadout.identity')).alias), alias);
 
-  step('delete for everyone');
-  await F.goto(`${APP}#/b/${groceries}`);
-  await F.waitForSelector('[data-act=menu]');
-  await F.click('[data-act=menu]');
-  await F.click('.menu button:has-text("Delete for everyone")');
-  await F.click('dialog [data-ok]');
-  await F.waitForSelector('.home');
-  await until(async () => (await C.$('.board .state')) && (await C.textContent('.board .state')).includes('deleted'), 'deletion seen by viewer C');
+  const signIn = async (page, expectOk = true) => {
+    await open(page, `${APP}#/account`);
+    await page.fill('#authForm [name=alias]', alias);
+    await page.fill('#authForm [name=pass]', pass);
+    if (!expectOk) {
+      await page.click('#authBtn');
+      return page.waitForSelector('.toast-error', { timeout: 30000 }).then((t) => t.textContent());
+    }
+    await Promise.all([page.waitForEvent('load', { timeout: 30000 }), page.click('#authBtn')]);
+    await page.waitForSelector('.home');
+  };
+
+  step('relays lose everything: the backup file brings it all back');
+  for (const p of [A, B, C, D, F]) await p.ctx.close();
+  await E.close(); // E's browser storage stays, like a phone in a pocket
+  await wipeRelay();
+  const G = await device('G');
+  assert.match(await signIn(G, false), /wrong username or password|no relay/i, 'the account is gone from the relay');
+  const H = await device('H');
+  await open(H, `${APP}#/account`);
+  await H.setInputFiles('#restoreFile', file);
+  await H.fill('dialog [name=pass]', 'backup passphrase 1');
+  await Promise.all([H.waitForEvent('load', { timeout: 40000 }), H.click('dialog .btn-primary')]);
+  await H.waitForSelector('.home');
+  await until(async () => (await texts(H, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards from the backup');
+  await H.click('.board-card:has-text("Groceries")');
+  await until(async () => (await texts(H, '#active .text')).includes('coffee'), 'content from the backup', 15000);
+  await H.ctx.close();
+
+  step('relays lose everything again: a returning device heals them');
+  await wipeRelay();
+  const E2 = await E.ctx.newPage();
+  E2.on('pageerror', (e) => errors.push(`E2: ${e.stack || e.message}`));
+  await E2.goto(APP);
+  await E2.waitForSelector('.home');
+  await sleep(7000); // reconnect → heal account, wallet and every board
+  await E2.close();
+  const G2 = await device('G2');
+  await signIn(G2);
+  await until(async () => (await texts(G2, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards after healing', 15000);
+  await G2.click('.board-card:has-text("Pantry")');
+  await until(async () => (await texts(G2, '#active .count')).join() === '4,0', 'pantry counts after healing', 15000);
+  await G2.goto(`${APP}#/b/${groceries}`);
+  await until(async () => (await texts(G2, '#active .text')).includes('coffee'), 'grocery items after healing', 15000);
 
   assert.deepEqual(errors, [], 'no page errors');
   console.log('\nall end-to-end checks passed');

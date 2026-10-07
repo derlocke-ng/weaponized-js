@@ -2,8 +2,8 @@
 // (~<pub>/meta, ~<pub>/items, ~<pub>/doc), which every gun peer — relays
 // included — only accepts when signed. Editors hold the board's private key
 // and use it to certify their own key for those paths; viewers can't write.
-// Private boards encrypt every value with a symmetric key derived from the
-// private key and handed to viewers separately.
+// Every value is encrypted with a read key derived from the private key, so
+// view links carry the read key and edit links the private key.
 
 /* global SEA */
 import { BOARD_PATHS } from './config.js';
@@ -45,33 +45,25 @@ function certFor(pub, w) {
 
 export const viewKeyFor = (w) => sha256(`loadout|view-key|${w}`);
 
-async function encode(value, key) {
-  if (value == null) return null;
-  return key ? SEA.encrypt(value, key) : JSON.stringify(value);
-}
+const encode = (value, key) => (value == null ? null : SEA.encrypt(value, key));
 
 const LOCKED = Symbol('locked');
 
 async function decode(raw, key) {
-  if (typeof raw !== 'string') return undefined;
-  if (raw.startsWith('SEA{')) {
-    if (!key) return LOCKED;
-    const v = await SEA.decrypt(raw, key);
-    return v == null ? LOCKED : v;
-  }
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return undefined;
-  }
+  if (typeof raw !== 'string' || !raw.startsWith('SEA{')) return undefined;
+  if (!key) return LOCKED;
+  const v = await SEA.decrypt(raw, key);
+  return v == null ? LOCKED : v;
 }
 
+/** The gun souls holding a board, for healing and backups. */
+export const boardSouls = (pub) => [`~${pub}`, `~${pub}/meta`, `~${pub}/items`, `~${pub}/doc`];
+
 /** Create a board and write its info. Returns the wallet entry. */
-export async function createBoard({ type, title, mode = 'check', enc = true }) {
+export async function createBoard({ type, title, mode = 'check' }) {
   const pair = await SEA.pair();
-  const entry = { pub: pair.pub, w: pair.priv, k: enc ? await viewKeyFor(pair.priv) : null, enc, type, title, mode };
+  const entry = { pub: pair.pub, w: pair.priv, k: await viewKeyFor(pair.priv), type, title, mode };
   const board = new Board(entry);
-  board.enc = enc;
   await board.setInfo({ v: 1, type, title, mode, created: Date.now() });
   return entry;
 }
@@ -82,7 +74,6 @@ export class Board {
     this.pub = pub;
     this.w = w;
     this.k = k;
-    this.enc = null; // learnt from the first info value
     this.info = null;
     this.items = new Map();
     this.doc = null; // { md, u }
@@ -109,7 +100,7 @@ export class Board {
       this.chains.push(chain);
       chain.on(fn);
     };
-    sub(meta.get('info'), (raw) => this.receive('info', raw, (v) => this.onInfo(v, raw)));
+    sub(meta.get('info'), (raw) => this.receive('info', raw, (v) => this.onInfo(v)));
     sub(meta.get('del'), (raw) => {
       if (raw === '1') this.set({ state: 'deleted' });
     });
@@ -133,13 +124,12 @@ export class Board {
     if (this.closed) return;
     const n = (this.seq.get(slot) || 0) + 1;
     this.seq.set(slot, n);
-    const value = raw == null ? null : await decode(raw, this.enc === false ? null : this.k);
+    const value = raw == null ? null : await decode(raw, this.k);
     if (this.closed || this.seq.get(slot) !== n || value === undefined) return;
     apply(value);
   }
 
-  onInfo(value, raw) {
-    if (typeof raw === 'string') this.enc = raw.startsWith('SEA{');
+  onInfo(value) {
     if (value === LOCKED) return this.set({ state: 'locked' });
     if (!value) return;
     this.info = value;
@@ -179,7 +169,7 @@ export class Board {
   async put(path, key, value) {
     if (!this.w) throw new Error('You can only view this board.');
     await this.ready();
-    const raw = await encode(value, this.enc === false ? null : this.k);
+    const raw = await encode(value, this.k);
     await write({ scope: 'board', pub: this.pub, path, key, value: raw });
   }
 

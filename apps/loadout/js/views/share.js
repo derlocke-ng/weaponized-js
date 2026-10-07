@@ -16,12 +16,12 @@ export function qrSvg(text) {
 }
 
 export function shareDialog(board) {
-  const entry = { pub: board.pub, w: board.w, k: board.k, enc: board.enc };
+  const entry = { pub: board.pub, w: board.w, k: board.k };
   const roles = board.canEdit ? ['edit', 'view'] : ['view'];
   let role = roles[0];
   const explain = {
     edit: 'Anyone with this link can <b>read and change</b> the board and share it on.',
-    view: board.enc ? 'Anyone with this link can <b>read</b> the board, but not change it.' : 'This is a public board: anyone with this link or its address can <b>read</b> it.',
+    view: 'Anyone with this link can <b>read</b> the board, but not change it.',
   };
   const m = modal({
     title: `Share “${board.info.title}”`,

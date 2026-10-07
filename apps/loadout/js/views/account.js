@@ -85,11 +85,12 @@ export function renderAccount(view) {
         <ul>
           <li>Every board is its own key pair. Its data lives on the <a href="https://gun.eco" target="_blank" rel="noopener">gun</a> network under that key, and every peer — relays included — rejects changes that aren’t signed by someone the board has certified.</li>
           <li><b>Edit links</b> carry the board’s private key: whoever opens one can certify their own key and write. <b>View links</b> only carry the read key, so they can’t.</li>
-          <li><b>Private</b> boards encrypt every title, item and note before it leaves your browser. Guessing or crawling a board’s address gets you ciphertext. <b>Public</b> boards are plain text, readable by anyone who has the address.</li>
+          <li>Every title, item and note is encrypted before it leaves your browser. Guessing or crawling a board’s address gets you ciphertext. A link is a key: whoever has it can pass it on, and links can’t be taken back.</li>
           <li>The keys sit in the <code>#</code> part of the link, which browsers never send to any server. Opening a link moves them into your wallet and out of the address bar.</li>
           <li>Your list of boards (with their keys) is encrypted to your own key and stored under your gun user, so signed-in devices stay in sync.</li>
           <li>Changes made offline are kept on this device and sent when a relay is reachable again.</li>
-          <li>Relays can drop old data. Each device keeps a copy, and backups contain everything — keep one.</li>
+          <li>Relays can drop old data. Each device keeps every board it has opened, and while it’s online other devices can read from it through the relays. When you open the app it also sends its copy back to the relays, so a wiped relay heals itself — without ever overwriting newer edits.</li>
+          <li>Backups hold your key, your boards and their signed data, so a backup restores everything even when no relay and no other device has it any more.</li>
         </ul>
       </details>
     </section>`;
@@ -244,7 +245,7 @@ export function renderAccount(view) {
                 gun.user().leave();
                 return authPair(p);
               },
-              { alias: payload.identity.alias || null, boards: payload.boards || [], snapshots: payload.snapshots || {}, onProgress: (msg) => (progress.textContent = msg) },
+              { alias: payload.identity.alias || null, boards: payload.boards || [], raw: payload.raw || null, snapshots: payload.snapshots || {}, onProgress: (msg) => (progress.textContent = msg) },
             );
           } catch (err) {
             btn.disabled = false;
