@@ -1,0 +1,5 @@
+# Exported keypairs — never commit private keys
+devboard-keypair*.json
+
+# Local scratch notes
+devboard.txt

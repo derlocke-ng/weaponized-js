@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevBoard — The Freelancer Noticeboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161822;
+    --bg3: #1c1f2e;
+    --surface: #222539;
+    --border: rgba(255,255,255,0.08);
+    --border-h: rgba(255,255,255,0.15);
+    --text: #e2e4ed;
+    --text2: #9499b3;
+    --text3: #636985;
+    --accent: #a78bfa;
+    --accent2: #c4b5fd;
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --amber: #fbbf24;
+    --note-lime: #c8f547;
+    --note-cyan: #67e8f9;
+    --note-pink: #f9a8d4;
+    --note-amber: #fcd34d;
+    --note-violet: #c4b5fd;
+    --note-mint: #6ee7b7;
+    --ink: #1a1a2e;
+    --ink2: #2a2a40;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* subtle dot grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+  }
+
+  .logo {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    white-space: nowrap;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .logo .dot { color: var(--accent); }
+
+  .logo .subtitle {
+    color: var(--text3);
+    font-size: 0.55rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .search-bar {
+    flex: 1;
+    max-width: 340px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar::placeholder { color: var(--text3); }
+  .search-bar:focus { border-color: var(--accent); }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(167,139,250,0.1);
+    color: var(--accent2);
+    border-color: rgba(167,139,250,0.3);
+  }
+
+  .post-btn {
+    margin-left: auto;
+    background: var(--accent);
+    color: #0f0f1a;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .post-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(167,139,250,0.25); }
+  .post-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .identity-badge {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--text3);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .identity-badge:hover { color: var(--accent); }
+
+  /* ── BOARD ── */
+  .board {
+    position: relative;
+    z-index: 1;
+    padding: 32px 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text3);
+    font-size: 0.85rem;
+  }
+  .empty-state .big { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+  .loading-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px;
+    color: var(--text3);
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:0.4 } 50% { opacity:1 } }
+
+  /* ── CARD ── */
+  .card {
+    position: relative;
+    border-radius: 12px;
+    padding: 22px 20px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1);
+    animation: cardIn 0.3s ease-out backwards;
+    cursor: default;
+    transform: translateY(0);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .card.no-anim { animation: none; }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* card color variants — vivid post-it colors with dark text */
+  .card[data-color="0"] { background: var(--note-lime); }
+  .card[data-color="1"] { background: var(--note-cyan); }
+  .card[data-color="2"] { background: var(--note-pink); }
+  .card[data-color="3"] { background: var(--note-amber); }
+  .card[data-color="4"] { background: var(--note-violet); }
+  .card[data-color="5"] { background: var(--note-mint); }
+
+  /* top color strip */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 12px 12px 0 0;
+    opacity: 0.6;
+  }
+  .card[data-color="0"]::before { background: #65a30d; }
+  .card[data-color="1"]::before { background: #0891b2; }
+  .card[data-color="2"]::before { background: #db2777; }
+  .card[data-color="3"]::before { background: #d97706; }
+  .card[data-color="4"]::before { background: #7c3aed; }
+  .card[data-color="5"]::before { background: #059669; }
+
+  /* aging overlay */
+  .card .age-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: rgba(0,0,0,0);
+    pointer-events: none;
+    transition: background 0.5s;
+  }
+
+  .card-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+  .type-client { background: rgba(0,0,0,0.1); color: rgba(0,0,0,0.65); }
+  .type-freelancer { background: rgba(0,0,0,0.1); color: rgba(0,0,0,0.65); }
+
+  .card-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+
+  .card-desc {
+    font-size: 0.78rem;
+    color: var(--ink2);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .tag {
+    font-size: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.55);
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .tag:hover { background: rgba(0,0,0,0.15); }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(0,0,0,0.08);
+    padding-top: 10px;
+    margin-top: 8px;
+  }
+
+  .rate-badge {
+    font-weight: 600;
+    color: rgba(0,0,0,0.55);
+  }
+
+  .expires-label { font-style: italic; }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .vote-btn {
+    background: rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(0,0,0,0.45);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .vote-btn:hover { background: rgba(0,0,0,0.12); }
+  .vote-btn.voted-up { background: rgba(16,185,129,0.2); color: #065f46; border-color: rgba(16,185,129,0.3); }
+  .vote-btn.voted-down { background: rgba(239,68,68,0.15); color: #991b1b; border-color: rgba(239,68,68,0.25); }
+  .vote-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .reveal-btn {
+    margin-left: auto;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reveal-btn:hover { background: var(--ink2); }
+
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: rgba(0,0,0,0.25);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .delete-btn:hover { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+  .bookmark-btn {
+    position: absolute;
+    top: -2px;
+    right: 14px;
+    z-index: 5;
+    width: 22px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: transform 0.15s;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+  }
+  .bookmark-btn:hover { transform: translateY(2px); }
+  .bookmark-btn svg {
+    width: 22px;
+    height: 32px;
+    display: block;
+  }
+  .bookmark-btn .ribbon-fill { fill: rgba(0,0,0,0.12); transition: fill 0.15s; }
+  .bookmark-btn:hover .ribbon-fill { fill: rgba(0,0,0,0.22); }
+  .bookmark-btn.bookmarked .ribbon-fill { fill: #ffffff; }
+  .bookmark-btn.bookmarked:hover .ribbon-fill { fill: #e5e5e5; }
+
+  .vote-score {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(0,0,0,0.5);
+    min-width: 20px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 36px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: scale(0.95) translateY(16px); }
+    to { opacity:1; transform: scale(1) translateY(0); }
+  }
+
+  .modal h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--bg2); }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .type-toggle label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text3);
+    transition: all 0.2s;
+  }
+  .type-toggle input { display: none; }
+  .type-toggle input:checked + label {
+    border-color: var(--accent);
+    background: rgba(167,139,250,0.1);
+    color: var(--accent2);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0f0f1a;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--border-h); }
+
+  /* ── REVEAL MODAL ── */
+  .reveal-modal { max-width: 420px; }
+  .reveal-modal h2 { font-size: 1.15rem; }
+  .contact-display {
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 14px 0;
+    font-size: 0.88rem;
+    color: var(--accent2);
+    word-break: break-all;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .contact-note {
+    font-size: 0.7rem;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 0.78rem;
+    color: var(--text);
+    z-index: 999;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s;
+    max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    text-align: center;
+    padding: 8px;
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    font-weight: 500;
+  }
+  .stats-bar span { color: var(--text2); }
+
+  .tag-filter-bar {
+    padding: 10px 28px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.65rem;
+    color: var(--text3);
+    min-height: 44px;
+  }
+  .tag-filter-bar .active-tag {
+    background: rgba(167,139,250,0.12);
+    color: var(--accent2);
+    border: 1px solid rgba(167,139,250,0.25);
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .tag-filter-bar .active-tag span { opacity: 0.6; }
+  .clear-filters {
+    cursor: pointer;
+    color: var(--text3);
+    text-decoration: underline;
+    font-size: 0.6rem;
+    margin-left: 4px;
+  }
+  .clear-filters:hover { color: var(--text2); }
+
+  /* ── IDENTITY MODAL ── */
+  .identity-modal { max-width: 480px; }
+  .identity-modal h2 { font-size: 1.15rem; margin-bottom: 12px; }
+  .identity-modal .id-section {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .identity-modal .id-section:last-child { border-bottom: none; margin-bottom: 0; }
+  .identity-modal .id-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .identity-modal .id-value {
+    font-size: 0.72rem;
+    color: var(--accent2);
+    word-break: break-all;
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.12);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .id-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .id-btn {
+    background: transparent;
+    border: 1px solid rgba(167,139,250,0.25);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .id-btn:hover { background: rgba(167,139,250,0.08); border-color: var(--accent); }
+  .id-btn.danger { border-color: rgba(248,113,113,0.25); color: var(--red); }
+  .id-btn.danger:hover { background: rgba(248,113,113,0.08); border-color: var(--red); }
+  .import-area {
+    width: 100%;
+    min-height: 80px;
+    background: var(--bg3);
+    border: 1px dashed rgba(167,139,250,0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .import-area:focus { border-color: var(--accent); }
+  .import-area::placeholder { color: var(--text3); }
+  .id-warn { font-size: 0.62rem; color: rgba(248,113,113,0.7); line-height: 1.5; margin-top: 4px; }
+  .id-info { font-size: 0.62rem; color: var(--text3); line-height: 1.5; margin-top: 4px; }
+  #importFile { display: none; }
+
+  /* ── PERMISSION NOTICE ── */
+  .perm-notice {
+    font-size: 0.65rem;
+    color: var(--text3);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    line-height: 1.55;
+  }
+  .perm-notice strong { color: var(--amber); }
+
+  /* ── EPHEMERAL BANNER ── */
+  .ephemeral-banner {
+    text-align: center;
+    padding: 5px 16px;
+    font-size: 0.56rem;
+    color: var(--text3);
+    background: rgba(251,191,36,0.04);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.3px;
+    line-height: 1.6;
+  }
+  .ephemeral-banner .eph-tag {
+    color: var(--amber);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.5rem;
+  }
+
+  /* ── ADMIN ── */
+  .admin-badge {
+    background: rgba(248,113,113,0.12);
+    color: var(--red);
+    font-size: 0.52rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.8px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+  .admin-del-btn {
+    background: transparent;
+    border: 1px solid rgba(248,113,113,0.2);
+    color: rgba(239,68,68,0.5);
+    font-size: 0.6rem;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .admin-del-btn:hover { background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.4); }
+
+  /* ── RESPONSIVE / MOBILE ─────────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    header {
+      flex-wrap: wrap;
+      height: auto;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      order: 0;
+    }
+    .logo .subtitle { display: none; }
+
+    .identity-badge {
+      order: 1;
+      margin-left: auto;
+      font-size: 0.58rem;
+    }
+
+    .post-btn {
+      order: 2;
+      margin-left: 0;
+      padding: 7px 12px;
+      font-size: 0.72rem;
+    }
+
+    .header-controls {
+      order: 3;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .search-bar {
+      max-width: none;
+      flex: 1 1 100%;
+      font-size: 0.78rem;
+    }
+
+    .filter-btn {
+      flex: 1 1 auto;
+      text-align: center;
+      padding: 5px 8px;
+      font-size: 0.65rem;
+    }
+
+    .board {
+      padding: 16px 10px;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      padding: 16px 14px 14px;
+    }
+
+    .card-title { font-size: 0.92rem; }
+    .card-desc  { font-size: 0.74rem; }
+    .card-meta  { font-size: 0.58rem; }
+
+    .card-actions {
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .stats-bar { font-size: 0.56rem; padding: 6px 10px; }
+
+    .ephemeral-banner { font-size: 0.5rem; padding: 4px 10px; }
+
+    .tag-filter-bar { padding: 8px 10px; font-size: 0.58rem; }
+
+    /* modals */
+    .modal-overlay { padding: 10px; align-items: flex-start; overflow-y: auto; }
+
+    .modal {
+      padding: 20px 16px;
+      border-radius: 12px;
+      margin-top: 20px;
+      max-height: none;
+    }
+
+    .modal h2 { font-size: 1.1rem; margin-bottom: 14px; }
+
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+
+    .modal-actions { flex-direction: column; }
+    .modal-actions .btn-primary,
+    .modal-actions .btn-secondary { width: 100%; text-align: center; }
+
+    .identity-modal { max-width: 100%; }
+    .reveal-modal  { max-width: 100%; }
+
+    .id-value { font-size: 0.62rem; padding: 8px 10px; }
+    .id-actions { flex-direction: column; }
+    .id-btn { width: 100%; justify-content: center; }
+
+    .import-area { min-height: 60px; font-size: 0.65rem; }
+  }
+
+  /* ── mid-size tablets ── */
+  @media (min-width: 641px) and (max-width: 900px) {
+    header { padding: 0 16px; gap: 10px; }
+    .logo .subtitle { display: none; }
+    .search-bar { max-width: 200px; }
+    .filter-btn { padding: 5px 8px; font-size: 0.68rem; }
+    .post-btn { padding: 7px 14px; font-size: 0.75rem; }
+    .board { padding: 24px 16px; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Dev<span class="dot">Board</span>
+    <span class="subtitle">freelancer noticeboard</span>
+  </div>
+  <div class="header-controls">
+    <input class="search-bar" type="text" placeholder="search titles, tags, descriptions..." id="searchInput">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" data-filter="client" onclick="setFilter('client', this)">Hiring</button>
+    <button class="filter-btn" data-filter="freelancer" onclick="setFilter('freelancer', this)">Available</button>
+    <button class="filter-btn" data-filter="saved" onclick="setFilter('saved', this)">★ Saved</button>
+  </div>
+  <div class="identity-badge" id="identityBadge" onclick="openIdentityModal()">generating keypair...</div>
+  <button class="post-btn" id="postBtnHeader" onclick="openPostModal()">+ Pin a Note</button>
+</header>
+
+<div class="stats-bar" id="statsBar">connecting to network...</div>
+
+<div class="ephemeral-banner">
+  <span class="eph-tag">ephemeral</span> — notes live on the p2p network while peers are online. If all tabs close and relays flush, pins fade. Back up contacts you care about.
+</div>
+
+<div class="tag-filter-bar" id="tagFilterBar" style="display:none"></div>
+
+<div class="board" id="board">
+  <div class="loading-state">⟳ &nbsp;SYNCING WITH THE BOARD...</div>
+</div>
+
+<!-- POST MODAL -->
+<div class="modal-overlay" id="postModal">
+  <div class="modal">
+    <h2>Pin a Note</h2>
+    <div class="form-group">
+      <label>I am...</label>
+      <div class="type-toggle">
+        <input type="radio" name="noteType" id="typeClient" value="client" checked>
+        <label for="typeClient">Hiring</label>
+        <input type="radio" name="noteType" id="typeFreelancer" value="freelancer">
+        <label for="typeFreelancer">Available</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Title / Hook</label>
+      <input type="text" id="inTitle" placeholder="e.g. Need a React dev for e-commerce project" maxlength="80">
+    </div>
+    <div class="form-group">
+      <label>Description (keep it punchy)</label>
+      <textarea id="inDesc" rows="3" placeholder="Brief context, what you need or what you offer..." maxlength="300"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Tech Stack / Skills (comma separated)</label>
+      <input type="text" id="inTags" placeholder="React, Node.js, PostgreSQL, Figma..." maxlength="200">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Rate / Budget</label>
+        <input type="text" id="inRate" placeholder="€50/hr · €5k budget · open" maxlength="60">
+      </div>
+      <div class="form-group">
+        <label>Note lives for</label>
+        <select id="inDuration">
+          <option value="86400000">24 hours</option>
+          <option value="259200000">3 days</option>
+          <option value="604800000" selected>1 week</option>
+          <option value="1209600000">2 weeks</option>
+          <option value="2592000000">30 days</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Contact (email, Discord, GitHub, Telegram...)</label>
+      <input type="text" id="inContact" placeholder="you@example.com · discord: handle#0000" maxlength="200">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closePostModal()">Cancel</button>
+      <button class="btn-primary" id="submitBtn" onclick="submitPost()">Pin It</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVEAL MODAL -->
+<div class="modal-overlay" id="revealModal">
+  <div class="modal reveal-modal">
+    <h2>Contact Info</h2>
+    <div class="contact-display" id="contactDisplay"></div>
+    <p class="contact-note">
+      This info was pinned by the poster. Always verify who you're talking to before sharing sensitive details or sending money.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeRevealModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDENTITY MODAL -->
+<div class="modal-overlay" id="identityModal">
+  <div class="modal identity-modal">
+    <h2>Your Identity</h2>
+    <div class="id-section">
+      <div class="id-label">Public Key</div>
+      <div class="id-value" id="idPubKey">—</div>
+      <div id="idLevelDetail"></div>
+      <div class="id-info">Your identity is a SEA keypair stored in this browser. No servers, no accounts. Export it to back it up or move it to another device.</div>
+    </div>
+    <div class="id-section">
+      <div class="id-label">Export</div>
+      <div class="id-actions">
+        <button class="id-btn" onclick="exportKeypairFile()">Download .json</button>
+        <button class="id-btn" onclick="exportKeypairClipboard()">Copy to clipboard</button>
+      </div>
+      <div class="id-info">Save this file somewhere safe. It contains your private key — anyone with it can post and vote as you.</div>
+    </div>
+    <div class="id-section">
+      <div class="id-label">Import</div>
+      <div class="id-actions" style="margin-bottom:8px">
+        <button class="id-btn" onclick="document.getElementById('importFile').click()">Load .json file</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" onchange="importKeypairFile(event)">
+      <textarea class="import-area" id="importPaste" placeholder="...or paste your exported JSON here"></textarea>
+      <div class="id-actions">
+        <button class="id-btn" onclick="importKeypairPaste()">Import from paste</button>
+      </div>
+      <div class="id-warn">Importing replaces your current identity. Your old keypair will be gone unless you exported it first.</div>
+    </div>
+    <div class="id-section">
+      <div class="id-label">Danger Zone</div>
+      <div class="id-actions">
+        <button class="id-btn danger" onclick="nukeIdentity()">Reset identity (generate new keypair)</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeIdentityModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Dynamically load Gun + SEA in order, then boot the app
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function loadScriptWithFallback(primary, fallback) {
+  try { await loadScript(primary); }
+  catch (e) { await loadScript(fallback); }
+}
+
+async function bootGun() {
+  await loadScriptWithFallback(
+    'https://cdn.jsdelivr.net/npm/gun/gun.js',
+    'https://unpkg.com/gun/gun.js'
+  );
+  await loadScriptWithFallback(
+    'https://cdn.jsdelivr.net/npm/gun/sea.js',
+    'https://unpkg.com/gun/sea.js'
+  );
+  initApp();
+}
+
+bootGun();
+</script>
+<script>
+function initApp() {
+// ── RELAY CONFIG ──────────────────────────────────────────────────────────────
+const RELAY_PEERS = [
+  'https://gun.defucc.me/gun',
+  'https://gun.o8.is/gun',
+  'https://relay.peer.ooo/gun',
+];
+
+const gun = Gun({ peers: RELAY_PEERS });
+const DB = gun.get('devboard_v2');
+
+// ── ADMIN PUB KEYS ─────────────────────────────────────────────────────────────
+const ADMIN_PUBS = [
+  'BjmuSZOf2Ba963HSWfNI9roPpdmvRwNGsrci1nFECZQ.0wCgPXQ04R6YKgsemUquHqq3PbcwOC0WlBF4IGqkEgQ',
+];
+
+function isAdmin(pub) { return ADMIN_PUBS.includes(pub || myPub); }
+
+// ── LOCAL CACHE (IndexedDB) ─────────────────────────────────────────────────
+const IDB_NAME = 'devboard_cache';
+const IDB_STORE = 'posts';
+const IDB_VERSION = 2; // bumped to flush pre-signing-era cache
+
+function openCacheDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function cachePost(post) {
+  try {
+    const db = await openCacheDB();
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(post);
+    tx.oncomplete = tx.onerror = tx.onabort = () => db.close();
+  } catch (e) { /* silent */ }
+}
+
+async function removeCachedPost(postId) {
+  try {
+    const db = await openCacheDB();
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(postId);
+    tx.oncomplete = tx.onerror = tx.onabort = () => db.close();
+  } catch (e) { /* silent */ }
+}
+
+async function loadCachedPosts() {
+  try {
+    const db = await openCacheDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).getAll();
+      req.onsuccess = () => { db.close(); resolve(req.result || []); };
+      req.onerror = () => { db.close(); reject(req.error); };
+    });
+  } catch (e) { return []; }
+}
+
+// ── VOTE RATE LIMIT ───────────────────────────────────────────────────────────
+// In-memory only — resets on page load. Prevents rapid scripted spam;
+// creating a fresh keypair to bypass it costs at least one page load.
+const VOTE_RATE_WINDOW = 30000; // ms
+const VOTE_RATE_MAX    = 10;    // votes per window
+let _voteTimestamps = [];
+
+function checkVoteRateLimit() {
+  const now = Date.now();
+  _voteTimestamps = _voteTimestamps.filter(t => now - t < VOTE_RATE_WINDOW);
+  if (_voteTimestamps.length >= VOTE_RATE_MAX) return false;
+  _voteTimestamps.push(now);
+  return true;
+}
+
+// ── IDENTITY ──────────────────────────────────────────────────────────────────
+let myPair = null;
+let myCreatedAt = null;
+let myPub = null;
+
+async function initIdentity() {
+  const stored = localStorage.getItem('devboard_identity');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed.pair && parsed.pair.pub && parsed.createdAt) {
+        myPair = parsed.pair;
+        myCreatedAt = parsed.createdAt;
+        myPub = myPair.pub;
+        updateBadge();
+        return;
+      }
+    } catch (e) { /* corrupt — fall through to generate new */ }
+  }
+  myPair = await SEA.pair();
+  if (!myPair || !myPair.pub) {
+    toast('Failed to generate keypair — try refreshing.');
+    return;
+  }
+  myCreatedAt = Date.now();
+  myPub = myPair.pub;
+  localStorage.setItem('devboard_identity', JSON.stringify({ pair: myPair, createdAt: myCreatedAt }));
+  updateBadge();
+}
+
+function updateBadge() {
+  const adminTag = isAdmin() ? ' · ADMIN' : '';
+  document.getElementById('identityBadge').textContent = `${myPub.slice(0, 12)}…${adminTag}`;
+  document.getElementById('postBtnHeader').disabled = false;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let posts = {};
+let votes = {};
+let myVotes = {};
+let filter = 'all';
+let tagFilters = new Set();
+let searchQuery = '';
+let isLoading = true;
+let bookmarks = new Set();
+
+const COLORS = 6;
+
+// ── DEBOUNCED RENDER ──────────────────────────────────────────────────────────
+let _renderTimer = null;
+function scheduleRender() {
+  if (_renderTimer) return;
+  _renderTimer = setTimeout(() => {
+    _renderTimer = null;
+    render();
+  }, 250);
+}
+
+// ── GUN SUBSCRIPTIONS ─────────────────────────────────────────────────────────
+function subscribeToData() {
+  DB.get('posts').map().on(async (data, id) => {
+    if (!id || id === '_') return;
+    // Tombstone — post was deleted by its author or an admin
+    if (data === null || data === undefined) {
+      if (posts[id]) {
+        delete posts[id];
+        removeCachedPost(id);
+        scheduleRender();
+      }
+      return;
+    }
+    if (data.postedAt && data.expiresAt) {
+      if (Date.now() > data.expiresAt) {
+        delete posts[id];
+        removeCachedPost(id);
+      } else {
+        // Verify signed posts; reject if signature is invalid
+        if (data.sig && data.authorPub) {
+          try {
+            const verified = await SEA.verify(data.sig, data.authorPub);
+            if (!verified) return; // bad signature — reject
+            // Verify all signed fields match what's stored
+            if (verified.id !== id || verified.authorPub !== data.authorPub ||
+                verified.title !== data.title || verified.description !== data.description ||
+                verified.tags !== data.tags || verified.rate !== data.rate ||
+                verified.contact !== data.contact || verified.type !== data.type ||
+                verified.postedAt !== data.postedAt || verified.expiresAt !== data.expiresAt) return;
+          } catch (e) { return; }
+        }
+        // Accept: signed+verified, or legacy unsigned
+        posts[id] = { ...data, id };
+        cachePost({ ...data, id });
+        watchVotesForPost(id);
+      }
+    }
+    if (isLoading) {
+      isLoading = false;
+      document.querySelector('.loading-state')?.remove();
+    }
+    scheduleRender();
+  });
+
+}
+
+// ── PER-POST VOTE WATCHER ─────────────────────────────────────────────────────
+const _watchedVotePosts = new Set();
+
+function watchVotesForPost(postId) {
+  if (!postId || _watchedVotePosts.has(postId)) return;
+  _watchedVotePosts.add(postId);
+
+  DB.get('votes').get(postId).map().on(async (val, voterPub) => {
+    if (!voterPub || voterPub === '_' || val === null || val === undefined) return;
+    if (!votes[postId]) votes[postId] = {};
+
+    // Handle signed votes (string) vs legacy unsigned (number)
+    if (typeof val === 'string') {
+      try {
+        const verified = await SEA.verify(val, voterPub);
+        if (!verified || verified.p !== postId) {
+          // Invalid signature or postId mismatch — reject silently
+          return;
+        }
+        votes[postId][voterPub] = verified.v;
+        if (voterPub === myPub) {
+          myVotes[postId] = verified.d;
+        }
+      } catch (e) { return; }
+    } else {
+      return;
+    }
+    scheduleRender();
+  });
+}
+
+function getVoteScore(postId) {
+  if (!votes[postId]) return 0;
+  // For display, just sum raw values (weighted votes are stored as fractional)
+  return Math.round(Object.values(votes[postId]).reduce((a, b) => a + (b || 0), 0) * 10) / 10;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const board = document.getElementById('board');
+  const now = Math.floor(Date.now() / 30000) * 30000; // snap to 30s for stable DOM diff
+
+  let items = Object.values(posts).filter(p => {
+    if (now > p.expiresAt) return false;
+    if (filter === 'saved') { if (!bookmarks.has(p.id)) return false; }
+    else if (filter !== 'all' && p.type !== filter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack = `${p.title} ${p.description} ${p.tags}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    if (tagFilters.size > 0) {
+      const ptags = (p.tags || '').toLowerCase().split(',').map(t => t.trim());
+      for (const tf of tagFilters) {
+        if (!ptags.some(t => t.includes(tf.toLowerCase()))) return false;
+      }
+    }
+    return true;
+  });
+
+  items.sort((a, b) => {
+    const va = getVoteScore(a.id);
+    const vb = getVoteScore(b.id);
+    if (vb !== va) return vb - va;
+    return b.postedAt - a.postedAt;
+  });
+
+  document.getElementById('statsBar').innerHTML =
+    `<span>${Object.values(posts).filter(p => Date.now() < p.expiresAt).length}</span> live notes · <span>${items.length}</span> matching · synced p2p via gun.js`;
+
+  if (items.length === 0) {
+    board.innerHTML = `<div class="empty-state">
+      <em class="big">Nothing here yet</em>
+      ${isLoading ? 'syncing...' : 'No notes match. Be the first to pin one!'}
+    </div>`;
+    return;
+  }
+
+  // ── DOM-diff render: only touch cards that changed ──
+  const newIds = items.map(p => p.id);
+  const existingCards = board.querySelectorAll('.card[data-id]');
+  const existingMap = new Map();
+  existingCards.forEach(el => existingMap.set(el.getAttribute('data-id'), el));
+
+  // Remove cards no longer in the list
+  existingMap.forEach((el, id) => {
+    if (!newIds.includes(id)) el.remove();
+  });
+  // Remove non-card children (e.g. old empty-state)
+  [...board.children].forEach(el => {
+    if (!el.classList.contains('card')) el.remove();
+  });
+
+  // Build or update each card in order
+  for (let i = 0; i < items.length; i++) {
+    const p = items[i];
+    const existing = existingMap.get(p.id);
+    const html = buildCard(p, now);
+    if (existing) {
+      // Update in place without animation
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const newEl = tmp.firstElementChild;
+      newEl.classList.add('no-anim');
+      if (board.children[i] === existing) {
+        // Same position — only update if content changed
+        if (existing.innerHTML !== newEl.innerHTML || existing.getAttribute('data-color') !== newEl.getAttribute('data-color')) {
+          existing.innerHTML = newEl.innerHTML;
+          existing.setAttribute('data-color', newEl.getAttribute('data-color'));
+          existing.className = newEl.className;
+        }
+      } else {
+        // Needs repositioning
+        board.insertBefore(existing, board.children[i] || null);
+      }
+    } else {
+      // Genuinely new card — insert with animation
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const newEl = tmp.firstElementChild;
+      board.insertBefore(newEl, board.children[i] || null);
+    }
+  }
+}
+
+function buildCard(p, now) {
+  const color = Math.abs(hashStr(p.id)) % COLORS;
+  const ageMs = now - p.postedAt;
+  const totalMs = p.expiresAt - p.postedAt;
+  const ageFraction = Math.min(ageMs / totalMs, 1);
+  const agingOpacity = ageFraction * 0.15;
+
+  const remainingMs = p.expiresAt - now;
+  const expiresLabel = formatRelTime(remainingMs);
+
+  const score = getVoteScore(p.id);
+  const myVote = myVotes[p.id] || 0;
+
+  const tags = (p.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+  const tagsHtml = tags.map(t => `<span class="tag" onclick="addTagFilter(this.dataset.t)" data-t="${escHtml(t)}">#${escHtml(t)}</span>`).join('');
+
+  const isOwn = p.authorPub === myPub;
+  const amAdmin = isAdmin();
+
+  const voteDisabled = isOwn ? 'disabled title="Cannot vote on own post"' : '';
+
+  // Delete button: own posts always, admin gets a distinct button for others' posts
+  let deleteHtml = '';
+  if (isOwn) {
+    deleteHtml = `<button class="delete-btn" onclick="deletePost('${p.id}')">&#x2715;</button>`;
+  } else if (amAdmin) {
+    deleteHtml = `<button class="admin-del-btn" onclick="adminDeletePost('${p.id}')" title="Admin: remove this post">&#x2715; mod</button>`;
+  }
+
+  const isBookmarked = bookmarks.has(p.id);
+  const bookmarkBtn = !isOwn
+    ? `<button class="bookmark-btn${isBookmarked ? ' bookmarked' : ''}" onclick="toggleBookmark('${p.id}')" title="${isBookmarked ? 'Remove from saved' : 'Save this note'}"><svg viewBox="0 0 22 32"><path class="ribbon-fill" d="M2 0h18v30l-9-6-9 6z"/></svg></button>`
+    : '';
+
+  return `
+    <div class="card" data-color="${color}" data-id="${p.id}">
+      ${bookmarkBtn}
+      <div class="age-overlay" style="background:rgba(0,0,0,${agingOpacity.toFixed(2)})"></div>
+      <div class="card-type ${p.type === 'client' ? 'type-client' : 'type-freelancer'}">
+        ${p.type === 'client' ? 'hiring' : 'available'}
+      </div>
+      <div class="card-title">${escHtml(p.title)}</div>
+      <div class="card-desc">${escHtml(p.description)}</div>
+      <div class="tags">${tagsHtml}</div>
+      <div class="card-meta">
+        <span class="rate-badge">${escHtml(p.rate || 'rate: open')}</span>
+        <span class="expires-label">expires ${expiresLabel}</span>
+      </div>
+      <div class="card-actions">
+        <button class="vote-btn ${myVote === 1 ? 'voted-up' : ''}" onclick="castVote('${p.id}', 1)" ${voteDisabled}>▲ ${upCount(p.id)}</button>
+        <span class="vote-score">${score >= 0 ? '+' : ''}${score}</span>
+        <button class="vote-btn ${myVote === -1 ? 'voted-down' : ''}" onclick="castVote('${p.id}', -1)" ${voteDisabled}>▼ ${downCount(p.id)}</button>
+        <button class="reveal-btn" onclick="revealContact('${p.id}')">contact</button>
+        ${deleteHtml}
+      </div>
+    </div>`;
+}
+
+function upCount(postId) {
+  if (!votes[postId]) return 0;
+  return Object.values(votes[postId]).filter(v => v > 0).length;
+}
+function downCount(postId) {
+  if (!votes[postId]) return 0;
+  return Object.values(votes[postId]).filter(v => v < 0).length;
+}
+
+// ── VOTING ────────────────────────────────────────────────────────────────────
+async function castVote(postId, val) {
+  if (!myPub || !myPair) return;
+  if (posts[postId] && posts[postId].authorPub === myPub) {
+    toast('Cannot vote on your own post.');
+    return;
+  }
+  if (!checkVoteRateLimit()) {
+    toast('Slow down — too many votes at once.');
+    return;
+  }
+
+  const existing = myVotes[postId] || 0;
+  const direction = existing === val ? 0 : val; // toggle off
+
+  // Sign the vote so it can be verified by peers
+  const payload = { p: postId, v: direction, d: direction, t: Date.now() };
+  const signed = await SEA.sign(payload, myPair);
+  if (!signed) { toast('Failed to sign vote.'); return; }
+
+  myVotes[postId] = direction;
+  if (!votes[postId]) votes[postId] = {};
+  votes[postId][myPub] = direction;
+
+  DB.get('votes').get(postId).get(myPub).put(signed);
+  render();
+  if (direction === 0) toast('Vote removed');
+  else toast(direction === 1 ? 'Upvoted' : 'Downvoted');
+}
+
+// ── POST CRUD ─────────────────────────────────────────────────────────────────
+async function submitPost() {
+  const title = document.getElementById('inTitle').value.trim();
+  const desc = document.getElementById('inDesc').value.trim();
+  const tags = document.getElementById('inTags').value.trim();
+  const rate = document.getElementById('inRate').value.trim();
+  const contact = document.getElementById('inContact').value.trim();
+  const type = document.querySelector('input[name="noteType"]:checked').value;
+  const duration = parseInt(document.getElementById('inDuration').value);
+
+  if (!title || !desc || !contact) {
+    toast('Fill in title, description, and contact at minimum.');
+    return;
+  }
+
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Pinning...';
+
+  const now = Date.now();
+  const id = `post_${now}_${Math.random().toString(36).substr(2,8)}`;
+
+  const post = {
+    id, type, title, description: desc,
+    tags, rate, contact,
+    postedAt: now,
+    expiresAt: now + duration,
+    authorPub: myPub,
+  };
+
+  // Sign the post so peers can verify authorship
+  const sigPayload = { id: post.id, type: post.type, title: post.title,
+    description: post.description, tags: post.tags, rate: post.rate, contact: post.contact,
+    postedAt: post.postedAt, expiresAt: post.expiresAt, authorPub: post.authorPub };
+  const sig = await SEA.sign(sigPayload, myPair);
+  if (!sig) {
+    toast('Failed to sign post.');
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = 'Pin It';
+    return;
+  }
+  post.sig = sig;
+
+  DB.get('posts').get(id).put(post, ack => {
+    if (ack.err) {
+      toast('Error pinning note: ' + ack.err);
+    } else {
+      posts[id] = { ...post, id };
+      toast('Note pinned!');
+      closePostModal();
+      render();
+    }
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = 'Pin It';
+  });
+}
+
+function deletePost(postId) {
+  const p = posts[postId];
+  if (!p || p.authorPub !== myPub) { toast('Not your post.'); return; }
+  if (!confirm('Remove your note from the board?')) return;
+  DB.get('posts').get(postId).put(null);
+  delete posts[postId];
+  removeCachedPost(postId);
+  render();
+  toast('Note removed.');
+}
+
+function adminDeletePost(postId) {
+  if (!isAdmin()) { toast('Not authorized.'); return; }
+  if (!confirm('Admin: Remove this note from the board? This action is visible to all peers.')) return;
+  DB.get('posts').get(postId).put(null);
+  delete posts[postId];
+  removeCachedPost(postId);
+  render();
+  toast('Post removed by admin.');
+}
+
+// ── CONTACT REVEAL ────────────────────────────────────────────────────────────
+function revealContact(postId) {
+  const p = posts[postId];
+  if (!p) return;
+  document.getElementById('contactDisplay').textContent = p.contact || '(no contact provided)';
+  document.getElementById('revealModal').classList.add('open');
+}
+
+function closeRevealModal() {
+  document.getElementById('revealModal').classList.remove('open');
+}
+
+// ── IDENTITY MANAGEMENT ───────────────────────────────────────────────────────
+function openIdentityModal() {
+  document.getElementById('idPubKey').textContent = myPub || '—';
+  document.getElementById('idLevelDetail').innerHTML = isAdmin()
+    ? '<div class="perm-notice" style="margin-bottom:8px"><strong style="color:var(--red)">ADMIN</strong> — can delete any post</div>'
+    : '';
+  document.getElementById('importPaste').value = '';
+  document.getElementById('identityModal').classList.add('open');
+}
+
+function closeIdentityModal() {
+  document.getElementById('identityModal').classList.remove('open');
+}
+
+function exportKeypairFile() {
+  const data = JSON.stringify({ pair: myPair, createdAt: myCreatedAt }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `devboard-keypair-${myPub.slice(0,8)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Keypair exported — keep this file safe!');
+}
+
+function exportKeypairClipboard() {
+  const data = JSON.stringify({ pair: myPair, createdAt: myCreatedAt }, null, 2);
+  navigator.clipboard.writeText(data).then(() => {
+    toast('Keypair copied to clipboard');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = data;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Keypair copied to clipboard');
+  });
+}
+
+function validateKeypairJSON(text) {
+  try {
+    const obj = JSON.parse(text);
+    if (!obj.pair || !obj.pair.pub || !obj.pair.priv || !obj.pair.epub || !obj.pair.epriv) {
+      return { ok: false, err: 'Invalid format — missing keypair fields.' };
+    }
+    if (!obj.createdAt || typeof obj.createdAt !== 'number') {
+      return { ok: false, err: 'Invalid format — missing or bad createdAt.' };
+    }
+    return { ok: true, data: obj };
+  } catch (e) {
+    return { ok: false, err: 'Not valid JSON.' };
+  }
+}
+
+function applyImportedIdentity(obj) {
+  myPair = obj.pair;
+  myCreatedAt = obj.createdAt;
+  myPub = myPair.pub;
+  localStorage.setItem('devboard_identity', JSON.stringify({ pair: myPair, createdAt: myCreatedAt }));
+  myVotes = {};
+  updateBadge();
+  closeIdentityModal();
+  render();
+  toast('Identity imported — using restored keypair.');
+}
+
+function importKeypairFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const result = validateKeypairJSON(e.target.result);
+    if (!result.ok) { toast(result.err); return; }
+    if (!confirm('Replace your current identity with this keypair?')) return;
+    applyImportedIdentity(result.data);
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function importKeypairPaste() {
+  const text = document.getElementById('importPaste').value.trim();
+  if (!text) { toast('Paste your exported JSON first.'); return; }
+  const result = validateKeypairJSON(text);
+  if (!result.ok) { toast(result.err); return; }
+  if (!confirm('Replace your current identity with this keypair?')) return;
+  applyImportedIdentity(result.data);
+}
+
+function nukeIdentity() {
+  if (!confirm('Generate a brand new identity? Your current keypair will be permanently lost unless you exported it.')) return;
+  localStorage.removeItem('devboard_identity');
+  myVotes = {};
+  initIdentity().then(() => {
+    closeIdentityModal();
+    render();
+    toast('New identity generated.');
+  });
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function addTagFilter(tag) {
+  tagFilters.add(tag);
+  renderTagFilterBar();
+  render();
+}
+
+function removeTagFilter(tag) {
+  tagFilters.delete(tag);
+  renderTagFilterBar();
+  render();
+}
+
+function clearTagFilters() {
+  tagFilters.clear();
+  renderTagFilterBar();
+  render();
+}
+
+// ── BOOKMARKS ─────────────────────────────────────────────────────────────────
+function loadBookmarks() {
+  try {
+    const stored = localStorage.getItem('devboard_bookmarks');
+    if (stored) bookmarks = new Set(JSON.parse(stored));
+  } catch (e) { bookmarks = new Set(); }
+}
+
+function saveBookmarks() {
+  localStorage.setItem('devboard_bookmarks', JSON.stringify([...bookmarks]));
+}
+
+function toggleBookmark(postId) {
+  if (bookmarks.has(postId)) {
+    bookmarks.delete(postId);
+    toast('Removed from saved');
+  } else {
+    bookmarks.add(postId);
+    toast('Saved!');
+  }
+  saveBookmarks();
+  render();
+}
+
+function renderTagFilterBar() {
+  const bar = document.getElementById('tagFilterBar');
+  if (tagFilters.size === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = 'Filtering: &nbsp;' +
+    [...tagFilters].map(t => `<div class="active-tag" onclick="removeTagFilter(this.dataset.t)" data-t="${escHtml(t)}">#${escHtml(t)} <span>✕</span></div>`).join('') +
+    `<span class="clear-filters" onclick="clearTagFilters()">clear all</span>`;
+}
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  scheduleRender();
+});
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openPostModal() {
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('postModal').classList.add('open');
+}
+
+function closePostModal() {
+  document.getElementById('postModal').classList.remove('open');
+  document.getElementById('inTitle').value = '';
+  document.getElementById('inDesc').value = '';
+  document.getElementById('inTags').value = '';
+  document.getElementById('inRate').value = '';
+  document.getElementById('inContact').value = '';
+}
+
+document.getElementById('postModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('postModal')) closePostModal();
+});
+document.getElementById('revealModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('revealModal')) closeRevealModal();
+});
+document.getElementById('identityModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('identityModal')) closeIdentityModal();
+});
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+let _toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.classList.remove('show'); _toastTimer = null; }, 3200);
+}
+
+function formatRelTime(ms) {
+  if (ms < 0) return 'expired';
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `in ${d}d ${Math.floor((ms % 86400000) / 3600000)}h`;
+  if (h > 0) return `in ${h}h ${m}m`;
+  if (m > 0) return `in ${m}m`;
+  return '< 1m';
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/\\/g,'&#92;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  return h;
+}
+
+// ── EXPIRY PRUNER ─────────────────────────────────────────────────────────────
+setInterval(() => {
+  const now = Date.now();
+  let changed = false;
+  for (const id in posts) {
+    if (posts[id].expiresAt && now > posts[id].expiresAt) {
+      delete posts[id];
+      removeCachedPost(id);
+      changed = true;
+    }
+  }
+  // Auto-demote heavily downvoted posts (local only — no Gun write, to preserve signature validity)
+  for (const id in posts) {
+    const score = getVoteScore(id);
+    if (score <= -3) {
+      const shortExpiry = now + 3600000;
+      if (posts[id].expiresAt > shortExpiry) {
+        posts[id].expiresAt = shortExpiry;
+        changed = true;
+      }
+    }
+  }
+  if (changed) render();
+}, 60000);
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+  window.setFilter = setFilter;
+  window.openPostModal = openPostModal;
+  window.closePostModal = closePostModal;
+  window.submitPost = submitPost;
+  window.castVote = castVote;
+  window.revealContact = revealContact;
+  window.deletePost = deletePost;
+  window.adminDeletePost = adminDeletePost;
+  window.addTagFilter = addTagFilter;
+  window.removeTagFilter = removeTagFilter;
+  window.clearTagFilters = clearTagFilters;
+  window.closeRevealModal = closeRevealModal;
+  window.openIdentityModal = openIdentityModal;
+  window.closeIdentityModal = closeIdentityModal;
+  window.exportKeypairFile = exportKeypairFile;
+  window.exportKeypairClipboard = exportKeypairClipboard;
+  window.importKeypairFile = importKeypairFile;
+  window.importKeypairPaste = importKeypairPaste;
+  window.nukeIdentity = nukeIdentity;
+  window.toggleBookmark = toggleBookmark;
+
+  (async () => {
+    loadBookmarks();
+    await initIdentity();
+
+    try {
+      const cached = await loadCachedPosts();
+      const now = Date.now();
+      let loadedCount = 0;
+      for (const p of cached) {
+        if (p.expiresAt && now < p.expiresAt && p.id) {
+          posts[p.id] = p;
+          watchVotesForPost(p.id);
+          loadedCount++;
+        } else if (p.id) {
+          removeCachedPost(p.id);
+        }
+      }
+      if (loadedCount > 0) {
+        isLoading = false;
+        document.querySelector('.loading-state')?.remove();
+        render();
+      }
+    } catch (e) { /* cache miss */ }
+
+    subscribeToData();
+
+    setTimeout(() => {
+      if (document.querySelector('.loading-state')) {
+        isLoading = false;
+        render();
+      }
+    }, 5000);
+  })();
+} // end initApp
+</script>
+</body>
+</html>
