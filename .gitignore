@@ -5,3 +5,4 @@ radata*/
 test-results/
 *.log
 .DS_Store
+.radata/

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; connect-src 'self' https: wss: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'self'; manifest-src 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Shared lists, inventories and markdown notes that sync across your devices over gun.js — end-to-end encrypted or public, no server, no sign-up.">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0f0d" media="(prefers-color-scheme: dark)">
+  <title>Loadout</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/app.css">
+  <script defer src="vendor/gun/gun.js"></script>
+  <script defer src="vendor/gun/sea.js"></script>
+  <script defer src="vendor/gun/radix.js"></script>
+  <script defer src="vendor/gun/radisk.js"></script>
+  <script defer src="vendor/gun/store.js"></script>
+  <script defer src="vendor/gun/rindexed.js"></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <noscript><p class="noscript">Loadout needs JavaScript: everything is encrypted and synced in your browser.</p></noscript>
+  <div id="app"><div class="boot">Loading…</div></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+</body>
+</html>

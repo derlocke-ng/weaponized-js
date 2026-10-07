@@ -1,0 +1,22 @@
+{
+  "name": "weaponized-js",
+  "private": true,
+  "type": "module",
+  "description": "Peer-to-peer webtools armed with gun.js",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "build": "sh scripts/build-site.sh",
+    "serve": "node scripts/serve.mjs",
+    "relay": "node scripts/relay.cjs",
+    "test": "node --test \"test/unit/*.test.js\"",
+    "test:e2e": "node test/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "dompurify": "3.4.16",
+    "gun": "0.2020.1241",
+    "lucide-static": "1.52.0",
+    "marked": "18.1.0",
+    "playwright-core": "1.63.0",
+    "qrcode-generator": "2.0.4"
+  }
+}
