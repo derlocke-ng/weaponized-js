@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>pongjs - 2 player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="crt">
+        <div class="scanlines"></div>
+        <div class="content">
+
+            <h1>PONGJS</h1>
+            <p class="subtitle">*** 2 PLAYER NETWORK ***</p>
+
+            <div id="menu">
+                <p class="blink">- SELECT MODE -</p>
+                <div class="input-group">
+                    <label>ENTER NAME:</label>
+                    <input type="text" id="username" placeholder="PLAYER1" maxlength="10">
+                </div>
+                <div class="input-group">
+                    <label>CONNECTION:</label>
+                    <select id="connectionMode">
+                        <option value="peerjs">Auto (PeerJS)</option>
+                        <option value="manual">Manual (WebRTC)</option>
+                    </select>
+                </div>
+                <button id="hostBtn">[1] HOST GAME</button>
+                <button id="joinBtn">[2] JOIN GAME</button>
+            </div>
+
+            <!-- PeerJS UI -->
+            <div id="peerjsPanel" class="panel" style="display:none;">
+                <h2 id="peerjsTitle">PEERJS</h2>
+                <div id="peerjsHost" style="display:none;">
+                    <p>ROOM CODE:</p>
+                    <textarea id="peerjsRoomCode" readonly></textarea>
+                    <button id="copyPeerjsRoom">[COPY]</button>
+                    <p id="peerjsHostStatus">WAITING FOR PLAYER...</p>
+                </div>
+                <div id="peerjsJoin" style="display:none;">
+                    <p>ENTER ROOM CODE:</p>
+                    <textarea id="peerjsJoinCode" placeholder="paste full room id"></textarea>
+                    <button id="peerjsJoinBtn">[JOIN]</button>
+                    <p id="peerjsJoinStatus"></p>
+                </div>
+            </div>
+
+            <div id="hostPanel" class="panel" style="display:none;">
+                <h2>HOST GAME</h2>
+                <p>1. COPY THIS CODE:</p>
+                <textarea id="hostCode" readonly></textarea>
+                <button id="copyHostCode">[COPY]</button>
+                <p>2. PASTE FRIEND'S RESPONSE:</p>
+                <textarea id="hostAnswer" placeholder="PASTE RESPONSE HERE"></textarea>
+                <button id="hostConnect">[CONNECT]</button>
+                <p id="hostStatus">WAITING...</p>
+            </div>
+
+            <div id="joinPanel" class="panel" style="display:none;">
+                <h2>JOIN GAME</h2>
+                <p>1. PASTE HOST CODE:</p>
+                <textarea id="joinCode" placeholder="PASTE HOST CODE HERE"></textarea>
+                <button id="joinConnect">[GENERATE RESPONSE]</button>
+                <p>2. SEND THIS TO HOST:</p>
+                <textarea id="joinAnswer" readonly></textarea>
+                <button id="copyJoinAnswer">[COPY]</button>
+                <p id="joinStatus">WAITING...</p>
+            </div>
+
+            <div id="gameContainer" style="display:none;">
+                <div id="playerNames">
+                    <span id="leftName">P1</span>
+                    <span id="rightName">P2</span>
+                </div>
+                <canvas id="pong"></canvas>
+                <div id="touchControls">
+                    <button id="upBtn">[ UP ]</button>
+                    <button id="downBtn">[DOWN]</button>
+                </div>
+                <p id="gameStatus"></p>
+                <p class="controls-hint">MOUSE/TOUCH: MOVE | +/-: SPEED</p>
+            </div>
+
+            <p class="footer">(C) 2026 - derlocke-ng</p>
+        </div>
+    </div>
+
+    <script src="pong.js"></script>
+</body>
+</body>
+<!-- PeerJS CDN for automatic signaling -->
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</html>
