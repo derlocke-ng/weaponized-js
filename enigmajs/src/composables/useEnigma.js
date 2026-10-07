@@ -399,7 +399,7 @@ export function useEnigma() {
       const notification = new Notification(`EnigmaJS - ${username}`, {
         body:
           message.length > 100 ? message.substring(0, 100) + "..." : message,
-        icon: "/vite.svg", // Uses the Vite logo as placeholder
+        icon: `${import.meta.env.BASE_URL}vite.svg`, // Uses the Vite logo as placeholder
         tag: "enigmajs-message", // Prevents stacking multiple notifications
         requireInteraction: false,
       });
