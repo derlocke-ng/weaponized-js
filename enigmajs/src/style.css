@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;900&display=swap");
+
+:root {
+  /* EnigmaJS Theme - Light Mode (default) */
+  --bg-gradient-start: #ff6b35;
+  --bg-gradient-end: #f7931e;
+  --container-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-tertiary: #2a2a2a;
+  --accent-primary: #ff6b35;
+  --accent-secondary: #f7931e;
+  --accent-tertiary: #ffb88c;
+  --input-border: #ffb88c;
+  --input-bg: #fafafa;
+  --section-bg: #fff5f0;
+  --btn-secondary-bg: #ffe5d9;
+  --btn-secondary-hover: #ffd4bf;
+  --status-disconnected-bg: #ffe5e5;
+  --status-disconnected-text: #d32f2f;
+  --status-disconnected-border: #d32f2f;
+  --status-waiting-bg: #fff8e1;
+  --status-waiting-text: #f57c00;
+  --status-waiting-border: #f57c00;
+  --status-connected-bg: #e8f5e9;
+  --status-connected-text: #388e3c;
+  --status-connected-border: #388e3c;
+  --peer-id-bg: #ffe5d9;
+  --connection-info-bg: #fff5f0;
+  --info-border: #ffd4bf;
+  --chat-messages-bg: #fafafa;
+  --chat-messages-border: #ffd4bf;
+  --debug-toggle-bg: #fff5f0;
+  --debug-toggle-hover: #ffe5d9;
+  --shadow-color: rgba(255, 107, 53, 0.2);
+  --qr-bg: #ffffff;
+
+  font-family: "Barlow", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Dark Mode */
+body.dark-mode {
+  --bg-gradient-start: #1a1a1a;
+  --bg-gradient-end: #2a2a2a;
+  --container-bg: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #b8b8b8;
+  --text-tertiary: #e0e0e0;
+  --accent-primary: #ff6b35;
+  --accent-secondary: #f7931e;
+  --accent-tertiary: #d4571f;
+  --input-border: #3d3d3d;
+  --input-bg: #1a1a1a;
+  --section-bg: #161616;
+  --btn-secondary-bg: #2a2a2a;
+  --btn-secondary-hover: #3d3d3d;
+  --status-disconnected-bg: #2a1515;
+  --status-disconnected-text: #ff6b6b;
+  --status-disconnected-border: #ff6b6b;
+  --status-waiting-bg: #2a2515;
+  --status-waiting-text: #ffb347;
+  --status-waiting-border: #ffb347;
+  --status-connected-bg: #152a15;
+  --status-connected-text: #69f0ae;
+  --status-connected-border: #69f0ae;
+  --peer-id-bg: #2a1f1a;
+  --connection-info-bg: #1a1a1a;
+  --info-border: #3d3d3d;
+  --chat-messages-bg: #161616;
+  --chat-messages-border: #3d3d3d;
+  --debug-toggle-bg: #1a1a1a;
+  --debug-toggle-hover: #2a2a2a;
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --qr-bg: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Barlow", "Segoe UI", sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-end) 100%
+  );
+  min-height: 100vh;
+  padding: 20px;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  transition: background 0.3s ease;
+}
+
+#app {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-secondary);
+}
+
+button {
+  font-family: "Barlow", sans-serif;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+}
