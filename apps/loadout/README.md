@@ -51,6 +51,8 @@ Relays are caches, not archives — public ones drop data whenever they like. Lo
 
 So data is only lost if every device that ever opened a board is gone *and* there is no backup. The end-to-end test wipes the relay twice to check both recovery paths.
 
+**Coming from the gun version?** The old Loadout (before October 2026) stored boards with gun/SEA keys, which the nostr version cannot read. Make a backup in the old version first (*Account → Download backup*), then *Restore backup* in the new one: its boards are imported as new nostr boards with fresh keys and links, and your current device key and account stay. Old share links stop working, so send the new ones.
+
 ## Honest limits
 
 - **Relays see metadata**: which board addresses are read and written, when, how big the values are, and your IP address. They can't read the content. Use a VPN or Tor if that matters, or point Loadout at your own relay (*Account → Relays*).
@@ -77,7 +79,7 @@ In the app, add `ws://localhost:7777` under *Account → Relays*.
 
 ```sh
 npm test                       # unit tests (node --test)
-node test/e2e/loadout.mjs      # 17 multi-device browser scenarios against a throwaway relay (needs Chromium)
+node test/e2e/loadout.mjs      # 18 multi-device browser scenarios against a throwaway relay (needs Chromium)
 npm run vendor                 # refresh vendor/, ../shared/nostr.mjs and icons.svg after bumping versions
 ```
 

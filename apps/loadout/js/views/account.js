@@ -1,6 +1,6 @@
 import { app } from '../app.js';
 import { signIn, createAccount, identityFromKey, fingerprint, checkPassword, npub, nsec, exportEncrypted } from '../identity.js';
-import { switchIdentity, buildBackup, wipeDevice } from '../session.js';
+import { switchIdentity, buildBackup, wipeDevice, isLegacyBackup, importLegacyBackup } from '../session.js';
 import { encryptBackup, decryptBackup } from '../backup.js';
 import { relays, saveRelays, onStatus, peers, relayInfo, normalizeRelayUrl } from '../net.js';
 import { DEFAULT_RELAYS } from '../config.js';
@@ -287,7 +287,7 @@ export function renderAccount(view) {
       title: 'Restore backup',
       body: `
         <form class="form">
-          <p class="modal-text">Restoring switches this device to the key in the backup. Boards already on this device are added to it, and everything the relays have lost is put back.</p>
+          <p class="modal-text">Restoring switches this device to the key in the backup. Boards already on this device are added to it, and everything the relays have lost is put back. A backup from Loadout before nostr is imported as new boards instead.</p>
           <label class="field">Passphrase<input name="pass" type="password" autocomplete="off" required></label>
           <div class="modal-actions"><span class="progress-text" id="rsProgress"></span><button type="button" class="btn" data-close>Cancel</button><button class="btn btn-primary">Restore</button></div>
         </form>`,
@@ -300,6 +300,14 @@ export function renderAccount(view) {
           try {
             progress.textContent = 'Decrypting…';
             const payload = await decryptBackup(JSON.parse(await fileObj.text()), e.target.pass.value);
+            if (isLegacyBackup(payload)) {
+              // Made by Loadout before nostr: the boards come over with new keys, this device's key stays.
+              const n = await importLegacyBackup(payload, (msg) => (progress.textContent = msg));
+              m.close();
+              toast(n ? `Imported ${n} board${n === 1 ? '' : 's'} from your old backup — share the new links with the people who had the old ones.` : 'That backup holds no boards to import.', n ? 'success' : 'error', 8000);
+              if (n) location.hash = '#/';
+              return;
+            }
             const id = payload.identity;
             if (payload.app !== 'loadout' || !isHex64(id?.sk) || pubkeyOf(id.sk) !== id.pk) throw new Error('The backup doesn’t contain a usable key.');
             await switchIdentity(async () => ({ sk: id.sk, pk: id.pk, alias: id.alias || null, accountPk: id.accountPk || null, created: Date.now() }), {
