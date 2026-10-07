@@ -31,13 +31,29 @@
       <div class="feature-body">
         <span class="badge">New</span>
         <h2>Loadout</h2>
-        <p>Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with. Private boards are end-to-end encrypted; public ones work like rentry. Works offline.</p>
+        <p>Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with — rentry-style links, end-to-end encrypted. Works offline, and your devices put back whatever the relays forget.</p>
         <ul class="tags"><li>gun</li><li>SEA certificates</li><li>E2EE</li><li>offline-first</li><li>markdown</li></ul>
       </div>
       <span class="go"><svg class="icon"><use href="icons.svg#arrow-up-right"/></svg></span>
     </a>
 
     <ul class="tools">
+      <li>
+        <a class="tool" href="payload/">
+          <span class="tool-icon"><svg class="icon"><use href="icons.svg#send"/></svg></span>
+          <h3>Payload</h3>
+          <p>Send files straight to another browser while you’re both online. Direct WebRTC when possible, encrypted through gun otherwise, every 64 KB piece checked with SHA-256.</p>
+          <ul class="tags"><li>gun</li><li>WebRTC</li><li>SHA-256</li></ul>
+        </a>
+      </li>
+      <li>
+        <a class="tool" href="pongjs/">
+          <span class="tool-icon"><svg class="icon"><use href="icons.svg#gamepad-2"/></svg></span>
+          <h3>pongjs</h3>
+          <p>Retro two-player Pong between two browsers. Share a link or QR code or pick an open game, then play over a direct connection.</p>
+          <ul class="tags"><li>gun</li><li>WebRTC</li><li>canvas</li></ul>
+        </a>
+      </li>
       <li>
         <a class="tool" href="enigmajs/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#message-square-lock"/></svg></span>
@@ -52,38 +68,6 @@
           <h3>DevBoard</h3>
           <p>A freelancer noticeboard: post availability or hiring notes signed with your own key, voted on by peers, gone when they expire.</p>
           <ul class="tags"><li>gun</li><li>SEA signatures</li></ul>
-        </a>
-      </li>
-      <li>
-        <a class="tool" href="gun-bin/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#file-lock"/></svg></span>
-          <h3>gun-bin</h3>
-          <p>Passphrase-encrypted pastebin with markdown, expiry and burn-after-reading.</p>
-          <ul class="tags"><li>gun</li><li>SEA</li><li>markdown</li></ul>
-        </a>
-      </li>
-      <li>
-        <a class="tool" href="gunfile/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#file-down"/></svg></span>
-          <h3>gunfile</h3>
-          <p>Stream an encrypted file to anyone with the link, chunked over gun relays on eight lanes at once.</p>
-          <ul class="tags"><li>gun</li><li>AES-GCM</li></ul>
-        </a>
-      </li>
-      <li>
-        <a class="tool" href="gun-share/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#send"/></svg></span>
-          <h3>gun-share</h3>
-          <p>Drop a file, get a link: AES-256 chunks over gun, with a live transfer log and a sender heartbeat.</p>
-          <ul class="tags"><li>gun</li><li>AES-GCM</li></ul>
-        </a>
-      </li>
-      <li>
-        <a class="tool" href="pongjs/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#gamepad-2"/></svg></span>
-          <h3>pongjs</h3>
-          <p>Retro two-player Pong straight between two browsers. The odd one out: WebRTC instead of gun.</p>
-          <ul class="tags"><li>WebRTC</li><li>PeerJS</li></ul>
         </a>
       </li>
     </ul>

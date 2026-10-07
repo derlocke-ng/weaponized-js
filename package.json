@@ -9,7 +9,7 @@
     "serve": "node scripts/serve.mjs",
     "relay": "node scripts/relay.cjs",
     "test": "node --test \"test/unit/*.test.js\"",
-    "test:e2e": "node test/e2e/run.mjs"
+    "test:e2e": "node test/e2e/loadout.mjs && node test/e2e/payload.mjs && node test/e2e/pong.mjs"
   },
   "devDependencies": {
     "dompurify": "3.4.16",
