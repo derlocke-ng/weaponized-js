@@ -76,6 +76,22 @@
   display: none !important;
 }
 
+/* Single-column grids must be allowed to shrink below their content's
+   min-content width, or one long relay URL or board title pushes the whole
+   page wider than a phone screen. */
+.account,
+.card,
+.form,
+.relays,
+.boards,
+.items,
+.board-main,
+.editor,
+.modal-body,
+.receivers {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;

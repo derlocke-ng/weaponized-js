@@ -1,3 +1,5 @@
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
 // Live relay status: open a websocket to each relay and report how it went.
 for (const li of document.querySelectorAll('[data-relay]')) {
   const url = li.dataset.relay;

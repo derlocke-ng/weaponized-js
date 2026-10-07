@@ -2,6 +2,8 @@ import { Room, createGun, randomSecret, relaysUp, b64url, sha256, DEFAULT_RELAYS
 import { qrSvg } from '../shared/qr.js';
 import { CHUNK, chunkLength, hashBlob, rootOf, fingerprint, formatBytes, Meter } from './transfer.js';
 
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js').catch(() => {});
+
 const $ = (sel, root = document) => root.querySelector(sel);
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const main = $('#main');

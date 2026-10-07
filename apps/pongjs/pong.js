@@ -7,6 +7,8 @@ import { Room, createGun, randomSecret, relaysUp, DEFAULT_RELAYS } from '../shar
 import { qrSvg } from '../shared/qr.js';
 import { W, H, PW, PH, PX, BALL, WIN, PADDLE_SPEED, clampPaddle, newGame, step, cpuMove, snapshot, extrapolate } from './game.js';
 
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js').catch(() => {});
+
 const $ = (id) => document.getElementById(id);
 const LOBBY = 'wjs-pong-lobby-1';
 const DT = 1 / 120;
