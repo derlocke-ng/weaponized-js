@@ -72,6 +72,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -1199,9 +1203,13 @@ textarea:focus {
 
 .md blockquote {
   margin: 1em 0;
-  padding: 0.2rem 1rem;
+  padding: 0.1rem 1rem;
   border-left: 3px solid var(--accent);
   color: var(--muted);
+}
+
+.md blockquote p {
+  margin: 0.4em 0;
 }
 
 .md table {
