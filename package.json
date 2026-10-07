@@ -2,21 +2,26 @@
   "name": "weaponized-js",
   "private": true,
   "type": "module",
-  "description": "Peer-to-peer webtools armed with gun.js",
+  "description": "Peer-to-peer webtools over nostr: encrypted lists, file drops, games and chat that run entirely in the browser",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "vendor": "node scripts/vendor.mjs",
     "build": "sh scripts/build-site.sh",
     "serve": "node scripts/serve.mjs",
     "relay": "node scripts/relay.cjs",
+    "relay:nostr": "node scripts/nostr-relay.mjs 7777 .nostr",
     "test": "node --test \"test/unit/*.test.js\"",
     "test:e2e": "node test/e2e/loadout.mjs && node test/e2e/payload.mjs && node test/e2e/pong.mjs"
   },
   "devDependencies": {
     "dompurify": "3.4.16",
+    "esbuild": "^0.28.2",
     "gun": "0.2020.1241",
     "lucide-static": "1.52.0",
     "marked": "18.1.0",
+    "nostr-tools": "^2.25.2",
     "playwright-core": "1.63.0",
-    "qrcode-generator": "2.0.4"
+    "qrcode-generator": "2.0.4",
+    "ws": "^8.22.0"
   }
 }

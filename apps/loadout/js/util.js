@@ -1,4 +1,4 @@
-// Small helpers shared by every module. No DOM or gun access here so the
+// Small helpers shared by every module. No DOM or network access here so the
 // pure modules that import it stay testable under node.
 
 export const enc = new TextEncoder();

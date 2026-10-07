@@ -1,19 +1,18 @@
 // Board links. Everything secret lives in the URL fragment, which browsers
 // never send to a server:
 //
-//   #/b/<pub>?w=<priv>   can edit (the read key is derived from priv)
-//   #/b/<pub>?k=<key>    read only
-//   #/b/<pub>            a board already in your wallet
+//   #/b/<pub>?w=<secret>   can edit (the read key is derived from the secret)
+//   #/b/<pub>?k=<key>      read only
+//   #/b/<pub>              a board already in your wallet
 //
-// <pub> is the board's SEA public key (its address in gun), <priv> its signing
-// key and <key> the symmetric key its content is encrypted with.
+// <pub> is the board's nostr public key (its address on the relays), <secret>
+// its signing key and <key> the symmetric key its content is encrypted with,
+// all 64 hex characters.
 
-const B64 = '[A-Za-z0-9_-]{43}';
-const PUB = new RegExp(`^${B64}\\.${B64}$`);
-const SECRET = new RegExp(`^${B64}$`);
+const HEX64 = /^[0-9a-f]{64}$/;
 
-export const isPub = (s) => typeof s === 'string' && PUB.test(s);
-export const isSecret = (s) => typeof s === 'string' && SECRET.test(s);
+export const isPub = (s) => typeof s === 'string' && HEX64.test(s);
+export const isSecret = (s) => typeof s === 'string' && HEX64.test(s);
 
 /** Parse a location hash (with or without the leading #) into a route. */
 export function parseRoute(hash) {

@@ -2,15 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseRoute, parseBoardInput, shareLink, boardHash, isPub } from '../../apps/loadout/js/links.js';
 
-const PUB = 'A'.repeat(43) + '.' + 'b_-'.repeat(14) + 'c';
-const KEY = 'k'.repeat(43);
-const PRIV = 'w'.repeat(43);
+const PUB = 'a1'.repeat(32);
+const KEY = 'b2'.repeat(32);
+const PRIV = 'c3'.repeat(32);
 const BASE = 'https://example.github.io/weaponized-js/loadout/';
 
-test('recognises SEA public keys', () => {
+test('recognises nostr public keys (64 hex characters)', () => {
   assert.ok(isPub(PUB));
-  assert.ok(!isPub(PUB + 'x'));
-  assert.ok(!isPub('~' + PUB));
+  assert.ok(!isPub(PUB + 'a'));
+  assert.ok(!isPub(PUB.toUpperCase()));
+  assert.ok(!isPub('npub1' + PUB));
 });
 
 test('parses routes', () => {

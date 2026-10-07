@@ -1,65 +1,56 @@
-// Switching identity (sign in, create account, restore a backup), signing out
-// and building backups. Boards you had under the old key are carried over.
+// Switching identity (sign in, create account, import a key, restore a
+// backup), signing out and building backups. Boards you had under the old
+// key are carried over.
 
 import { app } from './app.js';
-import { gun, clearOutbox, online } from './net.js';
-import { authPair, saveIdentity, forgetIdentity } from './identity.js';
+import { db, sync, pool } from './net.js';
+import { saveIdentity, forgetIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
-import { Board, initBoards, settled, boardSouls } from './boards.js';
-import { rawNodes, reseed, userSouls } from './heal.js';
-import { STORE_FILE } from './config.js';
+import { Board, settled } from './boards.js';
+import { watchAll } from './heal.js';
+import { sleep } from '../../shared/util.js';
 import { store } from './util.js';
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 /**
- * @param {() => Promise<object>} getPair  authenticates gun as the new key, resolves with its pair
- * @param {{ alias?: string|null, boards?: object[], raw?: object, snapshots?: object, onProgress?: (msg: string) => void }} opt
+ * @param {() => Promise<object>} getIdentity  resolves with the new identity { sk, pk, alias, accountPk }
+ * @param {{ boards?: object[], events?: object[], snapshots?: object, onProgress?: (msg: string) => void }} opt
  */
-export async function switchIdentity(getPair, { alias = null, boards = [], raw = null, snapshots = null, onProgress = () => {} } = {}) {
+export async function switchIdentity(getIdentity, { boards = [], events = [], snapshots = null, onProgress = () => {} } = {}) {
   const carry = [...app.wallet.list(), ...boards];
-  const oldPair = app.identity.pair;
-  let pair;
-  try {
-    pair = await getPair();
-  } catch (err) {
-    gun.user().leave();
-    await authPair(oldPair).catch(() => {});
-    throw err;
-  }
-  if (raw && reseed(raw)) {
-    // Put the backup's signed data back on the relays first; gun keeps whatever is newer.
-    onProgress('Uploading your backup…');
-    await sleep(1500);
+  const identity = await getIdentity();
+  if (events.length) {
+    // A backup's signed events go back into the store and out to the relays as they were.
+    onProgress(`Restoring ${events.length} entries…`);
+    for (const ev of events) await db.put(ev);
+    for (const ev of events) await sync.publish(ev).catch(() => {});
   }
   onProgress('Loading your boards…');
   app.wallet.stop();
-  const wallet = new Wallet(pair);
+  const wallet = new Wallet(identity);
   await wallet.start();
-  initBoards(pair, (pub) => wallet.get(pub));
-  await sleep(1500); // give the account's own wallet a moment to arrive
+  await sleep(1500); // give the account's own boards a moment to arrive
   for (const entry of carry) {
     const have = wallet.get(entry.pub);
     if (have && (have.w || !entry.w) && (have.k || !entry.k)) continue;
     await wallet.upsert({ ...entry, ...have, w: have?.w || entry.w, k: have?.k || entry.k });
   }
   if (snapshots) await restoreSnapshots(wallet, snapshots, onProgress);
-  saveIdentity({ pair, alias, created: Date.now() });
+  saveIdentity(identity);
+  watchAll(identity, wallet);
   onProgress('Syncing…');
   await sleep(1500); // let the writes leave before reloading
   location.hash = '#/';
   location.reload();
 }
 
-/** Put back items, notes and titles the network has lost. */
+/** Put back items, notes and titles the network has lost (boards you can edit). */
 async function restoreSnapshots(wallet, snapshots, onProgress) {
   const pubs = Object.keys(snapshots).filter((pub) => wallet.get(pub)?.w);
   let restored = 0;
   for (const [n, pub] of pubs.entries()) {
     onProgress(`Checking board ${n + 1} of ${pubs.length}…`);
-    const entry = wallet.get(pub);
     const snap = snapshots[pub];
-    const board = new Board(entry);
+    const board = new Board(wallet.get(pub));
     await board.open();
     await settled(board, 5000);
     if (board.state === 'deleted' || board.state === 'locked') {
@@ -67,13 +58,13 @@ async function restoreSnapshots(wallet, snapshots, onProgress) {
       continue;
     }
     if (!board.info && snap.info) {
-      await board.put('meta', 'info', snap.info);
+      await board.setInfo(snap.info);
       restored++;
     }
     for (const item of snap.items || []) {
       if (board.items.has(item.id)) continue;
       const { id, ...fields } = item;
-      await board.put('items', id, fields);
+      await board.put(30702, id, fields);
       restored++;
     }
     if (!board.doc?.md && snap.doc?.md) {
@@ -83,7 +74,7 @@ async function restoreSnapshots(wallet, snapshots, onProgress) {
     board.close();
   }
   if (restored) onProgress(`Restored ${restored} missing entries`);
-  if (!online()) onProgress('Offline — restored items will sync later');
+  if (!pool.online) onProgress('Offline — restored items will sync later');
 }
 
 /** Everything needed to rebuild this account elsewhere. */
@@ -101,25 +92,20 @@ export async function buildBackup(onProgress = () => {}) {
       onProgress(`Collected ${++n} of ${boards.length} boards…`);
     }),
   );
-  // The signed, encrypted nodes as gun holds them: a restore can put them back
-  // as they were, even for boards you can only view.
-  const { pair, alias } = app.identity;
-  const raw = await rawNodes([...userSouls(pair.pub, alias), ...boards.flatMap((b) => boardSouls(b.pub))]);
-  return { app: 'loadout', v: 1, created: new Date().toISOString(), identity: { pair, alias }, boards, raw, snapshots };
+  // The signed events as the relays hold them: a restore puts them back
+  // exactly, even for boards you can only view and for your account event.
+  const { pk, accountPk } = app.identity;
+  const authors = [pk, ...(accountPk ? [accountPk] : []), ...boards.map((b) => b.pub)];
+  const events = (await Promise.all(authors.map((a) => db.byAuthor(a)))).flat();
+  return { app: 'loadout', v: 2, created: new Date().toISOString(), identity: app.identity, boards, events, snapshots };
 }
 
 /** Forget this device's key, boards and cached data. */
-export function wipeDevice() {
-  gun.user().leave();
+export async function wipeDevice() {
   app.wallet.forgetLocal();
   forgetIdentity();
-  clearOutbox();
   store.remove('loadout.lastBackup');
-  try {
-    indexedDB.deleteDatabase(STORE_FILE);
-  } catch {
-    /* ignore */
-  }
+  await db.clear().catch(() => {});
   location.hash = '#/';
   location.reload();
 }

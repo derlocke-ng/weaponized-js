@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https: wss:; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta name="description" content="weaponized.js — peer-to-peer webtools armed with gun.js: encrypted lists, chat, pastes and file drops that run entirely in your browser.">
+  <meta name="description" content="weaponized.js — peer-to-peer webtools over nostr: encrypted lists, file drops and games that run entirely in your browser.">
   <meta name="theme-color" content="#0e0f0d">
   <title>weaponized.js — peer-to-peer webtools</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -24,8 +24,8 @@
 
   <main>
     <section class="hero">
-      <h1>Peer-to-peer webtools, armed with <a href="https://gun.eco" rel="noopener">gun.js</a>.</h1>
-      <p>Every tool here runs entirely in your browser and syncs over public gun relays. No accounts to make, no server of ours, no tracking — and encryption happens before anything leaves your device.</p>
+      <h1>Peer-to-peer webtools, armed with <a href="https://nostr.com" rel="noopener">nostr</a>.</h1>
+      <p>Every tool here runs entirely in your browser and syncs over relays you choose. No sign-up needed, no server of ours, no tracking — and encryption happens before anything leaves your device.</p>
     </section>
 
     <a class="feature" href="loadout/">
@@ -34,7 +34,7 @@
         <span class="badge">New</span>
         <h2>Loadout</h2>
         <p>Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with — rentry-style links, end-to-end encrypted. Works offline, and your devices put back whatever the relays forget.</p>
-        <ul class="tags"><li>gun</li><li>SEA certificates</li><li>E2EE</li><li>offline-first</li><li>markdown</li></ul>
+        <ul class="tags"><li>nostr</li><li>E2EE</li><li>offline-first</li><li>markdown</li></ul>
       </div>
       <span class="go"><svg class="icon"><use href="icons.svg#arrow-up-right"/></svg></span>
     </a>
@@ -76,7 +76,7 @@
 
     <section class="relays" aria-labelledby="relaysTitle">
       <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg>Relays right now</h2>
-      <p>The tools talk through these public gun relays. They pass data along; they can’t read anything that was encrypted first.</p>
+      <p>Loadout syncs over nostr relays you pick in its settings. Payload and pongjs still signal through these public gun relays until they move to nostr too. Relays pass data along; they can’t read anything that was encrypted first.</p>
       <ul id="relayList" class="relay-list">
         <li data-relay="https://gun.kiwi-network.eu/herbhub-relay/gun"></li>
         <li data-relay="https://gun2.kiwi-network.eu/herbhub-relay/gun"></li>

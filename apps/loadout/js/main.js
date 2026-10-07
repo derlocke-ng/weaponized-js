@@ -1,10 +1,9 @@
-import { initGun, onStatus, onRelayConnect } from './net.js';
-import { loadIdentity, authPair } from './identity.js';
+import { initNet, onStatus, pool, sync } from './net.js';
+import { loadIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
-import { initBoards } from './boards.js';
-import { healAll } from './heal.js';
+import { watchAll } from './heal.js';
 import { parseRoute } from './links.js';
-import { $, icon, closeMenus, toast } from './ui.js';
+import { $, icon, closeMenus } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
 import { renderHome } from './views/home.js';
@@ -44,7 +43,7 @@ function renderShell() {
     </header>
     <main id="view" class="view" tabindex="-1"></main>
     <footer class="foot">
-      <a href="../">weaponized.js</a> · end-to-end encrypted lists &amp; notes over <a href="https://gun.eco" target="_blank" rel="noopener">gun</a>
+      <a href="../">weaponized.js</a> · end-to-end encrypted lists &amp; notes over <a href="https://nostr.com" target="_blank" rel="noopener">nostr</a>
     </footer>`;
   onStatus(({ relays, connected, pending }) => {
     const el = $('#sync');
@@ -63,7 +62,7 @@ function updateAccountBadge() {
   if (!a) return;
   const alias = app.identity.alias;
   a.innerHTML = alias ? `<span class="avatar">${h(alias[0].toUpperCase())}</span>` : icon('user');
-  a.title = alias ? `Signed in as ${alias}` : 'Device account — sign in to sync';
+  a.title = alias ? `Signed in as ${alias}` : 'Device key — create an account to sync';
 }
 
 async function boot() {
@@ -72,50 +71,19 @@ async function boot() {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+  await initNet();
   renderShell();
-  if (typeof Gun === 'undefined' || typeof SEA === 'undefined') {
-    $('#view').innerHTML = '<section class="empty"><h1>Could not load gun</h1><p>Reload the page to try again.</p></section>';
-    return;
-  }
-  initGun();
-  app.identity = await loadIdentity();
-  await authPair(app.identity.pair).catch((err) => toast(`Sign-in problem: ${err.message}`, 'error'));
-  app.wallet = new Wallet(app.identity.pair);
-  initBoards(app.identity.pair, (pub) => app.wallet.get(pub));
+  app.identity = loadIdentity();
+  app.wallet = new Wallet(app.identity);
   await app.wallet.start();
+  // Relays that (re)connect get this device's copy of everything that is ours.
+  const rewatch = () => watchAll(app.identity, app.wallet);
+  rewatch();
+  app.wallet.onChange(rewatch);
+  for (const r of pool.status().relays) if (r.open) sync.healRelay(r.url).catch(() => {});
   updateAccountBadge();
   window.addEventListener('hashchange', render);
   render();
-  startHealing();
-}
-
-/** Re-seed relays from this device's copy whenever a relay (re)connects. */
-function startHealing() {
-  let running = false;
-  let again = false;
-  let last = 0;
-  const run = async () => {
-    if (running) return void (again = true);
-    running = true;
-    last = Date.now();
-    try {
-      await healAll(app.identity, app.wallet);
-    } catch (err) {
-      console.warn('heal:', err);
-    } finally {
-      running = false;
-      if (again) {
-        again = false;
-        schedule();
-      }
-    }
-  };
-  let timer = null;
-  const schedule = () => {
-    clearTimeout(timer);
-    timer = setTimeout(run, Math.max(1500, 60_000 - (Date.now() - last)));
-  };
-  onRelayConnect(schedule);
 }
 
 boot().catch((err) => {

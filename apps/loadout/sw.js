@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. Requests go to the
 // network first so updates show up right away, and fall back to the cache
 // when offline (e.g. in a supermarket basement). Bump VERSION on release.
-const VERSION = 'loadout-v2';
+const VERSION = 'loadout-v3';
 const SHELL = [
   './',
   'index.html',
@@ -32,12 +32,13 @@ const SHELL = [
   'js/views/list.js',
   'js/views/note.js',
   'js/views/share.js',
-  'vendor/gun/gun.js',
-  'vendor/gun/sea.js',
-  'vendor/gun/radix.js',
-  'vendor/gun/radisk.js',
-  'vendor/gun/store.js',
-  'vendor/gun/rindexed.js',
+  '../shared/nostr.mjs',
+  '../shared/util.js',
+  '../shared/events.js',
+  '../shared/store.js',
+  '../shared/relays.js',
+  '../shared/account.js',
+  '../shared/sync.js',
   'vendor/marked.esm.js',
   'vendor/purify.es.mjs',
   'vendor/qrcode.mjs',
@@ -64,7 +65,9 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
+  const scope = new URL(self.registration.scope).pathname;
+  const shared = new URL('../shared/', self.registration.scope).pathname;
+  if (req.method !== 'GET' || url.origin !== location.origin || !(url.pathname.startsWith(scope) || url.pathname.startsWith(shared))) return;
   e.respondWith(
     fetch(req)
       .then((res) => {

@@ -1,68 +1,76 @@
-// Your boards and their keys, kept under your own gun user graph and encrypted
-// to your key pair, so any device with the same key sees the same boards.
-//
-// Each board lives in a slot named by a keyed hash of its address, so relays
-// can't tell which boards you have. Entry:
-//   { pub, w, k, type, title, mode, pinned, added, u }
-// Per-device extras (last opened, item counts) stay in localStorage only.
+// Your boards and their keys: one encrypted event per board under your own
+// key, so any device signed in as you sees the same boards. Each board sits
+// in a slot named by a hash of its address, so relays can't tell which boards
+// you have. Per-device extras (last opened, counts) stay in localStorage.
 
-/* global SEA */
-import { gun, write, setWriter } from './net.js';
-import { sha256, store } from './util.js';
+import { KINDS, makeAddressable, seal, open, dTag, hex } from '../../shared/events.js';
+import { sha256 } from '../../shared/nostr.mjs';
+import { selfKey } from '../../shared/account.js';
+import { store } from '../../shared/util.js';
+import { pool, db, sync } from './net.js';
 
 const SYNCED = ['pub', 'w', 'k', 'type', 'title', 'mode', 'pinned', 'added', 'u'];
+const te = new TextEncoder();
+const FILTER = (pk) => ({ kinds: [KINDS.LOADOUT_WALLET], authors: [pk] });
 
 export class Wallet {
-  constructor(pair) {
-    this.pair = pair;
-    this.cacheKey = `loadout.wallet.${pair.pub.slice(0, 16)}`;
-    this.localKey = `loadout.local.${pair.pub.slice(0, 16)}`;
+  constructor(identity) {
+    this.sk = identity.sk;
+    this.pk = identity.pk;
+    this.key = selfKey(identity.sk);
+    this.cacheKey = `loadout.wallet.${this.pk.slice(0, 16)}`;
+    this.localKey = `loadout.local.${this.pk.slice(0, 16)}`;
     this.entries = new Map(Object.entries(store.get(this.cacheKey, {})));
     this.local = store.get(this.localKey, {});
-    this.slots = new Map();
+    this.slots = new Map(); // slot -> pub
     this.listeners = new Set();
     this.seq = new Map();
-    setWriter('user', ({ path, key, value }) => {
-      const user = gun.user();
-      if (!user.is || user.is.pub !== this.pair.pub) return Promise.resolve();
-      return new Promise((resolve) => user.get('loadout').get(path).get(key).put(value, resolve));
-    });
   }
 
   async start() {
-    // Know the slots of cached boards so a removal from another device applies.
-    for (const pub of this.entries.keys()) this.slots.set(await this.slot(pub), pub);
-    this.chain = gun.user().get('loadout').get('wallet');
-    this.chain.map().on((raw, slot) => this.receive(slot, raw));
+    for (const pub of this.entries.keys()) this.slots.set(this.slot(pub), pub);
+    for (const ev of (await db.query([FILTER(this.pk)])).reverse()) await this.receive(ev);
+    this.offStore = db.subscribe((ev) => {
+      if (ev.kind === KINDS.LOADOUT_WALLET && ev.pubkey === this.pk) this.receive(ev);
+    });
+    this.sub = pool.subscribe([FILTER(this.pk)], { onevent: (ev) => db.put(ev) });
+    sync.watch([this.pk]);
   }
 
   stop() {
-    this.chain?.off();
+    this.sub?.close();
+    this.offStore?.();
   }
 
-  async receive(slot, raw) {
+  slot(pub) {
+    return hex(sha256(te.encode(`wjs/loadout/wallet|${pub}`))).slice(0, 32);
+  }
+
+  async receive(ev) {
+    const slot = dTag(ev);
     const n = (this.seq.get(slot) || 0) + 1;
     this.seq.set(slot, n);
-    if (raw == null) {
+    let data;
+    try {
+      data = await open(this.key, ev.content);
+    } catch {
+      return;
+    }
+    if (this.seq.get(slot) !== n) return;
+    if (data.del) {
       const pub = this.slots.get(slot);
-      if (pub && this.entries.has(pub)) {
+      if (pub && this.entries.has(pub) && (this.entries.get(pub).u || 0) <= (data.u || 0)) {
         this.entries.delete(pub);
         this.persist();
       }
       return;
     }
-    if (typeof raw !== 'string') return;
-    const entry = await SEA.decrypt(raw, this.pair);
-    if (this.seq.get(slot) !== n || !entry?.pub) return;
-    this.slots.set(slot, entry.pub);
-    const mine = this.entries.get(entry.pub);
-    if (mine && (mine.u || 0) > (entry.u || 0)) return;
-    this.entries.set(entry.pub, merge(mine, entry));
+    if (!data.pub) return;
+    this.slots.set(slot, data.pub);
+    const mine = this.entries.get(data.pub);
+    if (mine && (mine.u || 0) > (data.u || 0)) return;
+    this.entries.set(data.pub, merge(mine, data));
     this.persist();
-  }
-
-  async slot(pub) {
-    return (await sha256(`${this.pair.epriv}|loadout-wallet|${pub}`)).slice(0, 24);
   }
 
   list() {
@@ -75,16 +83,20 @@ export class Wallet {
     return this.entries.get(pub) || null;
   }
 
+  pubs() {
+    return [...this.entries.keys()];
+  }
+
   /** Add or update a board; keys are only ever added, never dropped. */
   async upsert(patch) {
     const entry = merge(this.entries.get(patch.pub), { ...patch, u: Date.now() });
     entry.added ||= Date.now();
     this.entries.set(entry.pub, entry);
     this.persist();
-    const slot = await this.slot(entry.pub);
+    const slot = this.slot(entry.pub);
     this.slots.set(slot, entry.pub);
-    const value = await SEA.encrypt(pick(entry), this.pair);
-    await write({ scope: 'user', pub: this.pair.pub, path: 'wallet', key: slot, value });
+    await sync.publish(makeAddressable(KINDS.LOADOUT_WALLET, slot, await seal(this.key, pick(entry)), this.sk));
+    sync.watch([entry.pub]);
     return entry;
   }
 
@@ -92,8 +104,8 @@ export class Wallet {
     this.entries.delete(pub);
     delete this.local[pub];
     this.persist();
-    const slot = await this.slot(pub);
-    await write({ scope: 'user', pub: this.pair.pub, path: 'wallet', key: slot, value: null });
+    sync.unwatch(pub);
+    await sync.publish(makeAddressable(KINDS.LOADOUT_WALLET, this.slot(pub), await seal(this.key, { del: 1, u: Date.now() }), this.sk));
   }
 
   localOf(pub) {

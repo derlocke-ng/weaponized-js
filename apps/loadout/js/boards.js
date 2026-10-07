@@ -1,68 +1,25 @@
-// A board is its own SEA key pair. Its data lives in that key's user graph
-// (~<pub>/meta, ~<pub>/items, ~<pub>/doc), which every gun peer — relays
-// included — only accepts when signed. Editors hold the board's private key
-// and use it to certify their own key for those paths; viewers can't write.
-// Every value is encrypted with a read key derived from the private key, so
-// view links carry the read key and edit links the private key.
+// A board is its own nostr key pair. Everyone with the edit link holds the
+// board's secret key and signs items as the board; relays accept nothing
+// else for that address. Every value is encrypted with a read key derived
+// from the secret key, so view links carry the read key and edit links the
+// secret key.
 
-/* global SEA */
-import { BOARD_PATHS } from './config.js';
-import { gun, write, setWriter } from './net.js';
-import { randomId, sha256 } from './util.js';
+import { KINDS, makeAddressable, seal, open, deriveKey, dTag, hex, bytes } from '../../shared/events.js';
+import { generateSecretKey, getPublicKey } from '../../shared/nostr.mjs';
+import { randomId } from '../../shared/util.js';
+import { pool, db, sync } from './net.js';
 
-const POLICY = BOARD_PATHS.map((p) => ({ '*': p }));
+const BOARD_KINDS = [KINDS.LOADOUT_INFO, KINDS.LOADOUT_ITEM, KINDS.LOADOUT_DOC];
 const MISSING_AFTER = 9000;
-const certs = new Map(); // `${board pub}|${user pub}` -> Promise<cert>
-let userPair = null;
-let keyFor = () => null; // pub -> { w } from the wallet, for queued writes
-const editKeys = new Map(); // pub -> w for boards opened this session
-
-export function initBoards(pair, lookup) {
-  userPair = pair;
-  keyFor = lookup;
-  setWriter('board', async ({ pub, path, key, value }) => {
-    const w = editKeys.get(pub) || keyFor(pub)?.w;
-    if (!w) throw new Error('No edit key for this board');
-    const cert = await certFor(pub, w);
-    return new Promise((resolve, reject) => {
-      gun.get(`~${pub}`).get(path).get(key).put(value, (ack) => (ack.err ? reject(new Error(ack.err)) : resolve()), { opt: { cert } });
-    });
-  });
-}
-
-function certFor(pub, w) {
-  const id = `${pub}|${userPair.pub}`;
-  if (!certs.has(id)) {
-    const cert = SEA.certify(userPair.pub, POLICY, { pub, priv: w }).then((c) => {
-      if (!c) throw new Error('Could not sign the board certificate (bad edit key?)');
-      return c;
-    });
-    certs.set(id, cert);
-    cert.catch(() => certs.delete(id));
-  }
-  return certs.get(id);
-}
-
-export const viewKeyFor = (w) => sha256(`loadout|view-key|${w}`);
-
-const encode = (value, key) => (value == null ? null : SEA.encrypt(value, key));
-
 const LOCKED = Symbol('locked');
 
-async function decode(raw, key) {
-  if (typeof raw !== 'string' || !raw.startsWith('SEA{')) return undefined;
-  if (!key) return LOCKED;
-  const v = await SEA.decrypt(raw, key);
-  return v == null ? LOCKED : v;
-}
-
-/** The gun souls holding a board, for healing and backups. */
-export const boardSouls = (pub) => [`~${pub}`, `~${pub}/meta`, `~${pub}/items`, `~${pub}/doc`];
+export const readKeyFor = (w) => hex(deriveKey(w, 'wjs/loadout/read'));
 
 /** Create a board and write its info. Returns the wallet entry. */
 export async function createBoard({ type, title, mode = 'check' }) {
-  const pair = await SEA.pair();
-  const entry = { pub: pair.pub, w: pair.priv, k: await viewKeyFor(pair.priv), type, title, mode };
+  const sk = generateSecretKey();
+  const w = hex(sk);
+  const entry = { pub: getPublicKey(sk), w, k: readKeyFor(w), type, title, mode };
   const board = new Board(entry);
   await board.setInfo({ v: 1, type, title, mode, created: Date.now() });
   return entry;
@@ -73,80 +30,83 @@ export class Board {
   constructor({ pub, w = null, k = null }) {
     this.pub = pub;
     this.w = w;
-    this.k = k;
+    this.k = k || (w ? readKeyFor(w) : null);
+    this.key = this.k ? bytes(this.k) : null;
     this.info = null;
     this.items = new Map();
     this.doc = null; // { md, u }
     this.state = 'loading'; // loading | ready | locked | missing | deleted
     this.listeners = new Set();
     this.seq = new Map();
-    this.chains = [];
-    if (w) editKeys.set(pub, w);
   }
 
   get canEdit() {
     return Boolean(this.w);
   }
 
-  async ready() {
-    if (this.w && !this.k) this.k = await viewKeyFor(this.w);
-  }
-
   async open() {
-    await this.ready();
-    const root = gun.get(`~${this.pub}`);
-    const meta = root.get('meta');
-    const sub = (chain, fn) => {
-      this.chains.push(chain);
-      chain.on(fn);
-    };
-    sub(meta.get('info'), (raw) => this.receive('info', raw, (v) => this.onInfo(v)));
-    sub(meta.get('del'), (raw) => {
-      if (raw === '1') this.set({ state: 'deleted' });
+    const filter = { authors: [this.pub], kinds: BOARD_KINDS };
+    for (const ev of (await db.query([filter])).reverse()) await this.receive(ev);
+    this.offStore = db.subscribe((ev) => {
+      if (ev.pubkey === this.pub && BOARD_KINDS.includes(ev.kind)) this.receive(ev);
     });
-    sub(root.get('items').map(), (raw, id) => this.receive(`i:${id}`, raw, (v) => this.onItem(id, v)));
-    sub(root.get('doc').get('body'), (raw) => this.receive('doc', raw, (v) => this.onDoc(v)));
-    this.missingTimer = setTimeout(() => {
-      if (this.state === 'loading') this.set({ state: 'missing' });
-    }, MISSING_AFTER);
+    this.sub = pool.subscribe([filter], {
+      onevent: (ev) => db.put(ev),
+      oneose: () => setTimeout(() => this.state === 'loading' && !this.info && this.set({ state: 'missing' }), 1500),
+    });
+    sync.watch([this.pub]);
+    this.missingTimer = setTimeout(() => this.state === 'loading' && this.set({ state: 'missing' }), MISSING_AFTER);
     return this;
   }
 
   close() {
     this.closed = true;
     clearTimeout(this.missingTimer);
-    for (const c of this.chains) c.off();
+    this.sub?.close();
+    this.offStore?.();
     this.listeners.clear();
   }
 
   /** Decode values in arrival order even though decryption is async. */
-  async receive(slot, raw, apply) {
+  async receive(ev) {
     if (this.closed) return;
+    const slot = `${ev.kind}:${dTag(ev)}`;
     const n = (this.seq.get(slot) || 0) + 1;
     this.seq.set(slot, n);
-    const value = raw == null ? null : await decode(raw, this.k);
-    if (this.closed || this.seq.get(slot) !== n || value === undefined) return;
-    apply(value);
+    let value;
+    if (!this.key) value = LOCKED;
+    else {
+      try {
+        value = await open(this.key, ev.content);
+      } catch {
+        value = LOCKED; // wrong key for this board
+      }
+    }
+    if (this.closed || this.seq.get(slot) !== n) return;
+    if (value === LOCKED) {
+      if (this.state !== 'ready') this.set({ state: 'locked' });
+      return;
+    }
+    if (ev.kind === KINDS.LOADOUT_INFO) this.onInfo(value);
+    else if (ev.kind === KINDS.LOADOUT_ITEM) this.onItem(dTag(ev), value);
+    else if (ev.kind === KINDS.LOADOUT_DOC) this.onDoc(value);
   }
 
   onInfo(value) {
-    if (value === LOCKED) return this.set({ state: 'locked' });
-    if (!value) return;
+    if (value?.del) return this.set({ state: 'deleted' });
+    if (!value || typeof value !== 'object') return;
     this.info = value;
     if (this.state !== 'deleted') this.set({ state: 'ready' });
-    else this.emit();
   }
 
   onItem(id, value) {
-    if (value === LOCKED) return;
-    if (value && typeof value === 'object' && typeof value.t === 'string') this.items.set(id, { ...value, id });
+    if (value && !value.del && typeof value.t === 'string') this.items.set(id, { ...value, id });
     else this.items.delete(id);
     this.emit('items');
   }
 
   onDoc(value) {
-    if (value === LOCKED) return;
-    this.doc = value && typeof value.md === 'string' ? value : null;
+    this.doc = value && !value.del && typeof value.md === 'string' ? value : null;
     this.emit('doc');
   }
 
@@ -164,48 +124,45 @@ export class Board {
     for (const fn of this.listeners) fn(what);
   }
 
-  // ---- writes ----
+  // ---- writes: signed by the board key, stored locally first, relayed by the outbox ----
 
-  async put(path, key, value) {
+  async put(kind, d, value) {
     if (!this.w) throw new Error('You can only view this board.');
-    await this.ready();
-    const raw = await encode(value, this.k);
-    await write({ scope: 'board', pub: this.pub, path, key, value: raw });
+    await sync.publish(makeAddressable(kind, d, await seal(this.key, value), this.w));
   }
 
   setInfo(info) {
     this.info = { ...this.info, ...info, u: Date.now() };
-    return this.put('meta', 'info', this.info);
+    return this.put(KINDS.LOADOUT_INFO, 'info', this.info);
   }
 
   addItem(fields) {
     const now = Date.now();
     const id = randomId();
-    return this.put('items', id, { t: fields.t, d: fields.d ? 1 : 0, q: fields.q ?? null, o: fields.o ?? 0, c: now, u: now }).then(() => id);
+    return this.put(KINDS.LOADOUT_ITEM, id, { t: fields.t, d: fields.d ? 1 : 0, q: fields.q ?? null, o: fields.o ?? 0, c: fields.c ?? now, u: now }).then(() => id);
   }
 
   updateItem(id, patch) {
     const cur = this.items.get(id);
     if (!cur) return Promise.resolve();
     const { id: _, ...rest } = { ...cur, ...patch, u: Date.now() };
-    return this.put('items', id, rest);
+    return this.put(KINDS.LOADOUT_ITEM, id, rest);
   }
 
   removeItem(id) {
-    return this.put('items', id, null);
+    return this.put(KINDS.LOADOUT_ITEM, id, { del: 1, u: Date.now() });
   }
 
   setDoc(md) {
     this.doc = { md, u: Date.now() };
-    return this.put('doc', 'body', this.doc);
+    return this.put(KINDS.LOADOUT_DOC, 'body', this.doc);
   }
 
   /** Wipe the content for everyone and mark the board deleted. */
   async destroy() {
     await Promise.all([...this.items.keys()].map((id) => this.removeItem(id)));
-    if (this.doc) await this.put('doc', 'body', null);
-    await write({ scope: 'board', pub: this.pub, path: 'meta', key: 'del', value: '1' });
-    await this.put('meta', 'info', null);
+    if (this.doc) await this.put(KINDS.LOADOUT_DOC, 'body', { del: 1, u: Date.now() });
+    await this.put(KINDS.LOADOUT_INFO, 'info', { del: 1, u: Date.now() });
   }
 
   snapshot() {

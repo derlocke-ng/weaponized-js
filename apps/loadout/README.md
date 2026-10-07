@@ -1,6 +1,6 @@
 # Loadout
 
-Shared lists, inventories and markdown notes that sync across your devices and with the people you share them with — over [gun](https://gun.eco), with no server of its own and no sign-up.
+Shared lists, inventories and markdown notes that sync across your devices and with the people you share them with — over [nostr](https://nostr.com), with no server of its own and no sign-up.
 
 **Live:** <https://derlocke-ng.github.io/weaponized-js/loadout/>
 
@@ -8,43 +8,46 @@ Shared lists, inventories and markdown notes that sync across your devices and w
 - **Inventory** lists with counts (`AA batteries: 12`) and ± buttons; empty items are flagged.
 - **Notes** in Markdown, rentry style, with the toolbar from the derlocke-blog / apex-genetics admin editor (Ctrl+B / I / K / S), a live preview, and clickable task boxes.
 - **Everything is end-to-end encrypted.** Share an *edit* or *view-only* link — by copy, the system share sheet or a QR code. A link is a key: whoever has it can pass it on.
-- **Every device gets a key** automatically. Create an **account** (username + password) to get the same boards on all your devices, and download an encrypted **backup** of everything.
+- **Every device gets a key** automatically. Create an **account** (username + password) to get the same boards on all your devices, or sign in with an existing nostr key (`nsec`, `ncryptsec`). Download an encrypted **backup** of everything.
 - **Works offline**: the app is cached, data lives in IndexedDB, and changes made without a connection are sent when a relay is reachable again.
 - **Survives relays forgetting**: devices put their copy back on the relays (see *Where your data lives*).
+- **You choose the relays**: the settings show latency and country (from each relay's NIP-11 document); add your own, including a local one.
 
 ## How it works
 
+Loadout is built on the shared core in [`apps/shared/`](../shared); [`docs/architecture.md`](../../docs/architecture.md) has the full picture. In short:
+
 | Thing | Where it lives | Who can read | Who can change |
 |---|---|---|---|
-| A board | the user graph of its own SEA key pair, `~<board pub>` (`meta`, `items`, `doc`) | holders of the read key (view and edit links) | anyone certified by the board key (edit links) |
-| Your list of boards (the *wallet*) | your own user graph, `~<your pub>/loadout/wallet` | only you (encrypted to your key) | only you (signed) |
-| Your key | this browser's `localStorage`; with an account also on the relays, encrypted with your password | — | — |
+| A board | addressable nostr events signed by the board's own key pair: `30701` info, one `30702` per item, `30703` note | holders of the read key (view and edit links) | holders of the board's secret key (edit links) |
+| Your list of boards (the *wallet*) | `30700` events signed by your key, one per board, encrypted to your key | only you | only you |
+| Your key | this browser's `localStorage`; with an account also on the relays, encrypted with your password (`30790`) | — | — |
 
-**Write protection.** A board is a SEA key pair. Editors hold its private key and use it to issue a SEA certificate for *their own* key on `meta`, `items` and `doc`. gun peers — relays included — only store values signed by the board key or by a certified key, so a view-only visitor or a vandal who found a board's address can't write. Raw forged messages sent straight to a relay are rejected with `Unverified data`.
+**Write protection.** A board is a nostr key pair. Only events signed by that key are accepted by relays, so a view-only visitor or a vandal who found a board's address can't write; a forged event sent straight to a relay is answered with `invalid: bad signature`.
 
-**Encryption.** Every value (title, each item, the note) is encrypted with the board's read key before it leaves the browser. The read key is a hash of the board's private key, so edit links carry one secret and view links carry only the read key. Guessing or crawling board addresses yields ciphertext.
+**Encryption.** Every value (title, each item, the note) is sealed with AES-256-GCM (gzip first when it's big) under the board's read key before it leaves the browser. The read key is derived from the board's secret key with HKDF, so edit links carry one secret and view links carry only the read key. Guessing or crawling board addresses yields ciphertext.
 
 **Links.** Everything secret is in the URL fragment, which browsers never send to a server:
 
 ```
-#/b/<board pub>?k=<key>    read only
-#/b/<board pub>?w=<priv>   edit (the read key is derived from it)
-#/b/<board pub>            a board that is already in your wallet
+#/b/<board pubkey>?k=<read key>      read only
+#/b/<board pubkey>?w=<secret key>    edit (the read key is derived from it)
+#/b/<board pubkey>                   a board that is already in your wallet
 ```
 
 Opening a link saves the board (and its keys) to your wallet and removes the keys from the address bar.
 
-**Accounts** use gun's own user system (`user.create` / `user.auth`): your key pair is stored on the relays encrypted with a key derived from your password (PBKDF2, 100 000 rounds). Signing in on a device adds the boards that device already had to the account.
+**Accounts** are a username and a password and nothing else: both are run through scrypt to derive a lookup key pair and a wrapping key; your real key is published encrypted under the wrapping key, as an event signed by the lookup key. Only the password can find the event or decrypt it, so nobody can squat, spam or overwrite a username. Signing in on a device adds the boards that device already had to the account.
 
-**Offline.** gun keeps offline writes locally but doesn't push them when it reconnects, so Loadout queues writes made without a relay connection and replays them on the next connection.
+**Offline.** Writes go to IndexedDB first and to the relays second; whatever a relay didn't accept waits in an outbox until it connects again.
 
 ## Where your data lives (and how it comes back)
 
-Public gun relays are caches, not archives — they can drop data at any time. Loadout keeps it alive in three layers:
+Relays are caches, not archives — public ones drop data whenever they like. Loadout keeps it alive in three layers:
 
-1. **Every device keeps a full copy** of every board it has opened, in IndexedDB, exactly as signed and timestamped. While that device is online, other devices can read from it *through* the relays (relays pass requests on to connected peers).
-2. **Devices heal the relays.** Whenever a relay connects or reconnects — which is what happens after a relay restarts with an empty disk — each device sends its copy of your account, your wallet and every board in it back. Opening a board does the same for that board. gun keeps the newer value per field, so an old copy never overwrites a newer edit, and because every value is signed, any device can do this, even one with a view-only link.
-3. **Backups** contain your key, your wallet, the signed data of every board (as gun stores it) and a readable snapshot, encrypted with AES-256-GCM under a PBKDF2-SHA-256 key (600 000 rounds) from your passphrase. Restoring puts the signed data back on the relays, then fills anything still missing from the snapshot. This works when no relay and no other device has the data any more — including your account itself, so you can sign in again everywhere afterwards.
+1. **Every device keeps a full copy** of every board it has opened, in IndexedDB, as signed events.
+2. **Devices heal the relays.** Whenever a relay connects or reconnects — which is what happens after it restarts with an empty disk — each device sends its copy of your account, your wallet and every board in it back. Relays keep the newest version per address, so an old copy never overwrites a newer edit, and because every event is signed, any device can do this, even one with a view-only link.
+3. **Backups** contain your key, your wallet, the signed events of every board and a readable snapshot, encrypted with AES-256-GCM under a PBKDF2-SHA-256 key (600 000 rounds) from your passphrase. Restoring publishes the events again, then fills anything still missing from the snapshot. This works when no relay and no other device has the data any more — including your account itself, so you can sign in again everywhere afterwards.
 
 So data is only lost if every device that ever opened a board is gone *and* there is no backup. The end-to-end test wipes the relay twice to check both recovery paths.
 
@@ -54,11 +57,11 @@ So data is only lost if every device that ever opened a board is gone *and* ther
 - **A link is a key.** Anyone you give a link to can pass it on; there is no way to tell who opened it.
 - **Links can't be revoked.** To lock people out, *Duplicate* the board (new keys) and delete the old one.
 - **Anyone with an edit link can delete** the board's content for everyone.
-- **Your key sits in `localStorage`.** Anyone with access to this browser profile — or script running on the same origin — can read it. All GitHub Pages sites of one account share the origin `derlocke-ng.github.io`, so a custom (sub)domain for Loadout is the stronger setup.
-- **Weak account passwords can be brute-forced offline** from the encrypted key on the relays. Use a long one; there is no reset.
+- **Your key sits in `localStorage`.** Anyone with access to this browser profile — or script running on the same origin — can read it. All GitHub Pages sites of one account share the origin `derlocke-ng.github.io`, so a custom (sub)domain is the stronger setup.
+- **Weak account passwords can be brute-forced offline** by someone who has your account event. Use a long one (at least 10 characters are required); there is no reset.
 - **Last write wins**, per item and per note. If two people edit the same note at the same time, the editor tells you and lets you pick.
 - **Restoring an old backup brings back old state** for whatever the relays no longer have — including boards deleted since.
-- Notes are capped at 200 000 characters.
+- Notes are capped at 60 000 characters (one relay message).
 
 ## Development
 
@@ -66,27 +69,28 @@ No build step: the files in this folder are what gets served. From the repositor
 
 ```sh
 npm install
-npm run relay                  # local gun relay on :8765
+npm run relay:nostr            # local nostr relay on ws://localhost:7777
 npm run serve -- apps 8080     # http://localhost:8080/loadout/
 ```
 
-In the app, set *Account → Relays* to `http://localhost:8765/gun`.
+In the app, add `ws://localhost:7777` under *Account → Relays*.
 
 ```sh
-npm test            # unit tests (node --test)
-npm run test:e2e    # multi-device browser test against a local relay (needs Chromium)
-npm run vendor      # refresh vendor/ and icons.svg after bumping versions in package.json
+npm test                       # unit tests (node --test)
+node test/e2e/loadout.mjs      # 17 multi-device browser scenarios against a throwaway relay (needs Chromium)
+npm run vendor                 # refresh vendor/, ../shared/nostr.mjs and icons.svg after bumping versions
 ```
 
 When you add a file under `js/`, list it in `SHELL` in `sw.js` (a unit test checks) and bump `VERSION` on release.
 
 | Folder | What |
 |---|---|
-| `js/net.js` | gun instance, relay status, offline outbox |
-| `js/heal.js` | putting this device's signed copy back on the relays |
-| `js/identity.js` | device key, account sign-in / creation |
-| `js/wallet.js` | your encrypted list of boards |
-| `js/boards.js` | board model: certificates, encryption, reads and writes |
+| `js/net.js` | wires the shared relay pool, event store and sync for this app |
+| `js/identity.js` | device key, account sign-in / creation, key import |
+| `js/wallet.js` | your encrypted list of boards (`30700`) |
+| `js/boards.js` | board model: keys, encryption, reads and writes (`30701`–`30703`) |
+| `js/heal.js` | which authors this device puts back on the relays |
+| `js/session.js` | switching identity, building and restoring backups, wiping the device |
 | `js/links.js`, `js/items.js`, `js/mdtasks.js`, `js/backup.js` | pure logic, unit tested |
 | `js/views/` | home, board, list, note, share and account screens |
-| `vendor/` | gun, marked, DOMPurify, qrcode-generator (see `vendor/LICENSES.md`) |
+| `vendor/` | marked, DOMPurify, qrcode-generator (see `vendor/LICENSES.md`); nostr lives in `../shared/nostr.mjs` |

@@ -3,7 +3,7 @@
 // same-site responses are cached as they are fetched. Network first, so an
 // update shows up on the next load. Loadout has its own worker with a narrower
 // scope, which takes precedence for its pages. Bump VERSION on release.
-const VERSION = 'wjs-v1';
+const VERSION = 'wjs-v2';
 const SHELL = [
   './',
   'index.html',
@@ -30,6 +30,13 @@ const SHELL = [
   'shared/p2p.js',
   'shared/qr.js',
   'shared/qrcode.mjs',
+  'shared/nostr.mjs',
+  'shared/util.js',
+  'shared/events.js',
+  'shared/store.js',
+  'shared/relays.js',
+  'shared/account.js',
+  'shared/sync.js',
 ];
 
 self.addEventListener('install', (e) => {

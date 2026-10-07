@@ -1,126 +1,63 @@
 // End-to-end test for Loadout: several isolated browser contexts ("devices")
-// talk through a local gun relay.
-//
-//   npm install && npm run test:e2e
-//
-// Needs Chromium; set CHROMIUM_PATH if Playwright can't find one.
-import { spawn } from 'node:child_process';
+// talk through a local nostr relay.
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright-core';
+import { finalizeEvent, generateSecretKey } from 'nostr-tools/pure';
+import { run, device, until, sleep } from './env.mjs';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'loadout-e2e-'));
-const RELAY_PORT = 18765 + Math.floor(Math.random() * 1000);
-const WEB_PORT = RELAY_PORT + 1000;
-const RELAY = `http://localhost:${RELAY_PORT}/gun`;
-const APP = `http://localhost:${WEB_PORT}/loadout/`;
-
-let relayRuns = 0;
-const startRelay = () =>
-  spawn(process.execPath, [path.join(root, 'scripts/relay.cjs'), String(RELAY_PORT)], { env: { ...process.env, RADATA: path.join(tmp, `radata-${relayRuns++}`) }, stdio: 'ignore' });
-let relay = startRelay();
-const web = spawn(process.execPath, [path.join(root, 'scripts/serve.mjs'), path.join(root, 'apps'), String(WEB_PORT)], { stdio: 'ignore' });
-const stop = () => [relay, web].forEach((p) => p.kill());
-process.on('exit', stop);
-
-/** Simulate relays losing all their data: restart ours with an empty disk. */
-async function wipeRelay() {
-  const old = relay;
-  await new Promise((r) => {
-    old.once('exit', r);
-    old.kill();
-  });
-  relay = startRelay();
-  await until(() => fetch(`http://localhost:${RELAY_PORT}/`).then(() => true), 'relay restart');
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const executablePath = process.env.CHROMIUM_PATH || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
-const browser = await chromium.launch({ executablePath });
-const errors = [];
-
-async function device(name) {
-  const ctx = await browser.newContext({ viewport: { width: 420, height: 900 }, acceptDownloads: true });
-  await ctx.addInitScript((relay) => {
-    if (!localStorage.getItem('loadout.relays')) localStorage.setItem('loadout.relays', JSON.stringify([relay]));
-  }, RELAY);
-  const page = await ctx.newPage();
-  page.on('pageerror', (e) => errors.push(`${name}: ${e.stack || e.message}`));
-  page.on('console', (m) => m.type() === 'error' && !/WebSocket|ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(m.text()) && errors.push(`${name} console: ${m.text()}`));
-  page.on('dialog', (d) => d.dismiss());
-  page.ctx = ctx;
-  return page;
-}
-
-async function open(page, url = APP) {
-  await page.goto(url);
-  await page.waitForSelector('.home, .board, .account', { timeout: 20000 });
-}
-
+const step = (s) => console.log(`• ${s}`);
 const texts = (page, sel) => page.$$eval(sel, (els) => els.map((e) => e.textContent.trim()));
 
-async function until(fn, what, ms = 10000) {
-  const end = Date.now() + ms;
-  let last;
-  while (Date.now() < end) {
-    try {
-      last = await fn();
-      if (last) return last;
-    } catch (e) {
-      last = e;
+await run('loadout', async (env) => {
+  const APP = `${env.base}loadout/`;
+  const init = (relay) => localStorage.setItem('wjs.relays', JSON.stringify([relay]));
+  const dev = (name) => device(env, name, init, env.nostrUrl);
+
+  async function open(page, url = APP) {
+    await page.goto(url);
+    await page.waitForSelector('.home, .board, .account', { timeout: 20000 });
+  }
+
+  async function newBoard(page, kind, title) {
+    await page.click(`[data-new="${kind === 'note' ? 'note' : 'check'}"]`);
+    await page.check(`#newBoard input[name=kind][value=${kind}]`, { force: true });
+    await page.fill('#newBoard input[name=title]', title);
+    await page.click('#newBoard [type=submit]');
+    await page.waitForSelector('#boardName', { timeout: 15000 });
+    await until(async () => (await page.textContent('#boardName')) === title, 'board title');
+  }
+
+  async function addItems(page, lines) {
+    for (const l of lines) {
+      await page.fill('#addInput', l);
+      await page.press('#addInput', 'Enter');
     }
-    await sleep(150);
   }
-  throw new Error(`Timed out waiting for ${what} (last: ${last})`);
-}
 
-async function newBoard(page, kind, title) {
-  await page.click(`[data-new="${kind === 'note' ? 'note' : 'check'}"]`);
-  await page.check(`#newBoard input[name=kind][value=${kind}]`, { force: true });
-  await page.fill('#newBoard input[name=title]', title);
-  await page.click('#newBoard [type=submit]');
-  await page.waitForSelector('#boardName', { timeout: 15000 });
-  await until(async () => (await page.textContent('#boardName')) === title, 'board title');
-}
-
-async function addItems(page, lines) {
-  for (const l of lines) {
-    await page.fill('#addInput', l);
-    await page.press('#addInput', 'Enter');
+  async function shareLinks(page) {
+    await page.click('[data-act=share]');
+    await page.waitForSelector('#shareUrl');
+    const links = {};
+    const roles = await page.$$eval('input[name=role]', (els) => els.map((e) => e.value));
+    if (!roles.length) links.view = await page.inputValue('#shareUrl');
+    for (const role of roles) {
+      await page.check(`input[name=role][value=${role}]`, { force: true });
+      links[role] = await page.inputValue('#shareUrl');
+    }
+    await page.click('dialog [data-close]');
+    return links;
   }
-}
 
-async function shareLinks(page) {
-  await page.click('[data-act=share]');
-  await page.waitForSelector('#shareUrl');
-  const links = {};
-  const roles = await page.$$eval('input[name=role]', (els) => els.map((e) => e.value));
-  if (!roles.length) links.view = await page.inputValue('#shareUrl');
-  for (const role of roles) {
-    await page.check(`input[name=role][value=${role}]`, { force: true });
-    links[role] = await page.inputValue('#shareUrl');
-  }
-  await page.click('dialog [data-close]');
-  return links;
-}
-
-const step = (name) => console.log(`• ${name}`);
-let failed = false;
-
-try {
-  await until(async () => (await fetch(APP)).ok, 'web server');
-
-  step('A creates a private grocery list');
-  const A = await device('A');
+  step('A creates a grocery list');
+  const A = await dev('A');
   await open(A);
   await newBoard(A, 'check', 'Groceries');
   await addItems(A, ['2x milk', 'Eggs', '# Produce', 'Apples x6']);
   await until(async () => (await texts(A, '#active .text')).join('|') === 'milk|Eggs|Produce|Apples', 'items in typed order');
   assert.deepEqual(await texts(A, '#active .qty'), ['×2', '×6']);
   const groceries = await A.evaluate(() => location.hash.split('/')[2]);
+  assert.match(groceries, /^[0-9a-f]{64}$/);
   assert.ok(!(await A.evaluate(() => location.hash)).includes('?'), 'no secrets in the URL');
 
   step('pasting several lines adds them all');
@@ -134,11 +71,11 @@ try {
   assert.deepEqual(await texts(A, '#done .text'), ['butter']);
 
   const links = await shareLinks(A);
-  assert.match(links.edit, /#\/b\/[\w-]+\.[\w-]+\?w=[\w-]{43}$/);
-  assert.match(links.view, /#\/b\/[\w-]+\.[\w-]+\?k=[\w-]{43}$/);
+  assert.match(links.edit, /#\/b\/[0-9a-f]{64}\?w=[0-9a-f]{64}$/);
+  assert.match(links.view, /#\/b\/[0-9a-f]{64}\?k=[0-9a-f]{64}$/);
 
   step('B opens the edit link and edits; A sees it live');
-  const B = await device('B');
+  const B = await dev('B');
   await open(B, links.edit);
   await until(async () => (await texts(B, '#active .text')).includes('Apples'), 'items on B');
   assert.ok(!(await B.evaluate(() => location.hash)).includes('w='), 'edit key stripped from the address bar');
@@ -153,41 +90,29 @@ try {
   await A.press('.title-input', 'Enter');
   await until(async () => (await B.textContent('#boardName')) === 'Groceries this week', 'renamed on B');
 
-  step('C opens the view link: reads, cannot write');
-  const C = await device('C');
+  step('C opens the view link: reads, cannot write; the relay rejects forgeries');
+  const C = await dev('C');
   await open(C, links.view);
   await until(async () => (await texts(C, '#active .text')).includes('coffee'), 'items on C');
   assert.equal(await C.$('#addInput'), null, 'no add form for viewers');
   assert.ok(await C.$eval('#active .check input', (i) => i.disabled), 'checkboxes disabled for viewers');
   assert.ok((await C.textContent('#boardTags')).includes('View only'));
-  const forged = await C.evaluate(async (pub) => {
-    const { gun } = await import('./js/net.js');
-    return new Promise((resolve) => {
-      gun.get(`~${pub}`).get('items').get('forged').put('{"t":"FORGED","d":0,"o":-5}', (ack) => resolve(ack.err || 'ok'));
-      setTimeout(() => resolve('timeout'), 4000);
-    });
-  }, groceries);
-  assert.notEqual(forged, 'ok', 'relay/peers must reject unsigned writes');
+  const now = Math.floor(Date.now() / 1000);
+  const forged = { ...finalizeEvent({ kind: 30702, created_at: now + 5, tags: [['d', 'forged']], content: 'FORGED' }, generateSecretKey()), pubkey: groceries };
+  await assert.rejects(env.relayPublish(forged), /invalid/, 'an item not signed by the board key is rejected');
+  const stranger = finalizeEvent({ kind: 30702, created_at: now + 5, tags: [['d', 'stranger']], content: 'STRANGER' }, generateSecretKey());
+  await env.relayPublish(stranger); // valid event, but not the board's
   await sleep(800);
-  assert.ok(!(await texts(A, '#active .text')).includes('FORGED'), 'forged item not visible to editors');
+  assert.ok(!(await texts(A, '#active .text')).some((t) => /FORGED|STRANGER/.test(t)), 'nothing foreign shows up on the board');
 
   step('without a key the board is locked, and the relay only holds ciphertext');
-  const D = await device('D');
+  const D = await dev('D');
   await open(D, `${APP}#/b/${groceries}`);
   await until(async () => (await D.$('#unlock')) !== null, 'locked state');
-  const raw = await D.evaluate(async (pub) => {
-    const { gun } = await import('./js/net.js');
-    const out = [];
-    await new Promise((r) => {
-      gun.get(`~${pub}`).get('items').map().once((v) => out.push(v));
-      gun.get(`~${pub}`).get('meta').get('info').once((v) => out.push(v));
-      setTimeout(r, 2500);
-    });
-    return out;
-  }, groceries);
-  assert.ok(raw.length >= 5, `relay returned data (${raw.length})`);
-  assert.ok(raw.every((v) => v == null || String(v).startsWith('SEA{')), 'everything is encrypted');
-  assert.ok(!JSON.stringify(raw).match(/milk|Groceries|coffee/i), 'no plaintext on the wire');
+  const raw = await env.relayEvents([{ authors: [groceries] }]);
+  assert.ok(raw.length >= 6, `relay holds the board's events (${raw.length})`);
+  assert.ok(raw.every((e) => /^[A-Za-z0-9_-]+$/.test(e.content)), 'every content is an opaque payload');
+  assert.ok(!JSON.stringify(raw).match(/milk|Groceries|coffee/i), 'no plaintext on the relay');
   await D.fill('#unlock input', links.view);
   await D.click('#unlock button');
   await until(async () => (await texts(D, '#active .text')).includes('milk'), 'unlocked with the view link');
@@ -262,19 +187,28 @@ try {
   await A.fill('#authForm [name=alias]', alias);
   await A.fill('#authForm [name=pass]', pass);
   await A.fill('#authForm [name=pass2]', pass);
-  await Promise.all([A.waitForEvent('load', { timeout: 30000 }), A.click('#authBtn')]);
+  await Promise.all([A.waitForEvent('load', { timeout: 40000 }), A.click('#authBtn')]);
   await A.waitForSelector('.home');
   await until(async () => (await texts(A, '.board-title')).length === 3, 'A keeps its boards after creating the account');
-  const E = await device('E');
+  const E = await dev('E');
   await open(E, `${APP}#/account`);
   await E.fill('#authForm [name=alias]', alias);
   await E.fill('#authForm [name=pass]', pass);
-  await Promise.all([E.waitForEvent('load', { timeout: 30000 }), E.click('#authBtn')]);
+  await Promise.all([E.waitForEvent('load', { timeout: 40000 }), E.click('#authBtn')]);
   await E.waitForSelector('.home');
   await until(async () => (await texts(E, '.board-title')).sort().join('|') === 'Groceries this week|Pantry|Readme', 'boards on E', 15000);
   await E.click('.board-card:has-text("Groceries")');
   await until(async () => (await texts(E, '#active .text')).includes('coffee'), 'board content on E');
   assert.ok(await E.$('#addInput'), 'E can edit (edit key came through the wallet)');
+
+  step('a wrong password finds no account');
+  const W = await dev('W');
+  await open(W, `${APP}#/account`);
+  await W.fill('#authForm [name=alias]', alias);
+  await W.fill('#authForm [name=pass]', 'correct horse battery stapler');
+  await W.click('#authBtn');
+  assert.match(await W.waitForSelector('.toast-error', { timeout: 30000 }).then((t) => t.textContent()), /wrong username or password/i);
+  await W.ctx.close();
 
   step('removing a board on E removes it on A');
   await E.goto(`${APP}#/b/${note}`);
@@ -289,10 +223,10 @@ try {
   await sleep(500);
   await B.click('#active li:has-text("milk") .check input', { force: true });
   await addItems(B, ['offline item']);
-  await sleep(500);
+  await until(async () => (await B.textContent('#sync')).includes('to sync'), 'outbox shown while offline');
   await B.ctx.setOffline(false);
   await A.goto(`${APP}#/b/${groceries}`);
-  await until(async () => (await texts(A, '#active .text')).includes('offline item'), 'offline item reached A', 25000);
+  await until(async () => (await texts(A, '#active .text')).includes('offline item'), 'offline item reached A', 30000);
   await until(async () => (await texts(A, '#done .text')).includes('milk'), 'offline check reached A', 10000);
 
   step('backup → restore on a fresh device');
@@ -301,12 +235,12 @@ try {
   await E.fill('dialog [name=pass]', 'backup passphrase 1');
   await E.fill('dialog [name=pass2]', 'backup passphrase 1');
   const [dl] = await Promise.all([E.waitForEvent('download', { timeout: 30000 }), E.click('dialog .btn-primary')]);
-  const file = path.join(tmp, 'backup.json');
+  const file = path.join(env.tmp, 'backup.json');
   await dl.saveAs(file);
   const backup = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.equal(backup.kind, 'loadout-backup');
   assert.ok(!fs.readFileSync(file, 'utf8').includes('coffee'), 'backup is encrypted');
-  const F = await device('F');
+  const F = await dev('F');
   await open(F, `${APP}#/account`);
   await F.setInputFiles('#restoreFile', file);
   await F.fill('dialog [name=pass]', 'wrong passphrase');
@@ -316,7 +250,7 @@ try {
   await Promise.all([F.waitForEvent('load', { timeout: 40000 }), F.click('dialog .btn-primary')]);
   await F.waitForSelector('.home');
   await until(async () => (await texts(F, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards restored on F');
-  assert.equal(await F.evaluate(() => JSON.parse(localStorage.getItem('loadout.identity')).alias), alias);
+  assert.equal(await F.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
 
   const signIn = async (page, expectOk = true) => {
     await open(page, `${APP}#/account`);
@@ -326,17 +260,18 @@ try {
       await page.click('#authBtn');
       return page.waitForSelector('.toast-error', { timeout: 30000 }).then((t) => t.textContent());
     }
-    await Promise.all([page.waitForEvent('load', { timeout: 30000 }), page.click('#authBtn')]);
+    await Promise.all([page.waitForEvent('load', { timeout: 40000 }), page.click('#authBtn')]);
     await page.waitForSelector('.home');
   };
 
-  step('relays lose everything: the backup file brings it all back');
+  step('the relay loses everything: the backup file brings it all back');
   for (const p of [A, B, C, D, F]) await p.ctx.close();
   await E.close(); // E's browser storage stays, like a phone in a pocket
-  await wipeRelay();
-  const G = await device('G');
+  await env.wipeNostr();
+  const G = await dev('G');
   assert.match(await signIn(G, false), /wrong username or password|no relay/i, 'the account is gone from the relay');
-  const H = await device('H');
+  await G.ctx.close();
+  const H = await dev('H');
   await open(H, `${APP}#/account`);
   await H.setInputFiles('#restoreFile', file);
   await H.fill('dialog [name=pass]', 'backup passphrase 1');
@@ -345,33 +280,26 @@ try {
   await until(async () => (await texts(H, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards from the backup');
   await H.click('.board-card:has-text("Groceries")');
   await until(async () => (await texts(H, '#active .text')).includes('coffee'), 'content from the backup', 15000);
+  const G1 = await dev('G1');
+  await signIn(G1);
+  await until(async () => (await texts(G1, '.board-title')).length === 2, 'the account event came back with the backup', 15000);
+  await G1.ctx.close();
   await H.ctx.close();
 
-  step('relays lose everything again: a returning device heals them');
-  await wipeRelay();
+  step('the relay loses everything again: a returning device heals it');
+  await env.wipeNostr();
   const E2 = await E.ctx.newPage();
-  E2.on('pageerror', (e) => errors.push(`E2: ${e.stack || e.message}`));
+  E2.on('pageerror', (e) => env.errors.push(`E2: ${e.stack || e.message}`));
   await E2.goto(APP);
   await E2.waitForSelector('.home');
-  await sleep(7000); // reconnect → heal account, wallet and every board
+  await until(async () => (await env.relayEvents([{ kinds: [30790] }])).length === 1, 'account event re-published by E', 20000);
+  await sleep(1500);
   await E2.close();
-  const G2 = await device('G2');
+  const G2 = await dev('G2');
   await signIn(G2);
   await until(async () => (await texts(G2, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards after healing', 15000);
   await G2.click('.board-card:has-text("Pantry")');
   await until(async () => (await texts(G2, '#active .count')).join() === '4,0', 'pantry counts after healing', 15000);
   await G2.goto(`${APP}#/b/${groceries}`);
   await until(async () => (await texts(G2, '#active .text')).includes('coffee'), 'grocery items after healing', 15000);
-
-  assert.deepEqual(errors, [], 'no page errors');
-  console.log('\nall end-to-end checks passed');
-} catch (err) {
-  failed = true;
-  console.error('\nFAILED:', err.message);
-  if (errors.length) console.error('page errors:\n ', errors.join('\n  '));
-} finally {
-  await browser.close();
-  stop();
-  fs.rmSync(tmp, { recursive: true, force: true });
-  process.exit(failed ? 1 : 0);
-}
+});
