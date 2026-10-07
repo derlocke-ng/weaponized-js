@@ -114,7 +114,7 @@ Items are one event each (not one blob per board), so two people editing differe
 
 ## Roadmap
 
-1. ~~Shared core; Loadout on nostr~~ (done — `test/e2e/loadout.mjs` runs 18 multi-device scenarios against the dev relay, including two relay wipes and the import of a gun-era backup as new boards).
+1. ~~Shared core; Loadout on nostr~~ (done — `test/e2e/loadout.mjs` runs 17 multi-device scenarios against the dev relay, including two relay wipes).
 2. **Payload and pongjs on nostr**: presence and signaling as ephemeral events 21700–21702 (encrypted to the room secret), data frames over 21702 when WebRTC fails, TURN servers from the picker; Payload gets a **drop** mode — encrypted chunks on a Blossom server with an expiry — for receivers who are not online right now. Then gun, `apps/shared/gun.js` and `scripts/relay.cjs` go.
 3. **Uplink** (chat): NIP-17 private messages between accounts, ephemeral encrypted rooms (what EnigmaJS did), groups later.
 4. **Outpost** (grow reports): entries and photos encrypted before upload to Blossom, friends list, visibility layers (private / friends / "public" = readable by anyone signed into the app), feed and explore; marketplace for seeds and cuttings behind an 18+ / legal-region declaration and a no-liability agreement. Backups include blobs.

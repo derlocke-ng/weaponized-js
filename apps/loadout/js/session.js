@@ -6,7 +6,7 @@ import { app } from './app.js';
 import { db, sync, pool } from './net.js';
 import { saveIdentity, forgetIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
-import { Board, createBoard, settled } from './boards.js';
+import { Board, settled } from './boards.js';
 import { watchAll } from './heal.js';
 import { sleep } from '../../shared/util.js';
 import { store } from './util.js';
@@ -75,34 +75,6 @@ async function restoreSnapshots(wallet, snapshots, onProgress) {
   }
   if (restored) onProgress(`Restored ${restored} missing entries`);
   if (!pool.online) onProgress('Offline — restored items will sync later');
-}
-
-/** A backup made by Loadout before nostr (gun keys, `v: 1`)? */
-export const isLegacyBackup = (payload) => payload?.app === 'loadout' && payload.v === 1 && payload.snapshots && typeof payload.snapshots === 'object';
-
-/**
- * Import the boards of a gun-era backup as new boards of the current identity.
- * Old keys can't be carried over (different cryptography), so every board gets
- * fresh keys and fresh links; titles, items and notes come from the snapshot.
- * Resolves with the number of boards imported.
- */
-export async function importLegacyBackup(payload, onProgress = () => {}) {
-  const pubs = Object.entries(payload.snapshots).filter(([, snap]) => snap?.info?.title && !snap.info.del);
-  const titles = (payload.boards || []).reduce((m, b) => (b?.pub && b.title ? m.set(b.pub, b.title) : m), new Map());
-  let imported = 0;
-  for (const [n, [oldPub, snap]] of pubs.entries()) {
-    onProgress(`Importing board ${n + 1} of ${pubs.length}…`);
-    const info = snap.info;
-    const entry = await createBoard({ type: info.type === 'note' ? 'note' : 'list', title: String(info.title || titles.get(oldPub) || 'Imported board').slice(0, 120), mode: info.mode === 'count' ? 'count' : 'check' });
-    const board = new Board(entry);
-    const items = [...(snap.items || [])].filter((it) => it && it.t && !it.del).sort((a, b) => (a.o ?? 0) - (b.o ?? 0));
-    for (const it of items) await board.addItem({ t: String(it.t), d: it.d, q: it.q ?? null, o: it.o ?? 0, c: it.c });
-    if (snap.doc?.md) await board.setDoc(String(snap.doc.md));
-    await app.wallet.upsert(entry);
-    imported++;
-  }
-  if (!pool.online) onProgress('Offline — imported boards will sync later');
-  return imported;
 }
 
 /** Everything needed to rebuild this account elsewhere. */
