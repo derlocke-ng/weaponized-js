@@ -102,10 +102,30 @@ main,
   padding-bottom: 1.1rem;
 }
 
-.top .account-link span {
-  max-width: 10rem;
+.top .account-link.signed {
+  padding: 0.25rem;
+  border-color: var(--accent);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
 }
 
@@ -115,9 +135,6 @@ main,
   }
   .top .top-link:not(.account-link) span {
     display: none;
-  }
-  .top .account-link span {
-    max-width: 7rem;
   }
 }
 

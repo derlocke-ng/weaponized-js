@@ -21,8 +21,10 @@ function languageBanner() {
 
 function drawHeader() {
   const id = loadIdentity();
-  $('#accountName').textContent = id.alias || t('hub.signIn');
-  $('#accountLink').classList.toggle('signed', Boolean(id.alias));
+  const link = $('#accountLink');
+  link.classList.toggle('signed', Boolean(id.alias));
+  link.title = id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn');
+  link.innerHTML = id.alias ? `<span class="avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName">${h(t('hub.signIn'))}</span>`;
 }
 
 function drawApps() {

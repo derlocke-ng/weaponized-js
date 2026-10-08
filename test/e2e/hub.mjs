@@ -43,7 +43,8 @@ await run(
     await A.fill('#authForm [name=pass2]', pass);
     await A.click('#authBtn');
     await until(async () => (await A.textContent('#accountBody')).includes(alias), 'signed in on the hub', 60000);
-    assert.equal(await A.textContent('#accountName'), alias);
+    assert.equal(await A.textContent('#accountLink .avatar'), alias[0].toUpperCase());
+    assert.ok((await A.getAttribute('#accountLink', 'title')).includes(alias));
     assert.equal(await A.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
     await A.goto(`${env.base}loadout/`);
     await A.waitForSelector('.home');
