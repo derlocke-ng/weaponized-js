@@ -1,8 +1,15 @@
 import { Room, createGun, randomSecret, relaysUp, b64url, sha256, DEFAULT_RELAYS } from '../shared/p2p.js';
 import { qrSvg } from '../shared/qr.js';
 import { CHUNK, chunkLength, hashBlob, rootOf, fingerprint, formatBytes, Meter } from './transfer.js';
+import { initAppShell } from '../shared/appshell.js';
 
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js').catch(() => {});
+// The suite's top bar (switcher, theme, language) before anything else draws.
+await initAppShell({
+  current: 'payload',
+  sprite: '../icons.svg',
+  brand: { href: './', name: 'Payload', mark: '<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><path d="M9 16h12m-5-5 5 5-5 5"/></svg>' },
+  right: '<span class="relays" id="relays" title="Relays used to find each other"><span class="dot"></span><span id="relayText">…</span></span>',
+});
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

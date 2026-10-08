@@ -8,10 +8,8 @@ import { parseRoute } from './links.js';
 import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
-import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t } from '../../shared/i18n.js';
-import { theme, setTheme, watchDeviceSettings } from '../../shared/theme.js';
-import { AccountSettings } from '../../shared/settings.js';
-import { mountTopbar } from '../../shared/topbar.js';
+import { setLanguage, shouldAskLanguage, currentLanguage, LANGUAGES, t } from '../../shared/i18n.js';
+import { initAppShell } from '../../shared/appshell.js';
 import { db } from './net.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
@@ -19,7 +17,6 @@ import { renderAccount } from './views/account.js';
 
 let cleanup = null;
 let offStatus = null;
-let hiddenApps = [];
 
 function render() {
   closeMenus();
@@ -54,6 +51,8 @@ function languageBanner() {
     </div>`;
 }
 
+let shell = null;
+
 function renderShell() {
   offStatus?.();
   $('#app').innerHTML = `
@@ -63,21 +62,11 @@ function renderShell() {
     <footer class="foot">
       <a href="../">weaponized.js</a> · ${t('app.footer')}
     </footer>`;
-  mountTopbar($('#top'), {
-    base: '../',
-    current: 'loadout',
-    hidden: () => hiddenApps,
-    brand: {
-      href: '#/',
-      name: 'Loadout',
-      label: t('app.home'),
-      mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
-    },
-    right: `<a class="sync" id="sync" href="../settings.html#relays" title="${h(t('app.relayStatus'))}"><span class="dot"></span><span class="sync-text">…</span></a>
-      <a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
-  });
+  shell?.redraw();
   $('#langOk')?.addEventListener('click', async () => {
-    await setLanguage($('#langPick').value);
+    const lang = $('#langPick').value;
+    await setLanguage(lang);
+    shell?.suite.set({ lang }).catch(() => {});
     rerender();
   });
   offStatus = onStatus(({ relays, connected, pending }) => {
@@ -112,45 +101,33 @@ async function boot() {
   app.applyTheme();
   app.render = render;
   app.rerender = rerender;
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
-  await Promise.all([initNet(), initI18n({ dirs: ['../shared/locales/', 'locales/'] })]);
-  renderShell();
+  await initNet();
   app.identity = loadIdentity();
   app.wallet = new Wallet(app.identity);
   app.settings = new Settings(app.identity);
+  renderShell();
+  shell = await initAppShell({
+    current: 'loadout',
+    net: { pool, db, sync },
+    brand: {
+      href: '#/',
+      name: 'Loadout',
+      label: t('app.home'),
+      mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
+    },
+    right: () => `<a class="sync" id="sync" href="../settings.html#relays" title="${h(t('app.relayStatus'))}"><span class="dot"></span><span class="sync-text">…</span></a>
+      <a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
+  });
+  shell.onLanguage(rerender);
   await Promise.all([app.wallet.start(), app.settings.start()]);
   await carryOver(); // boards from a key this device used before signing in elsewhere in the suite
-  // The account's language and theme (set on any device) apply here too.
-  const suite = await new AccountSettings(app.identity, { pool, db, sync }, 'suite').start();
-  const applySuite = async () => {
-    hiddenApps = suite.get('hiddenApps', []) || [];
-    const lang = suite.get('lang');
-    if (lang && LANGUAGES[lang] && lang !== currentLanguage()) {
-      await setLanguage(lang);
-      rerender();
-    }
-    const th = suite.get('theme');
-    if (th && th !== theme()) setTheme(th);
-  };
-  suite.onChange(applySuite);
-  await applySuite();
   // Relays that (re)connect get this device's copy of everything that is ours.
   const rewatch = () => watchAll(app.identity, app.wallet);
   rewatch();
   app.wallet.onChange(rewatch);
   for (const r of pool.status().relays) if (r.open) sync.healRelay(r.url).catch(() => {});
   onSyncError(({ reason }) => toast(t('sync.rejected', { reason }), 'error', 8000));
-  watchDeviceSettings({
-    onLanguage: async () => {
-      const lang = savedLanguage();
-      if (lang && lang !== currentLanguage()) {
-        await setLanguage(lang);
-        rerender();
-      }
-    },
-  });
+  renderShell(); // the top bar redraws with the status link bound
   updateAccountBadge();
   window.addEventListener('hashchange', render);
   render();

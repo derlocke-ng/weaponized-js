@@ -6,8 +6,10 @@
 import { Room, createGun, randomSecret, relaysUp, DEFAULT_RELAYS } from '../shared/p2p.js';
 import { qrSvg } from '../shared/qr.js';
 import { W, H, PW, PH, PX, BALL, WIN, PADDLE_SPEED, clampPaddle, newGame, step, cpuMove, snapshot, extrapolate } from './game.js';
+import { initAppShell } from '../shared/appshell.js';
 
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js').catch(() => {});
+// The suite's top bar (switcher, theme, language) before the CRT lights up.
+await initAppShell({ current: 'pongjs', sprite: '../icons.svg', brand: { href: './', name: 'pongjs', mark: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="2" height="10"/><rect x="19" y="7" width="2" height="10"/><circle cx="12" cy="12" r="1.5"/></svg>' } });
 
 const $ = (id) => document.getElementById(id);
 const LOBBY = 'wjs-pong-lobby-1';

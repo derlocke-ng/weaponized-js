@@ -39,9 +39,10 @@ test/                unit tests (node --test) and end-to-end tests per app
 ### Adding a tool
 
 1. Put it in `apps/<name>/`. A static app needs an `index.html`; a Vite app needs `npm run build` to produce `dist/` with `base: './'`.
-2. Import what you need from `apps/shared/` (see `apps/loadout/js/net.js` for the wiring) and register your event kinds in `apps/shared/events.js`. Put UI strings in `apps/<name>/locales/en.json` and use `t()` from `apps/shared/i18n.js`; the other languages follow the English keys (a unit test checks).
-3. Add a card to `hub/index.html` and your files to the service workers' shell lists.
-4. Push to `main` — the workflow builds and deploys everything.
+2. Use the design library: `@import url('../shared/ui.css')` in your stylesheet, `<header id="top"></header>` in your body, and `await initAppShell({ current: '<name>', brand })` from `apps/shared/appshell.js` before you draw. That gives you the top bar, the app switcher, theme and language, and the account's hidden apps.
+3. Import what you need from `apps/shared/` (see `apps/loadout/js/net.js` for the wiring) and register your event kinds in `apps/shared/events.js`. Put UI strings in `apps/<name>/locales/en.json` and use `t()` from `apps/shared/i18n.js`; the other languages follow the English keys (a unit test checks).
+4. Add the app to `APPS` in `apps/shared/switcher.js` and `hub/shell.js`, a card to `hub/index.html`, and your files to the service workers' shell lists.
+5. Push to `main` — the workflow builds and deploys everything.
 
 ## Development
 

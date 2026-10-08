@@ -13,6 +13,17 @@
 :root {
   --green: #33ff33;
   --dim: rgb(51 255 51 / 0.55);
+  /* what the shared top bar and switcher read, in CRT colours */
+  --bg: #0a0a0a;
+  --surface: #061406;
+  --surface-2: #0b1f0b;
+  --border: #092209;
+  --border-strong: #0f3a0f;
+  --text: var(--green);
+  --muted: var(--dim);
+  --accent: var(--green);
+  --on-accent: #0a0a0a;
+  --gutter: max(10px, env(safe-area-inset-left));
   color-scheme: dark;
 }
 
@@ -20,12 +31,22 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  padding: 0 max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   background: #0a0a0a;
   font-family: 'Courier New', ui-monospace, monospace;
   color: var(--green);
+}
+
+#top {
+  width: calc(100% + 20px);
+  margin: 0 -10px 10px;
+  font-family: var(--sans, system-ui, sans-serif);
+}
+
+.crt {
+  margin: auto 0;
 }
 
 .crt {

@@ -1,76 +1,12 @@
-:root {
-  --bg: #f6f6f3;
-  --surface: #ffffff;
-  --surface-2: #efefea;
-  --border: #e2e2dc;
-  --border-strong: #cfcfc7;
-  --text: #1b1c19;
-  --muted: #6b6d66;
-  --accent: #4d7c0f;
-  --accent-soft: #ecf5dc;
-  --on-accent: #ffffff;
-  --danger: #b42318;
-  --ok: #15803d;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 4px 16px rgb(0 0 0 / 0.05);
-  --radius: 14px;
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-  --gutter: max(16px, env(safe-area-inset-left));
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e0f0d;
-    --surface: #161814;
-    --surface-2: #1e211b;
-    --border: #2a2d26;
-    --border-strong: #3a3e35;
-    --text: #e7e8e3;
-    --muted: #9a9d93;
-    --accent: #a3e635;
-    --accent-soft: #1f2a12;
-    --on-accent: #10140a;
-    --danger: #f97066;
-    --ok: #4ade80;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
-    color-scheme: dark;
-  }
-}
-
-* {
-  box-sizing: border-box;
-}
-
-[hidden] {
-  display: none !important;
-}
+/* Payload — tokens and components from the shared design library; this file
+   holds what is Payload's own. */
+@import url('../shared/ui.css');
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  color: var(--text);
-  font: 16px/1.5 var(--sans);
-  -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: var(--accent);
-}
-
-code {
-  font-family: var(--mono);
-  font-size: 0.9em;
-  background: var(--surface-2);
-  padding: 0.1em 0.4em;
-  border-radius: 5px;
-}
-
-.top,
 .main,
 .foot {
   width: 100%;
@@ -78,42 +14,6 @@ code {
   margin: 0 auto;
   padding-left: var(--gutter);
   padding-right: var(--gutter);
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: max(0.9rem, env(safe-area-inset-top));
-  padding-bottom: 0.9rem;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
-}
-
-.brand-mark {
-  width: 26px;
-  height: 26px;
-}
-
-.brand-mark rect {
-  fill: var(--text);
-}
-
-.brand-mark path {
-  fill: none;
-  stroke: var(--bg);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .relays {
@@ -477,4 +377,21 @@ input:focus {
   .bar span {
     transition: none;
   }
+}
+
+.wjs-top {
+  padding-left: max(var(--gutter), calc((100% - 680px) / 2));
+  padding-right: max(var(--gutter), calc((100% - 680px) / 2));
+}
+
+.brand-mark rect {
+  fill: var(--text);
+}
+
+.brand-mark path {
+  fill: none;
+  stroke: var(--bg);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

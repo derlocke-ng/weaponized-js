@@ -123,6 +123,21 @@ Every app ships its strings as one JSON catalog per language (`apps/<app>/locale
 - **Languages.** English, German, French, Spanish, Italian, Dutch, Polish and Portuguese, the EU's big languages plus the UK, US and Canada. More are one JSON file each; a unit test checks that every language has every key with the same placeholders, markup and plural forms. Translations are machine-drafted and reviewed, corrections welcome by pull request.
 - **Region is separate from language.** Country for the marketplace and the legal declaration come from settings, never from the UI language.
 
+## Design library
+
+Every page looks and navigates the same because every page uses the same pieces from `apps/shared/`:
+
+| File | What |
+|---|---|
+| `ui.css` | tokens (light, dark, explicit theme), base styles, buttons, inputs, forms, segmented control, cards, banners, modal, menu, toasts |
+| `ui.js` | `$`, `$$`, `h()` escaping, `icon()`, `toast()`, `modal()`, `confirmDialog()`, `copyText()`, `download()` |
+| `topbar.js/.css` | the top bar: switcher button, brand, right-hand slot; one height everywhere |
+| `switcher.js/.css` | the app sheet: start page, apps not hidden, settings; hardware back closes it |
+| `appshell.js` | `initAppShell()`: theme, language, top bar and the account's hidden apps / language / theme in one call |
+| `theme.js`, `i18n.js`, `settings.js` | the device and account settings behind it |
+
+An app plugs in with three lines: `@import url('../shared/ui.css')` at the top of its stylesheet, `<header id="top"></header>` at the top of its body, and `await initAppShell({ current, brand, right })` before it draws. The icon sprites come from `scripts/vendor.mjs` (lucide). Payload and pongjs are on it already; pongjs keeps its CRT look by giving the library its own token values.
+
 ## One account for the suite
 
 The hub (the installed app's start page) and every app share one origin, so `localStorage` holds one identity (`wjs.identity`) and IndexedDB one event store for all of them. Signing in or creating an account on the hub switches that identity; `adoptIdentity()` keeps the previous key aside and each app carries its own data over on its next start (`previousIdentities()` / `markCarried()`): Loadout re-publishes the wallet entries of the old device key under the account key. Signing in inside an app does the same. Nothing is lost by signing in late.

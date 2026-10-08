@@ -10,10 +10,8 @@ import { loadIdentity } from './shared/account.js';
 import { theme, setTheme, applyTheme, watchDeviceSettings } from './shared/theme.js';
 import { AccountSettings } from './shared/settings.js';
 
-export const $ = (sel, root = document) => root.querySelector(sel);
-export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-export const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-export const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="icons.svg#${name}"></use></svg>`;
+export { $, $$, h, icon, toast } from './shared/ui.js';
+import { $, $$ } from './shared/ui.js';
 
 export const APPS = ['loadout', 'payload', 'pongjs', 'enigmajs', 'devboard'];
 
@@ -21,15 +19,6 @@ export const net = { db: null, pool: null, sync: null };
 /** @type {AccountSettings|null} */
 export let suite = null;
 const languageListeners = new Set();
-
-export function toast(message, kind = 'info') {
-  const el = document.createElement('div');
-  el.className = `toast toast-${kind}`;
-  el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
-  el.textContent = message;
-  $('#toasts')?.append(el);
-  setTimeout(() => el.remove(), 4500);
-}
 
 /** Static text carries its key; fill it from the catalog. */
 export function applyStrings(root = document) {
