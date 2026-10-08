@@ -34,7 +34,7 @@ function drawApps() {
 
 async function drawRelays() {
   const list = $('#relayList');
-  const { waiting } = await net.db.outboxSummary();
+  const { waiting } = await net.sync.outbox();
   const status = net.pool.status().relays;
   list.innerHTML = savedRelays()
     .map((url) => {
@@ -60,7 +60,7 @@ function drawBackupNote() {
 
 async function diagnostics() {
   const id = loadIdentity();
-  const box = await net.db.outboxSummary();
+  const box = await net.sync.outbox();
   const kinds = {};
   for (const ev of await net.db.byAuthor(id.pk)) kinds[ev.kind] = (kinds[ev.kind] || 0) + 1;
   return JSON.stringify(

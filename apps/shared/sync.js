@@ -30,6 +30,16 @@ export class Sync {
     });
     // Relays that said "rate-limited" or timed out get the outbox again later, not only on reconnect.
     this.timer = setInterval(() => this.flushAll().catch(() => {}), FLUSH_EVERY);
+    store.pruneOutbox(pool.urls).catch(() => {});
+  }
+
+  /** Events no relay has accepted yet. */
+  unsynced() {
+    return this.store.pendingCount(this.pool.urls.length);
+  }
+
+  outbox() {
+    return this.store.outboxSummary(this.pool.urls.length);
   }
 
   /**

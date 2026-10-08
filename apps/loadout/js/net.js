@@ -26,7 +26,7 @@ export const relayInfo = (url) => pool.info(url);
 export const onRelayConnect = (fn) => pool.onConnect(fn);
 
 /** Per-relay outbox counts and the number of events no relay has accepted yet. */
-export const outbox = () => db.outboxSummary();
+export const outbox = () => sync.outbox();
 /** Re-send everything to every connected relay now. */
 export const syncNow = () => sync.healAll();
 export const onSyncError = (fn) => sync.onError(fn);
@@ -36,7 +36,7 @@ export function onStatus(fn) {
   let last = '';
   const emit = async () => {
     const s = pool.status();
-    const next = { relays: s.total, connected: s.connected, pending: await db.pendingCount() };
+    const next = { relays: s.total, connected: s.connected, pending: await sync.unsynced() };
     const key = JSON.stringify(next);
     if (key === last) return;
     last = key;

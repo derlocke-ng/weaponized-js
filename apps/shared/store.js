@@ -14,6 +14,9 @@ const req = (r) =>
     r.onerror = () => reject(r.error);
   });
 
+/** Entries record who accepted them; older ones don't, so for those "waiting for every relay" is the sign that nothing left this device. */
+const unsynced = (o, relayCount) => (o.acked ? o.acked.length === 0 : o.pending.length >= relayCount);
+
 export class LocalStore {
   constructor(db) {
     this.db = db;
@@ -134,17 +137,34 @@ export class LocalStore {
     return (await req(this.tx('outbox').getAll())).filter((o) => o.pending.includes(url)).map((o) => o.id);
   }
 
-  /** Events no relay has accepted yet: what "to sync" means to a person. */
-  async pendingCount() {
-    return (await req(this.tx('outbox').getAll())).filter((o) => !(o.acked || []).length).length;
+  /**
+   * Events no relay has accepted yet: what "to sync" means to a person. An
+   * entry still waiting for every one of the `relayCount` configured relays
+   * never left this device; one that some relay already took is only
+   * waiting for the slow ones (entries from before acceptance was recorded
+   * have no `acked` list, so the pending count is what tells them apart).
+   */
+  async pendingCount(relayCount = Infinity) {
+    return (await req(this.tx('outbox').getAll())).filter((o) => unsynced(o, relayCount)).length;
   }
 
-  /** { unsynced, waiting: { url: count } } for the settings screen. */
-  async outboxSummary() {
+  /** { unsynced, total, waiting: { url: count } } for the settings screen. */
+  async outboxSummary(relayCount = Infinity) {
     const all = await req(this.tx('outbox').getAll());
     const waiting = {};
     for (const o of all) for (const u of o.pending) waiting[u] = (waiting[u] || 0) + 1;
-    return { unsynced: all.filter((o) => !(o.acked || []).length).length, total: all.length, waiting };
+    return { unsynced: all.filter((o) => unsynced(o, relayCount)).length, total: all.length, waiting };
+  }
+
+  /** Relays that left the list take their outbox entries with them. */
+  async pruneOutbox(urls) {
+    const os = this.tx('outbox', 'readwrite');
+    for (const o of await req(os.getAll())) {
+      const pending = o.pending.filter((u) => urls.includes(u));
+      if (pending.length === o.pending.length) continue;
+      if (pending.length) await req(os.put({ ...o, pending }));
+      else await req(os.delete(o.id));
+    }
   }
 
   async clearOutbox() {
