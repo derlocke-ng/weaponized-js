@@ -182,3 +182,14 @@ export const exportEncrypted = (skHex, password) => nip49.encrypt(hexToBytes(skH
 
 /** Key for encrypting things to yourself (wallet entries, settings). */
 export const selfKey = (skHex) => deriveKey(skHex, 'wjs/self');
+
+/** A public key as hex, from an npub or 64 hex characters. */
+export function decodeKey(text) {
+  const t = String(text || '').trim();
+  if (isHex64(t)) return t.toLowerCase();
+  if (t.startsWith('npub1')) {
+    const { type, data } = nip19.decode(t);
+    if (type === 'npub') return data;
+  }
+  throw fail('key.error.format', 'Paste an npub1… or 64-character hex key.');
+}

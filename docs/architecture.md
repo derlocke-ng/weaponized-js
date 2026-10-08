@@ -104,6 +104,16 @@ Data is lost only if every device that ever held it is gone *and* there is no ba
 - **Marketplace listings carry coarse plaintext tags**: category, seller country and shipping destinations (country codes, `EU`, worldwide, pickup only), so relays can filter and a phone downloads only what applies to it. Everything else in a listing is encrypted. Accepted trade-off: relays learn that some key lists seeds in a country.
 - **Device settings are site-wide**: language (`wjs.lang`) and theme (`wjs.theme`) are chosen on the hub or in any app and apply everywhere, live across tabs through the storage event. They stay on the device; account settings (kind 30791) are for things that should follow the account.
 
+## Moderation
+
+nostr has no central moderation; it has three layers, and the suite uses all three:
+
+- **Your block list** (NIP-51 mute list, kind 10000). Ours keeps every entry in the encrypted private part, so relays and other people never learn who you blocked; other nostr clients that know your key read the same list. Apps consult it before showing a post, accepting a message or a friend request: blocked people cannot write to you, cannot add you, and their Outpost posts and listings stay out of your feeds. Managed in the settings; later also from a post or profile with one tap.
+- **Reports** (NIP-56, kind 1984): "spam", "illegal", "impersonation", "nudity", "malware", "profanity" or "other", about a person or one event, with an optional note. Reports are public, signed by the reporter, and go to the relays: relay operators act on them (strfry policies, bans), and clients can hide what many people they trust reported. Outpost gets a report action on posts and listings.
+- **Relay policy**: each relay decides what it stores and who may write (rate limits, bans, allow-lists); the kiwi `weaponized` relay will ship with a sane policy and read reports.
+
+`apps/shared/moderation.js` holds the list and the report builder.
+
 ## Languages
 
 Every app ships its strings as one JSON catalog per language (`apps/<app>/locales/<lang>.json`) plus a shared catalog for common words and the core's error messages (`apps/shared/locales/`). `apps/shared/i18n.js` loads the active language and English as the fallback, nothing else, so a device downloads one small file per app (10–20 KB) and caches it offline.

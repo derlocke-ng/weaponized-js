@@ -36,5 +36,12 @@
     "other": "Backup com {n} entradas descarregado"
   },
   "hub.ctaTitle": "Inicia sessão ou cria uma conta",
-  "hub.ctaText": "para usares os teus quadros, ficheiros e conversas em todos os dispositivos."
+  "hub.ctaText": "para usares os teus quadros, ficheiros e conversas em todos os dispositivos.",
+  "settings.blocked": "Pessoas bloqueadas",
+  "settings.blockedText": "Quem está nesta lista não te pode escrever nem adicionar como amigo, e as suas publicações ficam fora dos teus feeds. A lista é cifrada; só os teus dispositivos a conseguem ler.",
+  "settings.blockAdd": "Bloquear alguém pela chave pública",
+  "settings.block": "Bloquear",
+  "settings.unblock": "Desbloquear",
+  "settings.blockedEmpty": "Ninguém está bloqueado.",
+  "settings.blockInvalid": "Isso não é uma chave pública (npub1… ou 64 caracteres hexadecimais)."
 }

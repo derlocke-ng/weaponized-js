@@ -47,8 +47,8 @@ await run(
     await until(async () => (await A.textContent('#accountBody')).includes(alias), 'signed in on the settings page', 60000);
     assert.equal(await A.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
     await A.goto(env.base);
-    await A.waitForSelector('#accountLink .avatar');
-    assert.equal(await A.textContent('#accountLink .avatar'), alias[0].toUpperCase());
+    await A.waitForSelector('#accountLink .wjs-avatar');
+    assert.equal(await A.textContent('#accountLink .wjs-avatar'), alias[0].toUpperCase());
     assert.ok((await A.getAttribute('#accountLink', 'title')).includes(alias));
     assert.equal(await A.$('#accountCta:not([hidden])'), null, 'no sign-in nudge once signed in');
     await A.goto(`${env.base}loadout/`);
@@ -121,6 +121,22 @@ await run(
     await A.waitForSelector('#appToggles');
     assert.ok(A.url().endsWith('settings.html'), 'the switcher opened the settings page');
     await A.check('#appToggles input[data-app=pongjs]', { force: true });
+
+    step('blocking someone keeps an encrypted list on the account');
+    await A.goto(SETTINGS);
+    await A.waitForSelector('#blockForm');
+    await A.fill('#blockForm [name=who]', 'not a key');
+    await A.click('#blockForm .btn');
+    await A.waitForSelector('.toast-error');
+    const stranger = 'f'.repeat(63) + '0';
+    await A.fill('#blockForm [name=who]', stranger);
+    await A.click('#blockForm .btn');
+    await until(async () => (await texts(A, '#blockedList li')).some((x) => /ffff/.test(x)), 'blocked entry listed');
+    const muteEvents = await env.relayEvents([{ kinds: [10000] }]);
+    assert.equal(muteEvents.length, 1, 'one mute list on the relay');
+    assert.ok(!JSON.stringify(muteEvents[0]).includes(stranger), 'the relay cannot see who is blocked');
+    await A.click('#blockedList [data-unblock]');
+    await until(async () => !(await texts(A, '#blockedList li')).some((x) => /ffff/.test(x)), 'entry removed');
 
     step('wiping a device forgets the key and the cached data');
     await B.goto(SETTINGS);

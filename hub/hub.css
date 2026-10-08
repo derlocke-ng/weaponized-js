@@ -83,7 +83,6 @@ a {
   outline-offset: 3px;
 }
 
-.top,
 main,
 .foot {
   width: 100%;
@@ -91,99 +90,6 @@ main,
   margin: 0 auto;
   padding-left: var(--gutter);
   padding-right: var(--gutter);
-}
-
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-top: max(1.1rem, env(safe-area-inset-top));
-  padding-bottom: 1.1rem;
-}
-
-.top .account-link.signed {
-  padding: 0.25rem;
-  border-color: var(--accent);
-}
-
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-@media (max-width: 560px) {
-  .top .top-link {
-    padding: 0.45rem 0.6rem;
-  }
-  .top .top-link:not(.account-link) span {
-    display: none;
-  }
-}
-
-.logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 750;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
-}
-
-.logo-ext {
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.logo-mark {
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: var(--text);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-}
-
-.logo-mark .logo-dot {
-  fill: var(--accent);
-  stroke: none;
-}
-
-.top-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 550;
-}
-
-.top-link:hover {
-  border-color: var(--border-strong);
 }
 
 .hero {
@@ -440,11 +346,6 @@ main,
 /* ---- shell: account, forms, language ---- */
 .spacer {
   flex: 1;
-}
-
-.top .top-link.account-link.signed {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 html:not(.i18n) [data-i18n],
@@ -851,18 +752,6 @@ select:focus-visible {
   color: var(--muted);
 }
 
-.switcher-btn {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.45rem;
-  margin-right: 0.25rem;
-}
-
-.switcher-btn .icon {
-  width: 1.35rem;
-  height: 1.35rem;
-}
 
 .account-cta {
   text-decoration: none;
@@ -876,4 +765,29 @@ select:focus-visible {
 
 .account-cta .icon {
   color: var(--accent);
+}
+
+/* the shared top bar lines up with the page content */
+.wjs-top {
+  padding-left: max(var(--gutter), calc((100% - 1040px) / 2));
+  padding-right: max(var(--gutter), calc((100% - 1040px) / 2));
+}
+
+.blocked-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.blocked-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.blocked-list .btn {
+  margin-left: auto;
 }

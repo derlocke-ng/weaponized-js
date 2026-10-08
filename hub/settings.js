@@ -8,10 +8,13 @@ import { isHex64 } from './shared/events.js';
 import { pubkeyOf } from './shared/account.js';
 import { encryptBackup, decryptBackup } from './shared/backup.js';
 import { theme } from './shared/theme.js';
+import { BlockList } from './shared/moderation.js';
+import { npub, decodeKey } from './shared/account.js';
+import { fingerprint } from './shared/events.js';
 import { store } from './shared/util.js';
-import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, APPS, $, $$, h, toast } from './shell.js';
+import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, APPS, $, $$, h, icon, toast } from './shell.js';
 import { mountAccount, onAccountChange } from './account.js';
-import { mountSwitcher } from './shared/switcher.js';
+import { mountTopbar } from './shared/topbar.js';
 
 const LAST_BACKUP = 'wjs.lastBackup';
 const infos = new Map();
@@ -48,6 +51,25 @@ async function drawRelays() {
     })
     .join('');
   if (!$('#relayForm textarea').value) $('#relayForm textarea').value = savedRelays().join('\n');
+}
+
+let blocks = null;
+
+async function startBlocks() {
+  blocks?.stop();
+  blocks = await new BlockList(loadIdentity(), net).start();
+  blocks.onChange(drawBlocked);
+  drawBlocked();
+}
+
+function drawBlocked() {
+  const list = $('#blockedList');
+  const entries = blocks?.list() || [];
+  list.innerHTML = entries.length
+    ? entries
+        .map((e) => `<li><code title="${h(npub(e.pubkey))}">${h(fingerprint(e.pubkey))}</code>${e.reason ? `<span class="muted small">${h(e.reason)}</span>` : ''}<button type="button" class="btn btn-sm btn-ghost" data-unblock="${e.pubkey}">${h(t('settings.unblock'))}</button></li>`)
+        .join('')
+    : `<li class="muted small">${h(t('settings.blockedEmpty'))}</li>`;
 }
 
 function drawHow() {
@@ -118,8 +140,17 @@ function wipeDevice() {
 
 async function boot() {
   await bootShell();
-  mountSwitcher($('#switcher'), { base: './', current: 'settings', hidden: hiddenApps });
+  const drawTop = () =>
+    mountTopbar($('#top'), {
+      base: './',
+      current: 'settings',
+      hidden: hiddenApps,
+      brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
+      right: `<a class="wjs-pill" href="./">${icon('chevron-left')}<span>${h(t('settings.back'))}</span></a>`,
+    });
+  drawTop();
   const redrawAccount = mountAccount($('#accountBody'), { full: true });
+  await startBlocks();
   drawLanguage();
   drawApps();
   drawHow();
@@ -136,6 +167,8 @@ async function boot() {
     });
   }
   onLanguage(() => {
+    drawTop();
+    drawBlocked();
     drawLanguage();
     drawApps();
     drawHow();
@@ -150,6 +183,28 @@ async function boot() {
   onAccountChange(() => {
     drawApps();
     drawLanguage();
+    startBlocks().catch(() => {});
+  });
+  $('#blockForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const who = e.target.who.value.trim();
+    let pk;
+    try {
+      pk = decodeKey(who);
+    } catch {
+      return toast(t('settings.blockInvalid'), 'error');
+    }
+    if (pk === loadIdentity().pk) return toast(t('settings.blockInvalid'), 'error');
+    try {
+      await blocks.block(pk);
+      e.target.reset();
+    } catch (err) {
+      toast(tErr(err), 'error');
+    }
+  });
+  $('#blockedList').addEventListener('click', (e) => {
+    const pk = e.target.closest('[data-unblock]')?.dataset.unblock;
+    if (pk) blocks.unblock(pk).catch((err) => toast(tErr(err), 'error'));
   });
 
   $('#langSelect').addEventListener('change', (e) => chooseLanguage(e.target.value));

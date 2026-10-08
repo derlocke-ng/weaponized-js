@@ -11,7 +11,7 @@ import { app } from './app.js';
 import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t } from '../../shared/i18n.js';
 import { theme, setTheme, watchDeviceSettings } from '../../shared/theme.js';
 import { AccountSettings } from '../../shared/settings.js';
-import { mountSwitcher } from '../../shared/switcher.js';
+import { mountTopbar } from '../../shared/topbar.js';
 import { db } from './net.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
@@ -57,24 +57,25 @@ function languageBanner() {
 function renderShell() {
   offStatus?.();
   $('#app').innerHTML = `
-    <header class="topbar">
-      <button type="button" class="icon-btn" id="switcher">${icon('layout-grid')}</button>
-      <a class="brand" href="#/" aria-label="${h(t('app.home'))}">
-        <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>
-        <span>Loadout</span>
-      </a>
-      <span class="spacer"></span>
-      <a class="sync" id="sync" href="#/account" title="${h(t('app.relayStatus'))}">
-        <span class="dot"></span><span class="sync-text">…</span>
-      </a>
-      <a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>
-    </header>
+    <header id="top"></header>
     ${languageBanner()}
     <main id="view" class="view" tabindex="-1"></main>
     <footer class="foot">
       <a href="../">weaponized.js</a> · ${t('app.footer')}
     </footer>`;
-  mountSwitcher($('#switcher'), { base: '../', current: 'loadout', hidden: () => hiddenApps });
+  mountTopbar($('#top'), {
+    base: '../',
+    current: 'loadout',
+    hidden: () => hiddenApps,
+    brand: {
+      href: '#/',
+      name: 'Loadout',
+      label: t('app.home'),
+      mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
+    },
+    right: `<a class="sync" id="sync" href="../settings.html#relays" title="${h(t('app.relayStatus'))}"><span class="dot"></span><span class="sync-text">…</span></a>
+      <a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
+  });
   $('#langOk')?.addEventListener('click', async () => {
     await setLanguage($('#langPick').value);
     rerender();

@@ -37,5 +37,12 @@
     "other": "Pobrano kopię z {n} wpisami"
   },
   "hub.ctaTitle": "Zaloguj się lub załóż konto,",
-  "hub.ctaText": "aby używać swoich tablic, plików i czatów na każdym urządzeniu."
+  "hub.ctaText": "aby używać swoich tablic, plików i czatów na każdym urządzeniu.",
+  "settings.blocked": "Zablokowane osoby",
+  "settings.blockedText": "Osoby z tej listy nie mogą do Ciebie pisać ani dodać Cię do znajomych, a ich wpisy nie pojawiają się w Twoich kanałach. Lista jest zaszyfrowana; mogą ją odczytać tylko Twoje urządzenia.",
+  "settings.blockAdd": "Zablokuj kogoś po kluczu publicznym",
+  "settings.block": "Zablokuj",
+  "settings.unblock": "Odblokuj",
+  "settings.blockedEmpty": "Nikt nie jest zablokowany.",
+  "settings.blockInvalid": "To nie jest klucz publiczny (npub1… lub 64 znaki szesnastkowe)."
 }

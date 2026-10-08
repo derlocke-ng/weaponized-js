@@ -17,7 +17,9 @@ export const KINDS = {
   P2P_PRESENCE: 21700,
   P2P_SIGNAL: 21701,
   P2P_DATA: 21702,
-};
+  MUTE_LIST: 10000, // NIP-51: who we block (private entries)
+  REPORT: 1984, // NIP-56
+};;
 
 export const now = () => Math.floor(Date.now() / 1000);
 export const hex = bytesToHex;

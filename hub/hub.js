@@ -4,7 +4,7 @@ import { t, LANGUAGES, currentLanguage, shouldAskLanguage } from './shared/i18n.
 import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
-import { mountSwitcher } from './shared/switcher.js';
+import { mountTopbar } from './shared/topbar.js';
 
 const infos = new Map();
 
@@ -20,10 +20,15 @@ function languageBanner() {
 
 function drawHeader() {
   const id = loadIdentity();
-  const link = $('#accountLink');
-  link.classList.toggle('signed', Boolean(id.alias));
-  link.title = id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn');
-  link.innerHTML = id.alias ? `<span class="avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName">${h(t('hub.signIn'))}</span>`;
+  mountTopbar($('#top'), {
+    base: './',
+    current: 'hub',
+    hidden: hiddenApps,
+    brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
+    right: `<a class="wjs-pill ${id.alias ? 'signed' : ''}" href="settings.html#account" id="accountLink" title="${h(id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn'))}">${
+      id.alias ? `<span class="wjs-avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName">${h(t('hub.signIn'))}</span>`
+    }</a>`,
+  });
   $('#accountCta').hidden = Boolean(id.alias);
 }
 
@@ -47,7 +52,6 @@ function drawRelays() {
 
 async function boot() {
   await bootShell();
-  mountSwitcher($('#switcher'), { base: './', current: 'hub', hidden: hiddenApps });
   languageBanner();
   drawHeader();
   drawApps();

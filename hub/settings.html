@@ -14,15 +14,7 @@
   <script type="module" src="settings.js"></script>
 </head>
 <body>
-  <header class="top">
-    <button type="button" class="top-link switcher-btn" id="switcher"><svg class="icon"><use href="icons.svg#layout-grid"/></svg></button>
-    <a class="logo" href="./">
-      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/><path d="M16 2v8M16 22v8M2 16h8M22 16h8"/><circle class="logo-dot" cx="16" cy="16" r="2.5"/></svg>
-      <span>weaponized<span class="logo-ext">.js</span></span>
-    </a>
-    <span class="spacer"></span>
-    <a class="top-link" href="./"><svg class="icon"><use href="icons.svg#chevron-left"/></svg><span data-i18n="settings.back">Back to start</span></a>
-  </header>
+  <header id="top"></header>
 
   <main class="settings">
     <h1 data-i18n="settings.title">Settings</h1>
@@ -87,6 +79,16 @@
         <label class="field"><span data-i18n="account.backupDialog.passphrase">Passphrase</span><input name="pass" type="password" autocomplete="off" required></label>
         <div class="form-actions"><button class="btn btn-primary btn-sm" data-i18n="account.restoreDialog.restore">Restore</button><button type="button" class="btn btn-sm btn-ghost" data-act="cancel-restore" data-i18n="common.cancel">Cancel</button><span class="progress-text" id="rsProgress"></span></div>
         <p class="form-error" id="rsError" hidden></p>
+      </form>
+    </section>
+
+    <section class="card" id="blocked" aria-labelledby="blockedTitle">
+      <h2 id="blockedTitle"><svg class="icon"><use href="icons.svg#shield"/></svg><span data-i18n="settings.blocked">Blocked people</span></h2>
+      <p class="muted" data-i18n="settings.blockedText">People on this list can’t message you, can’t add you as a friend, and their posts stay out of your feeds. The list is encrypted; only your devices can read it.</p>
+      <ul class="blocked-list" id="blockedList"></ul>
+      <form class="form" id="blockForm">
+        <label class="field"><span data-i18n="settings.blockAdd">Block someone by their public key</span><input name="who" placeholder="npub1…" spellcheck="false" autocapitalize="off" autocomplete="off" required></label>
+        <div class="form-actions"><button class="btn btn-sm" data-i18n="settings.block">Block</button></div>
       </form>
     </section>
 

@@ -177,32 +177,6 @@ code {
 
 /* ---------- top bar ---------- */
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem var(--gutter);
-  padding-top: max(0.6rem, env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text) !important;
-  text-decoration: none;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-size: 1.08rem;
-}
-
 .brand-mark {
   width: 26px;
   height: 26px;
@@ -1770,4 +1744,10 @@ textarea:focus {
 .relay-problem {
   flex-basis: 100%;
   color: #b45309;
+}
+
+/* the shared top bar lines up with the view */
+.wjs-top {
+  padding-left: max(var(--gutter), calc((100% - 760px) / 2));
+  padding-right: max(var(--gutter), calc((100% - 760px) / 2));
 }
