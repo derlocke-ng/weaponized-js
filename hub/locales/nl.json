@@ -1,0 +1,22 @@
+{
+  "hub.source": "Broncode",
+  "hub.signIn": "Inloggen",
+  "hub.title": "Peer-to-peer-webtools, gewapend met <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Elke tool hier draait volledig in je browser en synchroniseert via relays die jij kiest. Geen registratie nodig, geen server van ons, geen tracking – en alles wordt versleuteld voordat het je apparaat verlaat.",
+  "hub.account": "Je account",
+  "hub.accountText": "Eén account voor alle tools. Je borden, bestanden en chats gaan mee naar elk apparaat waarop je inlogt; zonder account blijven ze op dit apparaat.",
+  "hub.accountSigned": "Alle tools gebruiken dit account. Borden die je op dit apparaat maakte voordat je inlogde, gaan mee.",
+  "hub.openLoadout": "Loadout openen",
+  "hub.new": "Nieuw",
+  "hub.legacy": "Oud",
+  "hub.loadout.text": "Boodschappenlijsten, to-do’s, huishoudvoorraad en Markdown-notities die synchroon blijven tussen al je apparaten en iedereen met wie je ze deelt – links zoals bij rentry, end-to-end versleuteld. Werkt offline, en je apparaten zetten terug wat de relays vergeten.",
+  "hub.payload.text": "Stuur bestanden rechtstreeks naar een andere browser terwijl jullie allebei online zijn. Direct via WebRTC waar mogelijk, anders versleuteld via een relay; elk stuk van 64 KB wordt gecontroleerd met SHA-256.",
+  "hub.pongjs.text": "Retro-Pong voor twee spelers tussen twee browsers. Deel een link of QR-code of kies een open spel, en speel via een directe verbinding.",
+  "hub.enigmajs.text": "Versleutelde groepschats die verdwijnen zodra de kamer sluit. Deel een code of QR en praat.",
+  "hub.devboard.text": "Een prikbord voor freelancers: beschikbaarheid of vacatures, ondertekend met je eigen sleutel, beoordeeld door anderen, weg zodra ze verlopen.",
+  "hub.relays": "Relays op dit moment",
+  "hub.relaysText": "Loadout synchroniseert via deze nostr-relays; kies je eigen relays in de instellingen. Payload en pongjs signaleren nog via openbare gun-relays tot ook zij naar nostr overgaan. Relays geven data door; wat vooraf versleuteld is, kunnen ze niet lezen.",
+  "hub.footer": "Vrije software onder de GPL – zie de <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repository</a>.",
+  "hub.signedOut": "Uitgelogd op dit apparaat.",
+  "hub.welcome": "Ingelogd als {alias}."
+}

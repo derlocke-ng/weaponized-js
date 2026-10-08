@@ -41,6 +41,9 @@ export function saveRelays(list) {
   return clean;
 }
 
+/** A relay's final no: retrying would not help. */
+export const isPermanent = (error) => /^(blocked|invalid|restricted|error: unknown)/.test(String(error || ''));
+
 export class RelayPool {
   constructor(urls = savedRelays()) {
     this.relays = new Map(); // url -> { relay, open, latency, connecting, lastError }
@@ -173,14 +176,17 @@ export class RelayPool {
   }
 
   /** Fetch matching events once from every relay (until EOSE or timeout). */
-  async fetch(filters, { ms = 6000 } = {}) {
+  async fetch(filters, { ms = 6000, until = null } = {}) {
     const events = new Map();
     const open = this.urls.filter((u) => this.relays.get(u).open);
     if (!open.length) return [];
     await new Promise((resolve) => {
       let waiting = open.length;
       const sub = this.subscribe(filters, {
-        onevent: (e) => events.set(e.id, e),
+        onevent: (e) => {
+          events.set(e.id, e);
+          if (until && until([...events.values()])) finish(); // enough: don't wait for slower relays
+        },
         oneose: () => --waiting <= 0 && finish(),
       });
       const t = setTimeout(finish, ms);
@@ -201,19 +207,32 @@ export class RelayPool {
     return timeout(entry.relay.publish(event), 10_000, 'publish timed out');
   }
 
-  /** Publish to every connected relay. @returns {Promise<{ok: string[], failed: {url: string, error: string, permanent: boolean}[]}>} */
-  async publish(event) {
-    const results = await Promise.allSettled(this.urls.map((url) => this.publishTo(url, event).then(() => url)));
+  /**
+   * Publish to every relay. `onResult(url, { ok, error, permanent })` fires per
+   * relay as answers arrive; the promise resolves with the summary once every
+   * relay answered or timed out.
+   * @returns {Promise<{ok: string[], failed: {url: string, error: string, permanent: boolean}[]}>}
+   */
+  async publish(event, { onResult = null } = {}) {
     const ok = [];
     const failed = [];
-    results.forEach((r, i) => {
-      if (r.status === 'fulfilled') ok.push(r.value);
-      else {
-        const error = String(r.reason?.message || r.reason);
-        // "blocked:" / "invalid:" / "restricted:" are the relay's final answer; everything else is worth retrying.
-        failed.push({ url: this.urls[i], error, permanent: /^(blocked|invalid|restricted|error: unknown)/.test(error) });
-      }
-    });
+    await Promise.all(
+      this.urls.map((url) =>
+        this.publishTo(url, event).then(
+          () => {
+            ok.push(url);
+            onResult?.(url, { ok: true });
+          },
+          (reason) => {
+            const error = String(reason?.message || reason);
+            // "blocked:" / "invalid:" / "restricted:" are the relay's final answer; everything else is worth retrying.
+            const permanent = isPermanent(error);
+            failed.push({ url, error, permanent });
+            onResult?.(url, { ok: false, error, permanent });
+          },
+        ),
+      ),
+    );
     return { ok, failed };
   }
 

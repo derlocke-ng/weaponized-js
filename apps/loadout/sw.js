@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. Requests go to the
 // network first so updates show up right away, and fall back to the cache
 // when offline (e.g. in a supermarket basement). Bump VERSION on release.
-const VERSION = 'loadout-v3';
+const VERSION = 'loadout-v4';
 const SHELL = [
   './',
   'index.html',
@@ -10,6 +10,7 @@ const SHELL = [
   'icon.svg',
   'icon-192.png',
   'manifest.webmanifest',
+  'locales/en.json',
   'js/main.js',
   'js/app.js',
   'js/backup.js',
@@ -23,6 +24,7 @@ const SHELL = [
   'js/mdtasks.js',
   'js/net.js',
   'js/session.js',
+  'js/settings.js',
   'js/ui.js',
   'js/util.js',
   'js/wallet.js',
@@ -39,6 +41,8 @@ const SHELL = [
   '../shared/relays.js',
   '../shared/account.js',
   '../shared/sync.js',
+  '../shared/i18n.js',
+  '../shared/locales/en.json',
   'vendor/marked.esm.js',
   'vendor/purify.es.mjs',
   'vendor/qrcode.mjs',

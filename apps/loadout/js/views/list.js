@@ -2,7 +2,8 @@ import { app } from '../app.js';
 import { parseItemText, splitLines, sortItems, stats, isHeader, headerText, between, endOrders, formatQty } from '../items.js';
 import { renderInline } from '../markdown.js';
 import { $, icon, toast, confirmDialog } from '../ui.js';
-import { h, plural } from '../util.js';
+import { h } from '../util.js';
+import { t, tErr } from '../../../shared/i18n.js';
 
 /** Mount a checklist or inventory into `body`; returns an unmount function. */
 export function mountList(body, board) {
@@ -16,19 +17,19 @@ export function mountList(body, board) {
       ${
         canEdit
           ? `<form class="add-item" id="addForm" autocomplete="off">
-              <input id="addInput" name="item" placeholder="${mode() === 'count' ? 'Add an item… (AA batteries: 12)' : 'Add an item… (2x milk, # Section)'}" aria-label="New item" enterkeyhint="send" maxlength="2000">
-              <button class="btn btn-primary" aria-label="Add">${icon('plus')}</button>
+              <input id="addInput" name="item" placeholder="${h(mode() === 'count' ? t('list.placeholderCount') : t('list.placeholderCheck'))}" aria-label="${h(t('list.newItem'))}" enterkeyhint="send" maxlength="2000">
+              <button class="btn btn-primary" aria-label="${h(t('list.add'))}">${icon('plus')}</button>
             </form>`
           : ''
       }
       <p class="list-meta" id="progress"></p>
-      <ul class="items" id="active" aria-label="Items"></ul>
-      <p class="empty-list" id="emptyList" hidden>${canEdit ? 'Nothing here yet. Paste several lines at once to add them all.' : 'This list is empty.'}</p>
+      <ul class="items" id="active" aria-label="${h(t('list.items'))}"></ul>
+      <p class="empty-list" id="emptyList" hidden>${h(canEdit ? t('list.emptyEdit') : t('list.emptyView'))}</p>
       <details class="done-box" id="doneBox" hidden>
-        <summary><span>Done <span id="doneCount"></span></span>
-          ${canEdit ? `<span class="done-actions"><button type="button" class="btn btn-sm btn-ghost" data-act="uncheck">Uncheck all</button><button type="button" class="btn btn-sm btn-ghost" data-act="clear">Clear</button></span>` : ''}
+        <summary><span>${h(t('list.done'))} <span id="doneCount"></span></span>
+          ${canEdit ? `<span class="done-actions"><button type="button" class="btn btn-sm btn-ghost" data-act="uncheck">${h(t('list.uncheckAll'))}</button><button type="button" class="btn btn-sm btn-ghost" data-act="clear">${h(t('list.clear'))}</button></span>` : ''}
         </summary>
-        <ul class="items" id="done" aria-label="Done items"></ul>
+        <ul class="items" id="done" aria-label="${h(t('list.doneItems'))}"></ul>
       </details>
     </div>`;
 
@@ -42,22 +43,22 @@ export function mountList(body, board) {
     const header = isHeader(item.t);
     const m = mode();
     const parts = [];
-    if (canEdit && !item.d) parts.push(`<button type="button" class="grip" aria-label="Drag to reorder" tabindex="-1">${icon('grip-vertical')}</button>`);
+    if (canEdit && !item.d) parts.push(`<button type="button" class="grip" aria-label="${h(t('list.drag'))}" tabindex="-1">${icon('grip-vertical')}</button>`);
     if (header) {
       parts.push(`<div class="text" ${canEdit ? 'data-edit' : ''}>${renderInline(headerText(item.t))}</div>`);
     } else if (m === 'check') {
-      parts.push(`<label class="check"><input type="checkbox" ${item.d ? 'checked' : ''} ${canEdit ? '' : 'disabled'} aria-label="Done"><span class="box">${icon('check')}</span></label>`);
+      parts.push(`<label class="check"><input type="checkbox" ${item.d ? 'checked' : ''} ${canEdit ? '' : 'disabled'} aria-label="${h(t('list.done'))}"><span class="box">${icon('check')}</span></label>`);
       parts.push(`<div class="text" ${canEdit ? 'data-edit' : ''}>${renderInline(item.t)}</div>`);
       if (item.q) parts.push(`<span class="qty">${h(formatQty(item.q))}</span>`);
     } else {
       parts.push(`<div class="text" ${canEdit ? 'data-edit' : ''}>${renderInline(item.t)}</div>`);
       parts.push(`<div class="stepper">
-        ${canEdit ? `<button type="button" data-step="-1" aria-label="One less">${icon('minus')}</button>` : ''}
-        <span class="count" aria-label="Count">${h(item.q ?? 0)}</span>
-        ${canEdit ? `<button type="button" data-step="1" aria-label="One more">${icon('plus')}</button>` : ''}
+        ${canEdit ? `<button type="button" data-step="-1" aria-label="${h(t('list.oneLess'))}">${icon('minus')}</button>` : ''}
+        <span class="count" aria-label="${h(t('list.count'))}">${h(item.q ?? 0)}</span>
+        ${canEdit ? `<button type="button" data-step="1" aria-label="${h(t('list.oneMore'))}">${icon('plus')}</button>` : ''}
       </div>`);
     }
-    if (canEdit) parts.push(`<button type="button" class="icon-btn del" data-act="delete" aria-label="Delete">${icon('x')}</button>`);
+    if (canEdit) parts.push(`<button type="button" class="icon-btn del" data-act="delete" aria-label="${h(t('common.delete'))}">${icon('x')}</button>`);
     return parts.join('');
   }
 
@@ -102,7 +103,7 @@ export function mountList(body, board) {
     doneBox.hidden = done.length === 0;
     $('#doneCount', body).textContent = `(${done.length})`;
     const zero = items.filter((i) => !isHeader(i.t) && !i.q).length;
-    $('#progress', body).textContent = !s.total ? '' : m === 'check' ? `${s.done} of ${s.total} done` : `${plural(s.total, 'item')}${zero ? ` · ${zero} out` : ''}`;
+    $('#progress', body).textContent = !s.total ? '' : m === 'check' ? t('list.progressCheck', { done: s.done, total: s.total }) : `${t('list.progressCount', { n: s.total })}${zero ? ` · ${t('list.out', { n: zero })}` : ''}`;
     app.wallet.setLocal(board.pub, { total: s.total, done: s.done });
   }
 
@@ -115,10 +116,10 @@ export function mountList(body, board) {
     const orders = endOrders([...board.items.values()], parsed.length);
     try {
       const ids = await Promise.all(parsed.map((p, i) => board.addItem({ ...p, o: orders[i] })));
-      if (parsed.length > 1) toast(`Added ${parsed.length} items`, 'success');
+      if (parsed.length > 1) toast(t('list.added', { n: parsed.length }), 'success');
       requestAnimationFrame(() => rows.get(ids.at(-1))?.el.scrollIntoView({ block: 'nearest' }));
     } catch (err) {
-      toast(err.message, 'error');
+      toast(tErr(err), 'error');
     }
   }
 
@@ -154,7 +155,7 @@ export function mountList(body, board) {
     input.className = 'edit-input';
     input.value = editText(item);
     input.maxLength = 2000;
-    input.setAttribute('aria-label', 'Edit item');
+    input.setAttribute('aria-label', t('list.editItem'));
     textEl.replaceWith(input);
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
@@ -175,7 +176,7 @@ export function mountList(body, board) {
             await board.updateItem(id, { t: p.t, q: explicit || mode() === 'check' ? p.q : cur.q });
           }
         } catch (err) {
-          toast(err.message, 'error');
+          toast(tErr(err), 'error');
         }
       }
       sync();
@@ -207,7 +208,7 @@ export function mountList(body, board) {
       if (act === 'clear' || act === 'uncheck') {
         e.preventDefault();
         const done = [...board.items.values()].filter((i) => i.d);
-        if (act === 'clear' && !(await confirmDialog({ title: 'Clear done items?', message: `Removes ${plural(done.length, 'checked item')} for everyone.`, confirm: 'Clear', danger: true }))) return;
+        if (act === 'clear' && !(await confirmDialog({ title: t('list.clearDialog.title'), message: t('list.clearDialog.text', { n: done.length }), confirm: t('list.clear'), danger: true }))) return;
         await Promise.all(done.map((i) => (act === 'clear' ? board.removeItem(i.id) : board.updateItem(i.id, { d: 0 }))));
         return;
       }
@@ -219,7 +220,7 @@ export function mountList(body, board) {
       }
       if (canEdit && id && e.target.closest('[data-edit]') && !e.target.closest('a')) startEdit(id);
     } catch (err) {
-      toast(err.message, 'error');
+      toast(tErr(err), 'error');
     }
   }
 
@@ -228,20 +229,20 @@ export function mountList(body, board) {
     const id = e.target.closest('li.item')?.dataset.id;
     if (!id) return;
     // Items keep their order while done, so unchecking puts them back where they were.
-    board.updateItem(id, { d: e.target.checked ? 1 : 0 }).catch((err) => toast(err.message, 'error'));
+    board.updateItem(id, { d: e.target.checked ? 1 : 0 }).catch((err) => toast(tErr(err), 'error'));
   }
 
   function undoToast(item) {
     const box = $('#toasts');
     const el = document.createElement('div');
     el.className = 'toast';
-    el.innerHTML = `<span>Deleted “${h((isHeader(item.t) ? headerText(item.t) : item.t).slice(0, 40))}”</span><button type="button" class="btn btn-sm btn-ghost">Undo</button>`;
+    el.innerHTML = `<span>${h(t('list.deleted', { text: (isHeader(item.t) ? headerText(item.t) : item.t).slice(0, 40) }))}</span><button type="button" class="btn btn-sm btn-ghost">${h(t('common.undo'))}</button>`;
     box.append(el);
     const t = setTimeout(() => el.remove(), 5000);
     el.querySelector('button').addEventListener('click', () => {
       clearTimeout(t);
       el.remove();
-      board.addItem(item).catch((err) => toast(err.message, 'error'));
+      board.addItem(item).catch((err) => toast(tErr(err), 'error'));
     });
   }
 
@@ -286,7 +287,7 @@ export function mountList(body, board) {
         if (o != null) await board.updateItem(id, { o });
         else await renumber();
       } catch (err) {
-        toast(err.message, 'error');
+        toast(tErr(err), 'error');
         sync();
       }
     };
@@ -314,7 +315,7 @@ export function mountList(body, board) {
     try {
       if (o != null) await board.updateItem(li.dataset.id, { o });
     } catch (err) {
-      toast(err.message, 'error');
+      toast(tErr(err), 'error');
     }
   });
 

@@ -2,6 +2,7 @@
 // WebCrypto so the format is easy to audit and to open elsewhere.
 
 import { bytesToB64url, b64urlToBytes, enc } from './util.js';
+import { fail } from '../../shared/util.js';
 
 export const BACKUP_KIND = 'loadout-backup';
 const ITERATIONS = 600_000;
@@ -29,16 +30,16 @@ export async function encryptBackup(payload, passphrase, { iterations = ITERATIO
 /** @throws {Error} with a user-facing message on a bad file or passphrase. */
 export async function decryptBackup(file, passphrase) {
   if (!file || file.kind !== BACKUP_KIND || file.v !== 1 || !file.kdf || !file.cipher || !file.data) {
-    throw new Error('This is not a Loadout backup file.');
+    throw fail('backup.error.notBackup', 'This is not a Loadout backup file.');
   }
   const iterations = Number(file.kdf.iterations);
-  if (!(iterations >= 100_000 && iterations <= 10_000_000)) throw new Error('Unsupported backup settings.');
+  if (!(iterations >= 100_000 && iterations <= 10_000_000)) throw fail('backup.error.unsupported', 'Unsupported backup settings.');
   const key = await deriveKey(passphrase, b64urlToBytes(file.kdf.salt), iterations);
   let plain;
   try {
     plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64urlToBytes(file.cipher.iv) }, key, b64urlToBytes(file.data));
   } catch {
-    throw new Error('Wrong passphrase, or the file is damaged.');
+    throw fail('backup.error.wrongPassphrase', 'Wrong passphrase, or the file is damaged.');
   }
   return JSON.parse(new TextDecoder().decode(plain));
 }

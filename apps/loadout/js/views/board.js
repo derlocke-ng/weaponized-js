@@ -6,6 +6,7 @@ import { $, icon, toast, openMenu, confirmDialog, copyText, download, safeFilena
 import { h } from '../util.js';
 import { listToMarkdown } from '../items.js';
 import { LIMITS } from '../config.js';
+import { t, tErr } from '../../../shared/i18n.js';
 import { mountList } from './list.js';
 import { mountNote } from './note.js';
 import { shareDialog } from './share.js';
@@ -24,7 +25,7 @@ export function renderBoard(view, route) {
   view.innerHTML = `
     <section class="board">
       <div class="board-head">
-        <a class="icon-btn back" href="#/" aria-label="Back to your boards">${icon('chevron-left')}</a>
+        <a class="icon-btn back" href="#/" aria-label="${h(t('app.backToBoards'))}">${icon('chevron-left')}</a>
         <div class="board-titles">
           <h1 class="board-name" id="boardName">…</h1>
           <div class="board-tags" id="boardTags"></div>
@@ -72,37 +73,35 @@ export function renderBoard(view, route) {
 
   function drawHead() {
     const name = $('#boardName', view);
-    const title = board.info?.title || (board.state === 'locked' ? 'Locked board' : board.state === 'deleted' ? 'Deleted board' : 'Loading…');
+    const title = board.info?.title || (board.state === 'locked' ? t('board.locked') : board.state === 'deleted' ? t('board.deleted') : t('common.loading'));
     name.textContent = title;
-    name.title = board.canEdit && board.state === 'ready' ? 'Click to rename' : '';
+    name.title = board.canEdit && board.state === 'ready' ? t('board.rename') : '';
     name.classList.toggle('editable', board.canEdit && board.state === 'ready');
     document.title = `${title} · Loadout`;
     const tags = [];
-    if (board.state === 'ready') tags.push(board.canEdit ? `<span class="tag">${icon('pencil')}Can edit</span>` : `<span class="tag">${icon('eye')}View only</span>`);
+    if (board.state === 'ready') tags.push(board.canEdit ? `<span class="tag">${icon('pencil')}${h(t('board.canEdit'))}</span>` : `<span class="tag">${icon('eye')}${h(t('board.viewOnly'))}</span>`);
     $('#boardTags', view).innerHTML = tags.join('');
     const saved = app.wallet.get(board.pub);
     $('#boardActions', view).innerHTML =
       board.state === 'ready'
-        ? `<button type="button" class="btn btn-sm" data-act="share">${icon('share-2')}<span>Share</span></button>
-           <button type="button" class="icon-btn" data-act="menu" aria-label="More">${icon('ellipsis')}</button>`
+        ? `<button type="button" class="btn btn-sm" data-act="share">${icon('share-2')}<span>${h(t('board.share'))}</span></button>
+           <button type="button" class="icon-btn" data-act="menu" aria-label="${h(t('common.more'))}">${icon('ellipsis')}</button>`
         : saved || board.state !== 'loading'
-          ? `<button type="button" class="icon-btn" data-act="menu" aria-label="More">${icon('ellipsis')}</button>`
+          ? `<button type="button" class="icon-btn" data-act="menu" aria-label="${h(t('common.more'))}">${icon('ellipsis')}</button>`
           : '';
   }
 
   function stateHtml(state) {
-    if (state === 'loading') return `<div class="state"><span class="spinner"></span><p>Looking for this board on the network…</p></div>`;
-    if (state === 'missing')
-      return `<div class="state"><span class="spinner"></span><p><b>Not found yet.</b> It may still be on its way from a relay, or the relays have forgotten it.
-        Keep this open — it appears as soon as a device that has it comes online.</p></div>`;
-    if (state === 'deleted') return `<div class="state"><p>This board was deleted by one of its editors.</p></div>`;
+    if (state === 'loading') return `<div class="state"><span class="spinner"></span><p>${h(t('board.state.loading'))}</p></div>`;
+    if (state === 'missing') return `<div class="state"><span class="spinner"></span><p>${t('board.state.missing')}</p></div>`;
+    if (state === 'deleted') return `<div class="state"><p>${h(t('board.state.deleted'))}</p></div>`;
     if (state === 'locked')
       return `<div class="state">
         ${icon('lock', 'big')}
-        <p>Boards are encrypted. Open this one with the full link you were given.</p>
+        <p>${h(t('board.state.locked'))}</p>
         <form id="unlock" class="unlock">
-          <input name="link" placeholder="Paste the full link" autocomplete="off" spellcheck="false" required>
-          <button class="btn btn-primary">Open</button>
+          <input name="link" placeholder="${h(t('board.state.pasteLink'))}" autocomplete="off" spellcheck="false" required>
+          <button class="btn btn-primary">${h(t('common.open'))}</button>
         </form></div>`;
     return '';
   }
@@ -110,7 +109,7 @@ export function renderBoard(view, route) {
   function unlock(e) {
     e.preventDefault();
     const r = parseBoardInput(e.target.link.value);
-    if (!r || r.pub !== board.pub || !(r.k || r.w)) return toast('That link has no key for this board.', 'error');
+    if (!r || r.pub !== board.pub || !(r.k || r.w)) return toast(t('board.unlock.noKey'), 'error');
     app.go(boardHash(r));
   }
 
@@ -128,22 +127,22 @@ export function renderBoard(view, route) {
     const ready = board.state === 'ready';
     const items = [];
     if (ready) {
-      items.push({ label: 'Copy as text', icon: 'copy', run: () => copyText(asMarkdown(), 'Text') });
-      items.push({ label: 'Download .md', icon: 'download', run: () => download(safeFilename(board.info.title, 'md'), asMarkdown(), 'text/markdown') });
-      items.push({ label: 'Duplicate…', icon: 'copy', run: duplicate });
+      items.push({ label: t('board.menu.copyText'), icon: 'copy', run: () => copyText(asMarkdown(), t('common.text')) });
+      items.push({ label: t('board.menu.download'), icon: 'download', run: () => download(safeFilename(board.info.title, 'md'), asMarkdown(), 'text/markdown') });
+      items.push({ label: t('board.menu.duplicate'), icon: 'copy', run: duplicate });
     }
     if (saved) {
-      items.push({ label: saved.pinned ? 'Unpin' : 'Pin to top', icon: saved.pinned ? 'pin-off' : 'pin', run: () => app.wallet.upsert({ ...saved, pinned: !saved.pinned }).then(drawHead) });
+      items.push({ label: saved.pinned ? t('board.menu.unpin') : t('board.menu.pin'), icon: saved.pinned ? 'pin-off' : 'pin', run: () => app.wallet.upsert({ ...saved, pinned: !saved.pinned }).then(drawHead) });
       items.push('-');
-      items.push({ label: 'Remove from my boards', icon: 'x', run: removeMine });
+      items.push({ label: t('board.menu.remove'), icon: 'x', run: removeMine });
     }
-    if (ready && board.canEdit) items.push({ label: 'Delete for everyone…', icon: 'trash-2', danger: true, run: destroy });
+    if (ready && board.canEdit) items.push({ label: t('board.menu.delete'), icon: 'trash-2', danger: true, run: destroy });
     return items;
   }
 
   function asMarkdown() {
     if (board.info.type === 'note') return board.doc?.md || '';
-    return listToMarkdown(board.info.title, [...board.items.values()], board.info.mode);
+    return listToMarkdown(board.info.title, [...board.items.values()], board.info.mode, t('common.untitled'));
   }
 
   async function rename() {
@@ -165,7 +164,7 @@ export function renderBoard(view, route) {
         try {
           await board.setInfo({ title });
         } catch (err) {
-          toast(err.message, 'error');
+          toast(tErr(err), 'error');
         }
       }
       drawHead();
@@ -179,12 +178,12 @@ export function renderBoard(view, route) {
 
   async function duplicate() {
     const m = modal({
-      title: 'Duplicate board',
+      title: t('board.duplicate.title'),
       body: `
         <form class="form">
-          <p class="modal-text">Makes a new board with a copy of everything in this one and new links. Use it to cut off people you shared the old links with.</p>
-          <label class="field">Title<input name="title" maxlength="${LIMITS.title}" value="${h(`${board.info.title} (copy)`)}" required></label>
-          <div class="modal-actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn btn-primary">Duplicate</button></div>
+          <p class="modal-text">${h(t('board.duplicate.text'))}</p>
+          <label class="field">${h(t('board.duplicate.titleLabel'))}<input name="title" maxlength="${LIMITS.title}" value="${h(t('board.duplicate.copySuffix', { title: board.info.title }))}" required></label>
+          <div class="modal-actions"><button type="button" class="btn" data-close>${h(t('common.cancel'))}</button><button class="btn btn-primary">${h(t('board.duplicate.action'))}</button></div>
         </form>`,
       onOpen: (el, close) => {
         el.querySelector('form').addEventListener('submit', async (e) => {
@@ -195,7 +194,7 @@ export function renderBoard(view, route) {
             close(true);
             app.go(boardHash({ pub }));
           } catch (err) {
-            toast(err.message, 'error');
+            toast(tErr(err), 'error');
             e.submitter && (e.submitter.disabled = false);
           }
         });
@@ -206,11 +205,9 @@ export function renderBoard(view, route) {
 
   async function removeMine() {
     const ok = await confirmDialog({
-      title: 'Remove from your boards?',
-      message: board.canEdit
-        ? 'The board stays online for everyone else. Unless you have its link saved somewhere, you lose access to it.'
-        : 'The board stays online for everyone else. You can add it again with its link.',
-      confirm: 'Remove',
+      title: t('board.remove.title'),
+      message: board.canEdit ? t('board.remove.textEdit') : t('board.remove.textView'),
+      confirm: t('common.remove'),
       danger: true,
     });
     if (!ok) return;
@@ -220,19 +217,19 @@ export function renderBoard(view, route) {
 
   async function destroy() {
     const ok = await confirmDialog({
-      title: 'Delete for everyone?',
-      message: `“${board.info.title}” and everything in it is wiped for every device and everyone it was shared with. This can’t be undone.`,
-      confirm: 'Delete',
+      title: t('board.delete.title'),
+      message: t('board.delete.text', { title: board.info.title }),
+      confirm: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
     try {
       await board.destroy();
       await app.wallet.remove(board.pub);
-      toast('Board deleted', 'success');
+      toast(t('board.delete.done'), 'success');
       app.go('#/');
     } catch (err) {
-      toast(err.message, 'error');
+      toast(tErr(err), 'error');
     }
   }
 

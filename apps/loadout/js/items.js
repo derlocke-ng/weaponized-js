@@ -84,7 +84,7 @@ export function formatQty(q) {
 }
 
 /** Plain markdown for copying into a chat or exporting. */
-export function listToMarkdown(title, items, mode = 'check') {
+export function listToMarkdown(title, items, mode = 'check', untitled = 'Untitled') {
   const { active, done } = sortItems(items);
   const line = (i) => {
     if (isHeader(i.t)) return `\n#${i.t}`; // one level below the title
@@ -92,5 +92,5 @@ export function listToMarkdown(title, items, mode = 'check') {
     return `- [${i.d ? 'x' : ' '}] ${i.t}${i.q ? ` ${formatQty(i.q)}` : ''}`;
   };
   const body = [...active, ...done].map(line).join('\n').replace(/^\n/, '');
-  return `# ${title || 'Untitled'}\n\n${body}\n`;
+  return `# ${title || untitled}\n\n${body}\n`;
 }

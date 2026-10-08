@@ -9,7 +9,11 @@ export const app = {
   identity: null,
   /** @type {import('./wallet.js').Wallet} */
   wallet: null,
+  /** @type {import('./settings.js').Settings} */
+  settings: null,
   render: () => {},
+  /** Redraws the shell and the current view, e.g. after a language change. */
+  rerender: () => {},
   /** Page URL without the hash, used to build share links. */
   base: () => location.href.split('#')[0],
   go(hash) {

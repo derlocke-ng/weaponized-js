@@ -9,6 +9,8 @@
 // keep the newest version per address and ignore the rest, so an old copy
 // never overwrites a newer edit.
 
+import { isPermanent } from './relays.js';
+
 export class Sync {
   constructor(pool, store) {
     this.pool = pool;
@@ -22,14 +24,34 @@ export class Sync {
     });
   }
 
-  /** Store an event and send it to every relay, now or later. */
-  async publish(event) {
+  /**
+   * Store an event and send it to every relay, now or later. Resolves as soon
+   * as the event is stored locally (the UI never waits for relays); relays
+   * answer in the background and leave the outbox as they accept the event.
+   * `wait: 'one'` resolves when the first relay accepts and rejects when none
+   * does (for things that must reach a relay now, like a new account).
+   * `wait: 'all'` resolves with every relay's answer.
+   */
+  async publish(event, { wait = 'none' } = {}) {
     await this.store.put(event);
-    const { ok, failed } = await this.pool.publish(event);
-    const pending = [...this.pool.urls.filter((u) => !ok.includes(u) && !failed.some((f) => f.url === u)), ...failed.filter((f) => !f.permanent).map((f) => f.url)];
-    await this.store.setPending(event.id, pending);
+    await this.store.setPending(event.id, this.pool.urls);
     this.emit();
-    return { ok, failed };
+    let first;
+    const gotOne = new Promise((resolve) => (first = resolve));
+    const all = this.pool.publish(event, {
+      onResult: (url, r) => {
+        if (r.ok) first({ ok: [url], failed: [] });
+        if (r.ok || r.permanent) this.store.ack(event.id, url).then(() => this.emit());
+      },
+    });
+    all.catch(() => {});
+    if (wait === 'all') return all;
+    if (wait === 'one') {
+      const result = await Promise.race([gotOne, all]);
+      if (!result.ok.length) throw new Error(result.failed[0]?.error || 'offline');
+      return result;
+    }
+    return { ok: [], failed: [] };
   }
 
   /** Send everything this relay still misses from the outbox. */
@@ -45,7 +67,7 @@ export class Sync {
         await this.pool.publishTo(url, event);
         await this.store.ack(id, url);
       } catch (err) {
-        if (/^(blocked|invalid|restricted)/.test(String(err?.message || err))) await this.store.ack(id, url);
+        if (isPermanent(err?.message || err)) await this.store.ack(id, url);
         else break; // relay went away again; keep the rest for next time
       }
     }

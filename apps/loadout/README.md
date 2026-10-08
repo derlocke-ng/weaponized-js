@@ -12,6 +12,8 @@ Shared lists, inventories and markdown notes that sync across your devices and w
 - **Works offline**: the app is cached, data lives in IndexedDB, and changes made without a connection are sent when a relay is reachable again.
 - **Survives relays forgetting**: devices put their copy back on the relays (see *Where your data lives*).
 - **You choose the relays**: the settings show latency and country (from each relay's NIP-11 document); add your own, including a local one.
+- **In your language**: English, German, French, Spanish, Italian, Dutch, Polish and Portuguese, chosen from your browser's language and changeable in the settings.
+- **Starters** for groceries, to-dos, pantry and notes sit above your boards with example content so the syntax is obvious; hide them with one tap, and edit their templates in the settings. Both are account settings that follow you to every device.
 
 ## How it works
 
@@ -81,16 +83,18 @@ node test/e2e/loadout.mjs      # 17 multi-device browser scenarios against a thr
 npm run vendor                 # refresh vendor/, ../shared/nostr.mjs and icons.svg after bumping versions
 ```
 
-When you add a file under `js/`, list it in `SHELL` in `sw.js` (a unit test checks) and bump `VERSION` on release.
+When you add a file under `js/`, list it in `SHELL` in `sw.js` (a unit test checks) and bump `VERSION` on release. New UI text goes into `locales/en.json` first and then into every other language file; `t('key', { n })` picks plural forms by CLDR category.
 
 | Folder | What |
 |---|---|
 | `js/net.js` | wires the shared relay pool, event store and sync for this app |
 | `js/identity.js` | device key, account sign-in / creation, key import |
 | `js/wallet.js` | your encrypted list of boards (`30700`) |
+| `js/settings.js` | synced account settings (`30791`): starters and templates |
 | `js/boards.js` | board model: keys, encryption, reads and writes (`30701`–`30703`) |
 | `js/heal.js` | which authors this device puts back on the relays |
 | `js/session.js` | switching identity, building and restoring backups, wiping the device |
 | `js/links.js`, `js/items.js`, `js/mdtasks.js`, `js/backup.js` | pure logic, unit tested |
 | `js/views/` | home, board, list, note, share and account screens |
+| `locales/` | one JSON catalog per language (keys shared with `../shared/locales/`); `npm test` checks they match English |
 | `vendor/` | marked, DOMPurify, qrcode-generator (see `vendor/LICENSES.md`); nostr lives in `../shared/nostr.mjs` |

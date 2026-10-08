@@ -1,0 +1,22 @@
+{
+  "hub.source": "Kod źródłowy",
+  "hub.signIn": "Zaloguj się",
+  "hub.title": "Narzędzia webowe peer-to-peer, uzbrojone w <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Każde narzędzie działa w całości w Twojej przeglądarce i synchronizuje się przez przekaźniki, które wybierasz. Bez rejestracji, bez naszego serwera, bez śledzenia – a szyfrowanie odbywa się, zanim cokolwiek opuści Twoje urządzenie.",
+  "hub.account": "Twoje konto",
+  "hub.accountText": "Jedno konto do wszystkich narzędzi. Twoje tablice, pliki i czaty podążają za Tobą na każde urządzenie, na którym się zalogujesz; bez konta zostają na tym urządzeniu.",
+  "hub.accountSigned": "Wszystkie narzędzia korzystają z tego konta. Tablice utworzone na tym urządzeniu przed zalogowaniem zostają przeniesione.",
+  "hub.openLoadout": "Otwórz Loadout",
+  "hub.new": "Nowość",
+  "hub.legacy": "Starsze",
+  "hub.loadout.text": "Listy zakupów, zadania, domowy inwentarz i notatki w Markdown synchronizowane między wszystkimi Twoimi urządzeniami i osobami, którym je udostępnisz – linki jak w rentry, szyfrowane end-to-end. Działa offline, a Twoje urządzenia przywracają to, co przekaźniki zapomną.",
+  "hub.payload.text": "Wysyłaj pliki prosto do innej przeglądarki, gdy oboje jesteście online. Bezpośrednio przez WebRTC, gdy się da, a w przeciwnym razie zaszyfrowane przez przekaźnik; każdy fragment 64 KB jest sprawdzany przez SHA-256.",
+  "hub.pongjs.text": "Retro Pong dla dwóch graczy między dwiema przeglądarkami. Udostępnij link lub kod QR albo wybierz otwartą grę i graj przez bezpośrednie połączenie.",
+  "hub.enigmajs.text": "Szyfrowane pokoje czatu, które znikają po zamknięciu pokoju. Udostępnij kod lub QR i rozmawiaj.",
+  "hub.devboard.text": "Tablica ogłoszeń dla freelancerów: dostępność lub oferty podpisane własnym kluczem, oceniane przez innych, znikające po wygaśnięciu.",
+  "hub.relays": "Przekaźniki teraz",
+  "hub.relaysText": "Loadout synchronizuje się przez te przekaźniki nostr; własne wybierzesz w jego ustawieniach. Payload i pongjs nadal sygnalizują przez publiczne przekaźniki gun, dopóki też nie przejdą na nostr. Przekaźniki tylko przekazują dane; nie odczytają niczego, co wcześniej zaszyfrowano.",
+  "hub.footer": "Wolne oprogramowanie na licencji GPL – zobacz <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repozytorium</a>.",
+  "hub.signedOut": "Wylogowano na tym urządzeniu.",
+  "hub.welcome": "Zalogowano jako {alias}."
+}

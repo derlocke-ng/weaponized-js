@@ -14,12 +14,16 @@ Peer-to-peer webtools over [nostr](https://nostr.com). Every tool runs entirely 
 
 Coming: **Uplink** (chat between accounts and ephemeral rooms) and **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds). EnigmaJS and DevBoard are legacy and will go once Uplink exists.
 
+**One account for everything.** Sign in or create an account on the landing page (username + password, or a nostr key) and every tool uses it; boards made on a device before signing in are carried over. Without an account each device simply uses its own key.
+
+Every page is translated: English, German, French, Spanish, Italian, Dutch, Polish and Portuguese, picked from the browser's language with a one-time prompt. Adding a language is one JSON file per app (see `apps/shared/i18n.js`).
+
 The suite started on gun.js and is moving to nostr app by app. [`docs/architecture.md`](docs/architecture.md) explains why, how accounts work without any registry, the event kinds, and the plan.
 
 ## Layout
 
 ```
-hub/                 the landing page and web-app manifest (served at /)
+hub/                 the landing page: account, language, relay status, app cards (served at /)
 apps/<name>/         one folder per tool (served at /<name>/)
 apps/shared/         the shared core: nostr bundle, relay pool, local event store,
                      accounts, sync/heal; plus gun and the WebRTC room code still
@@ -35,7 +39,7 @@ test/                unit tests (node --test) and end-to-end tests per app
 ### Adding a tool
 
 1. Put it in `apps/<name>/`. A static app needs an `index.html`; a Vite app needs `npm run build` to produce `dist/` with `base: './'`.
-2. Import what you need from `apps/shared/` (see `apps/loadout/js/net.js` for the wiring) and register your event kinds in `apps/shared/events.js`.
+2. Import what you need from `apps/shared/` (see `apps/loadout/js/net.js` for the wiring) and register your event kinds in `apps/shared/events.js`. Put UI strings in `apps/<name>/locales/en.json` and use `t()` from `apps/shared/i18n.js`; the other languages follow the English keys (a unit test checks).
 3. Add a card to `hub/index.html` and your files to the service workers' shell lists.
 4. Push to `main` — the workflow builds and deploys everything.
 
@@ -48,7 +52,7 @@ npm run relay:nostr            # local nostr relay on ws://localhost:7777 (data 
 npm run relay                  # local gun relay on http://localhost:8765/gun (Payload, pongjs)
 npm run serve -- apps 8080     # serve the apps unbuilt on http://localhost:8080/
 npm run build && npm run serve # or: assemble _site/ and serve it
-npm run test:e2e               # Loadout, Payload and pongjs in real browsers (needs Chromium)
+npm run test:e2e               # Loadout, the hub, Payload and pongjs in real browsers (needs Chromium)
 npm run vendor                 # rebuild apps/shared/nostr.mjs, vendor files and icon sprites
 ```
 

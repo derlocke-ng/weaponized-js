@@ -1,0 +1,22 @@
+{
+  "hub.source": "Code source",
+  "hub.signIn": "Se connecter",
+  "hub.title": "Des outils web pair-à-pair, armés de <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Chaque outil ici tourne entièrement dans votre navigateur et se synchronise via les relais que vous choisissez. Pas d’inscription, pas de serveur chez nous, pas de pistage – et tout est chiffré avant de quitter votre appareil.",
+  "hub.account": "Votre compte",
+  "hub.accountText": "Un seul compte pour tous les outils. Vos tableaux, fichiers et discussions vous suivent sur chaque appareil où vous vous connectez ; sans compte, ils restent sur cet appareil.",
+  "hub.accountSigned": "Tous les outils utilisent ce compte. Les tableaux créés sur cet appareil avant la connexion sont repris.",
+  "hub.openLoadout": "Ouvrir Loadout",
+  "hub.new": "Nouveau",
+  "hub.legacy": "Ancien",
+  "hub.loadout.text": "Listes de courses, choses à faire, inventaire de la maison et notes Markdown synchronisés entre tous vos appareils et les personnes avec qui vous les partagez – des liens façon rentry, chiffrés de bout en bout. Fonctionne hors ligne, et vos appareils remettent en place ce que les relais oublient.",
+  "hub.payload.text": "Envoyez des fichiers directement vers un autre navigateur pendant que vous êtes tous deux en ligne. En WebRTC direct quand c’est possible, chiffré via un relais sinon ; chaque morceau de 64 Ko est vérifié en SHA-256.",
+  "hub.pongjs.text": "Un Pong rétro à deux joueurs entre deux navigateurs. Partagez un lien ou un code QR, ou choisissez une partie ouverte, puis jouez en connexion directe.",
+  "hub.enigmajs.text": "Des salons de discussion chiffrés qui disparaissent à la fermeture du salon. Partagez un code ou un QR et discutez.",
+  "hub.devboard.text": "Un tableau d’annonces pour indépendants : disponibilités ou offres signées avec votre propre clé, votées par les pairs, effacées à expiration.",
+  "hub.relays": "Relais en ce moment",
+  "hub.relaysText": "Loadout se synchronise via ces relais nostr ; choisissez les vôtres dans ses paramètres. Payload et pongjs passent encore par des relais gun publics en attendant leur passage à nostr. Les relais transmettent les données ; ils ne peuvent rien lire de ce qui a été chiffré avant.",
+  "hub.footer": "Logiciel libre sous licence GPL – voir le <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">dépôt</a>.",
+  "hub.signedOut": "Déconnecté sur cet appareil.",
+  "hub.welcome": "Connecté en tant que {alias}."
+}

@@ -1,0 +1,22 @@
+{
+  "hub.source": "Sorgente",
+  "hub.signIn": "Accedi",
+  "hub.title": "Strumenti web peer-to-peer, armati di <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Ogni strumento qui gira interamente nel tuo browser e si sincronizza attraverso i relay che scegli tu. Nessuna registrazione, nessun server nostro, nessun tracciamento: e tutto viene cifrato prima di lasciare il tuo dispositivo.",
+  "hub.account": "Il tuo account",
+  "hub.accountText": "Un solo account per tutti gli strumenti. Le tue bacheche, i file e le chat ti seguono su ogni dispositivo in cui accedi; senza account restano su questo dispositivo.",
+  "hub.accountSigned": "Tutti gli strumenti usano questo account. Le bacheche create su questo dispositivo prima dell’accesso vengono conservate.",
+  "hub.openLoadout": "Apri Loadout",
+  "hub.new": "Nuovo",
+  "hub.legacy": "Vecchio",
+  "hub.loadout.text": "Liste della spesa, cose da fare, inventario di casa e note in Markdown sincronizzati tra tutti i tuoi dispositivi e con chi vuoi: link in stile rentry, cifrati end-to-end. Funziona offline, e i tuoi dispositivi ripristinano ciò che i relay dimenticano.",
+  "hub.payload.text": "Invia file direttamente a un altro browser mentre siete entrambi online. WebRTC diretto quando possibile, altrimenti cifrato tramite un relay; ogni blocco da 64 KB è verificato con SHA-256.",
+  "hub.pongjs.text": "Pong retrò per due giocatori tra due browser. Condividi un link o un codice QR, oppure scegli una partita aperta, e gioca in connessione diretta.",
+  "hub.enigmajs.text": "Stanze di chat cifrate che spariscono quando la stanza si chiude. Condividi un codice o un QR e parla.",
+  "hub.devboard.text": "Una bacheca per freelance: disponibilità o offerte firmate con la tua chiave, votate dagli altri, via quando scadono.",
+  "hub.relays": "Relay in questo momento",
+  "hub.relaysText": "Loadout si sincronizza attraverso questi relay nostr; scegli i tuoi nelle sue impostazioni. Payload e pongjs usano ancora relay gun pubblici finché non passano anch’essi a nostr. I relay inoltrano i dati; non possono leggere ciò che è stato cifrato prima.",
+  "hub.footer": "Software libero con licenza GPL: vedi il <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repository</a>.",
+  "hub.signedOut": "Disconnesso su questo dispositivo.",
+  "hub.welcome": "Hai effettuato l’accesso come {alias}."
+}

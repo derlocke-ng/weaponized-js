@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https: wss:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https: wss: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="description" content="weaponized.js — peer-to-peer webtools over nostr: encrypted lists, file drops and games that run entirely in your browser.">
   <meta name="theme-color" content="#0e0f0d">
   <title>weaponized.js — peer-to-peer webtools</title>
@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="hub.css">
-  <script defer src="hub.js"></script>
+  <script type="module" src="hub.js"></script>
 </head>
 <body>
   <header class="top">
@@ -19,21 +19,30 @@
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/><path d="M16 2v8M16 22v8M2 16h8M22 16h8"/><circle class="logo-dot" cx="16" cy="16" r="2.5"/></svg>
       <span>weaponized<span class="logo-ext">.js</span></span>
     </a>
-    <a class="top-link" href="https://github.com/derlocke-ng/weaponized-js" rel="noopener"><svg class="icon"><use href="icons.svg#git-branch"/></svg><span>Source</span></a>
+    <span class="spacer"></span>
+    <a class="top-link" href="https://github.com/derlocke-ng/weaponized-js" rel="noopener"><svg class="icon"><use href="icons.svg#git-branch"/></svg><span data-i18n="hub.source">Source</span></a>
+    <a class="top-link account-link" href="#account" id="accountLink"><svg class="icon"><use href="icons.svg#user"/></svg><span id="accountName" data-i18n="hub.signIn">Sign in</span></a>
   </header>
+
+  <div id="langBanner"></div>
 
   <main>
     <section class="hero">
-      <h1>Peer-to-peer webtools, armed with <a href="https://nostr.com" rel="noopener">nostr</a>.</h1>
-      <p>Every tool here runs entirely in your browser and syncs over relays you choose. No sign-up needed, no server of ours, no tracking — and encryption happens before anything leaves your device.</p>
+      <h1 data-i18n-html="hub.title">Peer-to-peer webtools, armed with <a href="https://nostr.com" rel="noopener">nostr</a>.</h1>
+      <p data-i18n="hub.lead">Every tool here runs entirely in your browser and syncs over relays you choose. No sign-up needed, no server of ours, no tracking — and encryption happens before anything leaves your device.</p>
+    </section>
+
+    <section class="card account" id="account" aria-labelledby="accountTitle">
+      <h2 id="accountTitle"><svg class="icon"><use href="icons.svg#key-round"/></svg><span data-i18n="hub.account">Your account</span></h2>
+      <div id="accountBody"><p class="muted" data-i18n="hub.accountText">One account for every tool here.</p></div>
     </section>
 
     <a class="feature" href="loadout/">
       <div class="feature-icon"><svg class="icon"><use href="icons.svg#list-checks"/></svg></div>
       <div class="feature-body">
-        <span class="badge">New</span>
+        <span class="badge" data-i18n="hub.new">New</span>
         <h2>Loadout</h2>
-        <p>Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with — rentry-style links, end-to-end encrypted. Works offline, and your devices put back whatever the relays forget.</p>
+        <p data-i18n="hub.loadout.text">Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with — rentry-style links, end-to-end encrypted. Works offline, and your devices put back whatever the relays forget.</p>
         <ul class="tags"><li>nostr</li><li>E2EE</li><li>offline-first</li><li>markdown</li></ul>
       </div>
       <span class="go"><svg class="icon"><use href="icons.svg#arrow-up-right"/></svg></span>
@@ -44,7 +53,7 @@
         <a class="tool" href="payload/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#send"/></svg></span>
           <h3>Payload</h3>
-          <p>Send files straight to another browser while you’re both online. Direct WebRTC when possible, encrypted through gun otherwise, every 64 KB piece checked with SHA-256.</p>
+          <p data-i18n="hub.payload.text">Send files straight to another browser while you’re both online. Direct WebRTC when possible, encrypted through a relay otherwise, every 64 KB piece checked with SHA-256.</p>
           <ul class="tags"><li>gun</li><li>WebRTC</li><li>SHA-256</li></ul>
         </a>
       </li>
@@ -52,43 +61,39 @@
         <a class="tool" href="pongjs/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#gamepad-2"/></svg></span>
           <h3>pongjs</h3>
-          <p>Retro two-player Pong between two browsers. Share a link or QR code or pick an open game, then play over a direct connection.</p>
+          <p data-i18n="hub.pongjs.text">Retro two-player Pong between two browsers. Share a link or QR code or pick an open game, then play over a direct connection.</p>
           <ul class="tags"><li>gun</li><li>WebRTC</li><li>canvas</li></ul>
         </a>
       </li>
       <li>
         <a class="tool" href="enigmajs/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#message-square-lock"/></svg></span>
-          <h3>EnigmaJS</h3>
-          <p>Encrypted group chat rooms that vanish when the room closes. Share a code or QR and talk.</p>
+          <h3>EnigmaJS <small class="legacy" data-i18n="hub.legacy">Legacy</small></h3>
+          <p data-i18n="hub.enigmajs.text">Encrypted group chat rooms that vanish when the room closes. Share a code or QR and talk.</p>
           <ul class="tags"><li>gun</li><li>SEA</li><li>Vue</li></ul>
         </a>
       </li>
       <li>
         <a class="tool" href="devboard/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#sticky-note"/></svg></span>
-          <h3>DevBoard</h3>
-          <p>A freelancer noticeboard: post availability or hiring notes signed with your own key, voted on by peers, gone when they expire.</p>
+          <h3>DevBoard <small class="legacy" data-i18n="hub.legacy">Legacy</small></h3>
+          <p data-i18n="hub.devboard.text">A freelancer noticeboard: post availability or hiring notes signed with your own key, voted on by peers, gone when they expire.</p>
           <ul class="tags"><li>gun</li><li>SEA signatures</li></ul>
         </a>
       </li>
     </ul>
 
     <section class="relays" aria-labelledby="relaysTitle">
-      <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg>Relays right now</h2>
-      <p>Loadout syncs over nostr relays you pick in its settings. Payload and pongjs still signal through these public gun relays until they move to nostr too. Relays pass data along; they can’t read anything that was encrypted first.</p>
-      <ul id="relayList" class="relay-list">
-        <li data-relay="https://gun.kiwi-network.eu/herbhub-relay/gun"></li>
-        <li data-relay="https://gun2.kiwi-network.eu/herbhub-relay/gun"></li>
-        <li data-relay="https://gun.defucc.me/gun"></li>
-        <li data-relay="https://gun.o8.is/gun"></li>
-        <li data-relay="https://relay.peer.ooo/gun"></li>
-      </ul>
+      <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg><span data-i18n="hub.relays">Relays right now</span></h2>
+      <p data-i18n="hub.relaysText">Loadout syncs over these nostr relays; pick your own in its settings. Payload and pongjs still signal through public gun relays until they move to nostr too. Relays pass data along; they can’t read anything that was encrypted first.</p>
+      <ul id="relayList" class="relay-list"></ul>
     </section>
   </main>
 
   <footer class="foot">
-    <p>Each tool keeps its own license — see its folder in the <a href="https://github.com/derlocke-ng/weaponized-js" rel="noopener">repository</a>.</p>
+    <p data-i18n-html="hub.footer">Free software under the GPL — see the <a href="https://github.com/derlocke-ng/weaponized-js" rel="noopener">repository</a>.</p>
+    <label class="lang-foot"><svg class="icon"><use href="icons.svg#languages"/></svg><select id="langSelect" aria-label="Language"></select></label>
   </footer>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
 </body>
 </html>

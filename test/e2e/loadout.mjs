@@ -12,7 +12,7 @@ const texts = (page, sel) => page.$$eval(sel, (els) => els.map((e) => e.textCont
 await run('loadout', async (env) => {
   const APP = `${env.base}loadout/`;
   const init = (relay) => localStorage.setItem('wjs.relays', JSON.stringify([relay]));
-  const dev = (name) => device(env, name, init, env.nostrUrl);
+  const dev = (name, options) => device(env, name, init, env.nostrUrl, options);
 
   async function open(page, url = APP) {
     await page.goto(url);
@@ -302,4 +302,53 @@ await run('loadout', async (env) => {
   await until(async () => (await texts(G2, '#active .count')).join() === '4,0', 'pantry counts after healing', 15000);
   await G2.goto(`${APP}#/b/${groceries}`);
   await until(async () => (await texts(G2, '#active .text')).includes('coffee'), 'grocery items after healing', 15000);
+
+  step('starters stay available, fill a board from their template, and can be hidden');
+  await G2.goto(APP);
+  await G2.waitForSelector('.starters-row');
+  await G2.click('.starters-row [data-starter=pantry]');
+  await G2.waitForSelector('#newBoard');
+  assert.equal(await G2.inputValue('#newBoard input[name=title]'), 'Pantry');
+  await G2.click('#newBoard [type=submit]');
+  await G2.waitForSelector('#boardName', { timeout: 15000 });
+  await until(async () => (await texts(G2, '#active .text')).includes('Rice'), 'template items in the new board');
+  assert.deepEqual(await texts(G2, '#active .count'), ['3', '2', '6', '8', '12']);
+  await G2.goto(APP);
+  await G2.waitForSelector('.starters-row');
+  await G2.click('.starters-row [data-act=hide-starters]');
+  await until(async () => !(await G2.$('.starters-row')), 'starters hidden');
+  await G2.waitForSelector('[data-act=show-starters]');
+  // The choice is a synced setting: another device of the account sees it too.
+  const G3 = await dev('G3');
+  await signIn(G3);
+  await until(async () => (await G3.$('[data-act=show-starters]')) !== null, 'G3 sees the hidden starters', 20000);
+  await G3.click('[data-act=show-starters]');
+  await until(async () => (await G2.$('.starters-row')) !== null, 'G2 sees them again', 15000);
+
+  step('a German browser is asked in German and gets a German app; English stays English');
+  const DE = await dev('DE', { locale: 'de-DE' });
+  await open(DE);
+  assert.equal(await DE.getAttribute('html', 'lang'), 'de');
+  await DE.waitForSelector('#langBanner');
+  const germanTitle = await DE.textContent('.home h1');
+  assert.notEqual(germanTitle, 'Your boards', 'home title is translated');
+  assert.equal(await DE.inputValue('#langPick'), 'de', 'the browser language is preselected');
+  await DE.click('#langOk');
+  await until(async () => !(await DE.$('#langBanner')), 'banner gone after confirming');
+  assert.equal(await DE.evaluate(() => localStorage.getItem('wjs.lang')), '"de"');
+  await DE.click('[data-new=check]');
+  await DE.waitForSelector('#newBoard');
+  assert.notEqual(await DE.textContent('#newBoard [type=submit]'), 'Create');
+  await DE.press('#newBoard input[name=title]', 'Escape');
+  // Switching back from the settings screen works without a reload.
+  await DE.goto(`${APP}#/account`);
+  await DE.selectOption('#langSelect', 'en');
+  await until(async () => (await DE.textContent('.account h1')) === 'Account & settings', 'English after switching');
+  assert.equal(await DE.getAttribute('html', 'lang'), 'en');
+  await DE.goto(APP);
+  await until(async () => (await DE.textContent('.home h1')) === 'Your boards', 'home in English');
+  const US = await dev('US', { locale: 'en-US' });
+  await open(US);
+  assert.equal(await US.$('#langBanner'), null, 'English browsers are not asked');
+  assert.equal(await US.textContent('.home h1'), 'Your boards');
 });

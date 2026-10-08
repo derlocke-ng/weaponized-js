@@ -51,3 +51,6 @@ export const store = {
     }
   },
 };
+
+/** An Error with a stable `code` the UI can translate (see i18n.tErr) and optional `params`. */
+export const fail = (code, message, params) => Object.assign(new Error(message), { code, params });

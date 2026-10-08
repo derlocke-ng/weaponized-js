@@ -1,7 +1,7 @@
 // Your key, and the username + password account that puts it on every device.
 // The mechanics live in shared/account.js; this binds them to Loadout's pool.
 
-import { pool, db } from './net.js';
+import { pool, db, sync } from './net.js';
 import * as account from '../../shared/account.js';
 import { fingerprint } from '../../shared/events.js';
 
@@ -18,7 +18,7 @@ export async function signIn(alias, pass, onProgress) {
 
 /** Publish an account for the current key; resolves with the updated identity. */
 export async function createAccount(identity, alias, pass, onProgress) {
-  const { event, alias: name } = await account.createAccount(pool, db, alias, pass, identity.sk, onProgress);
+  const { event, alias: name } = await account.createAccount({ pool, sync }, alias, pass, identity.sk, onProgress);
   return { ...identity, alias: name, accountPk: event.pubkey };
 }
 

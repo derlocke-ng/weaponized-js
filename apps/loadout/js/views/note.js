@@ -1,7 +1,8 @@
 import { renderMarkdown } from '../markdown.js';
 import { toggleTask } from '../mdtasks.js';
 import { $, $$, icon, toast } from '../ui.js';
-import { debounce, plural, relTime } from '../util.js';
+import { debounce, h } from '../util.js';
+import { t, tErr, relTime } from '../../../shared/i18n.js';
 import { LIMITS } from '../config.js';
 
 const SAVE_AFTER = 700;
@@ -22,10 +23,10 @@ export function mountNote(body, board) {
     body.innerHTML = `
       <div class="note">
         <div class="note-bar">
-          <span class="note-meta">${board.doc?.u ? `Updated ${relTime(board.doc.u)}` : ''}</span>
-          ${canEdit ? `<button type="button" class="btn btn-sm" data-act="edit">${icon('pencil')}<span>Edit</span></button>` : ''}
+          <span class="note-meta">${board.doc?.u ? h(t('note.updated', { when: relTime(board.doc.u) })) : ''}</span>
+          ${canEdit ? `<button type="button" class="btn btn-sm" data-act="edit">${icon('pencil')}<span>${h(t('common.edit'))}</span></button>` : ''}
         </div>
-        <article class="md" id="noteView">${md.trim() ? renderMarkdown(md) : `<p class="empty-list">${canEdit ? 'Empty note.' : 'This note is empty.'}</p>`}</article>
+        <article class="md" id="noteView">${md.trim() ? renderMarkdown(md) : `<p class="empty-list">${h(canEdit ? t('note.emptyEdit') : t('note.emptyView'))}</p>`}</article>
       </div>`;
     const view = $('#noteView', body);
     $$('input[type=checkbox]', view).forEach((cb, i) => {
@@ -38,46 +39,46 @@ export function mountNote(body, board) {
       if (n == null) return;
       const next = toggleTask(board.doc?.md ?? '', Number(n), e.target.checked);
       saved = next;
-      board.setDoc(next).catch((err) => toast(err.message, 'error'));
+      board.setDoc(next).catch((err) => toast(tErr(err), 'error'));
     });
   }
 
   function drawEditor() {
     body.innerHTML = `
       <form class="note editor" id="editor" autocomplete="off">
-        <div class="md-toolbar" role="toolbar" aria-label="Formatting">
-          <button type="button" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-          <button type="button" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
-          <button type="button" data-cmd="h2" title="Heading">H2</button>
-          <button type="button" data-cmd="h3" title="Sub-heading">H3</button>
-          <button type="button" data-cmd="link" title="Link (Ctrl+K)">${icon('link')}</button>
-          <button type="button" data-cmd="quote" title="Quote">❝</button>
-          <button type="button" data-cmd="ul" title="Bulleted list">•≡</button>
-          <button type="button" data-cmd="ol" title="Numbered list">1.</button>
-          <button type="button" data-cmd="task" title="Checklist">${icon('list-checks')}</button>
-          <button type="button" data-cmd="code" title="Inline code">&lt;/&gt;</button>
-          <button type="button" data-cmd="codeblock" title="Code block">{ }</button>
-          <button type="button" data-cmd="table" title="Table">▦</button>
+        <div class="md-toolbar" role="toolbar" aria-label="${h(t('note.formatting'))}">
+          <button type="button" data-cmd="bold" title="${h(t('note.bold'))}"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="${h(t('note.italic'))}"><i>I</i></button>
+          <button type="button" data-cmd="h2" title="${h(t('note.heading'))}">H2</button>
+          <button type="button" data-cmd="h3" title="${h(t('note.subheading'))}">H3</button>
+          <button type="button" data-cmd="link" title="${h(t('note.link'))}">${icon('link')}</button>
+          <button type="button" data-cmd="quote" title="${h(t('note.quote'))}">❝</button>
+          <button type="button" data-cmd="ul" title="${h(t('note.bulleted'))}">•≡</button>
+          <button type="button" data-cmd="ol" title="${h(t('note.numbered'))}">1.</button>
+          <button type="button" data-cmd="task" title="${h(t('note.checklist'))}">${icon('list-checks')}</button>
+          <button type="button" data-cmd="code" title="${h(t('note.inlineCode'))}">&lt;/&gt;</button>
+          <button type="button" data-cmd="codeblock" title="${h(t('note.codeBlock'))}">{ }</button>
+          <button type="button" data-cmd="table" title="${h(t('note.table'))}">▦</button>
           <span class="spacer"></span>
           <span class="pane-switch" role="tablist">
-            <button type="button" data-pane="write" class="active" role="tab">Write</button>
-            <button type="button" data-pane="preview" role="tab">Preview</button>
+            <button type="button" data-pane="write" class="active" role="tab">${h(t('note.write'))}</button>
+            <button type="button" data-pane="preview" role="tab">${h(t('note.preview'))}</button>
           </span>
         </div>
         <div class="alert" id="conflict" hidden>
-          <span>This note was changed on another device while you were typing.</span>
-          <button type="button" class="btn btn-sm" data-act="theirs">Load theirs</button>
-          <button type="button" class="btn btn-sm" data-act="mine">Keep mine</button>
+          <span>${h(t('note.conflict'))}</span>
+          <button type="button" class="btn btn-sm" data-act="theirs">${h(t('note.loadTheirs'))}</button>
+          <button type="button" class="btn btn-sm" data-act="mine">${h(t('note.keepMine'))}</button>
         </div>
         <div class="panes" data-show="write">
-          <textarea id="md" class="md-input" spellcheck="true" placeholder="Write in Markdown… # headings, **bold**, - [ ] tasks, | tables |" aria-label="Note text"></textarea>
-          <article class="md md-preview" id="preview" aria-label="Preview"></article>
+          <textarea id="md" class="md-input" spellcheck="true" placeholder="${h(t('note.placeholder'))}" aria-label="${h(t('note.text'))}"></textarea>
+          <article class="md md-preview" id="preview" aria-label="${h(t('note.preview'))}"></article>
         </div>
         <div class="editor-status">
           <span id="stats"></span>
           <span class="spacer"></span>
           <span id="saveState"></span>
-          <button type="button" class="btn btn-sm btn-primary" data-act="done">${icon('check')}<span>Done</span></button>
+          <button type="button" class="btn btn-sm btn-primary" data-act="done">${icon('check')}<span>${h(t('common.done'))}</span></button>
         </div>
       </form>`;
     ta = $('#md', body);
@@ -88,36 +89,36 @@ export function mountNote(body, board) {
     const conflict = $('#conflict', body);
 
     const updatePreview = debounce(() => {
-      preview.innerHTML = renderMarkdown(ta.value) || '<p class="empty-list">Nothing to preview.</p>';
+      preview.innerHTML = renderMarkdown(ta.value) || `<p class="empty-list">${h(t('note.nothingToPreview'))}</p>`;
     }, 150);
     const updateStats = () => {
       const words = (ta.value.match(/\S+/g) || []).length;
-      stats.textContent = `${plural(words, 'word')}${ta.value.length > LIMITS.doc * 0.9 ? ` · ${Math.round((ta.value.length / LIMITS.doc) * 100)}% of max size` : ''}`;
+      stats.textContent = `${t('note.words', { n: words })}${ta.value.length > LIMITS.doc * 0.9 ? ` · ${t('note.ofMax', { p: Math.round((ta.value.length / LIMITS.doc) * 100) })}` : ''}`;
     };
     const save = debounce(async () => {
-      if (ta.value.length > LIMITS.doc) return (state.textContent = 'Too long to save — split it into two notes');
+      if (ta.value.length > LIMITS.doc) return (state.textContent = t('note.tooLong'));
       const text = ta.value;
-      if (text === saved) return (state.textContent = 'Saved');
-      state.textContent = 'Saving…';
+      if (text === saved) return (state.textContent = t('note.saved'));
+      state.textContent = t('note.saving');
       try {
         saved = text;
         await board.setDoc(text);
-        if (ta && ta.value === text) state.textContent = 'Saved';
+        if (ta && ta.value === text) state.textContent = t('note.saved');
       } catch (err) {
-        state.textContent = 'Not saved';
-        toast(err.message, 'error');
+        state.textContent = t('note.notSaved');
+        toast(tErr(err), 'error');
       }
     }, SAVE_AFTER);
 
     ta.addEventListener('input', () => {
-      state.textContent = 'Editing…';
+      state.textContent = t('note.editing');
       updatePreview();
       updateStats();
       save();
     });
     updatePreview.flush();
     updateStats();
-    state.textContent = 'Saved';
+    state.textContent = t('note.saved');
 
     // ---- toolbar (same commands as the derlocke-blog / apex-genetics admin editor) ----
     const replaceRange = (start, end, text) => {
@@ -149,9 +150,9 @@ export function mountNote(body, board) {
       replaceRange(s, ta.selectionEnd, `${before}${text}\n`);
     };
     const commands = {
-      bold: () => wrap('**', '**', 'bold text'),
-      italic: () => wrap('_', '_', 'italic text'),
-      code: () => wrap('`', '`', 'code'),
+      bold: () => wrap('**', '**', t('note.boldText')),
+      italic: () => wrap('_', '_', t('note.italicText')),
+      code: () => wrap('`', '`', t('note.code')),
       h2: () => prefixLines('## '),
       h3: () => prefixLines('### '),
       quote: () => prefixLines('> '),
@@ -159,14 +160,14 @@ export function mountNote(body, board) {
       ol: () => prefixLines((i) => `${i + 1}. `),
       task: () => prefixLines('- [ ] '),
       link: () => {
-        const url = prompt('Link URL', 'https://');
-        if (url) wrap('[', `](${url})`, 'link text');
+        const url = prompt(t('note.linkUrl'), 'https://');
+        if (url) wrap('[', `](${url})`, t('note.linkText'));
       },
       codeblock: () => {
         const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
-        insertBlock(`\`\`\`\n${sel || 'code'}\n\`\`\``);
+        insertBlock(`\`\`\`\n${sel || t('note.code')}\n\`\`\``);
       },
-      table: () => insertBlock('| Column | Column |\n|--------|--------|\n| Cell   | Cell   |'),
+      table: () => insertBlock(t('note.tableTemplate')),
     };
     const form = $('#editor', body);
     form.addEventListener('submit', (e) => e.preventDefault());
@@ -191,7 +192,7 @@ export function mountNote(body, board) {
         conflict.hidden = true;
         updatePreview.flush();
         updateStats();
-        state.textContent = 'Saved';
+        state.textContent = t('note.saved');
       }
       if (act === 'mine') {
         conflict.hidden = true;

@@ -2,6 +2,7 @@
 // interpolated value with h() unless it is trusted markup (icons, sanitized HTML).
 
 import { h } from './util.js';
+import { t } from '../../shared/i18n.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -21,13 +22,13 @@ export function toast(message, kind = 'info', ms = 3200) {
   }, ms);
 }
 
-export async function copyText(text, what = 'Link') {
+export async function copyText(text, what = t('common.link')) {
   try {
     await navigator.clipboard.writeText(text);
-    toast(`${what} copied`, 'success');
+    toast(t('common.copied', { what }), 'success');
     return true;
   } catch {
-    toast('Copy failed — select the text and copy it yourself', 'error');
+    toast(t('common.copyFailed'), 'error');
     return false;
   }
 }
@@ -42,7 +43,7 @@ export function modal({ title, body, wide = false, onOpen }) {
   dlg.innerHTML = `
     <div class="modal-head">
       <h2>${h(title)}</h2>
-      <button type="button" class="icon-btn" data-close aria-label="Close">${icon('x')}</button>
+      <button type="button" class="icon-btn" data-close aria-label="${t('common.close')}">${icon('x')}</button>
     </div>
     <div class="modal-body">${body}</div>`;
   document.body.append(dlg);
@@ -68,12 +69,12 @@ export function modal({ title, body, wide = false, onOpen }) {
   return { el: dlg, close, done };
 }
 
-export function confirmDialog({ title, message, confirm = 'OK', danger = false }) {
+export function confirmDialog({ title, message, confirm = t('common.ok'), danger = false }) {
   const m = modal({
     title,
     body: `<p class="modal-text">${h(message)}</p>
       <div class="modal-actions">
-        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="button" class="btn" data-close>${t('common.cancel')}</button>
         <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${h(confirm)}</button>
       </div>`,
     onOpen: (el, close) => {

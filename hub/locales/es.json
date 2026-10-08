@@ -1,0 +1,22 @@
+{
+  "hub.source": "Código",
+  "hub.signIn": "Iniciar sesión",
+  "hub.title": "Herramientas web entre pares, armadas con <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Cada herramienta funciona por completo en tu navegador y se sincroniza a través de los relays que tú eliges. Sin registro, sin servidor nuestro, sin rastreo; y todo se cifra antes de salir de tu dispositivo.",
+  "hub.account": "Tu cuenta",
+  "hub.accountText": "Una sola cuenta para todas las herramientas. Tus tableros, archivos y chats te siguen a cada dispositivo en el que inicies sesión; sin cuenta, se quedan en este dispositivo.",
+  "hub.accountSigned": "Todas las herramientas usan esta cuenta. Los tableros que creaste en este dispositivo antes de iniciar sesión se conservan.",
+  "hub.openLoadout": "Abrir Loadout",
+  "hub.new": "Nuevo",
+  "hub.legacy": "Antiguo",
+  "hub.loadout.text": "Listas de la compra, tareas, inventario del hogar y notas en Markdown sincronizados entre todos tus dispositivos y con quien quieras compartirlos: enlaces al estilo rentry, cifrados de extremo a extremo. Funciona sin conexión, y tus dispositivos reponen lo que los relays olvidan.",
+  "hub.payload.text": "Envía archivos directamente a otro navegador mientras ambos estáis en línea. WebRTC directo cuando es posible, cifrado a través de un relay si no; cada fragmento de 64 KB se comprueba con SHA-256.",
+  "hub.pongjs.text": "Pong retro para dos jugadores entre dos navegadores. Comparte un enlace o un código QR, o elige una partida abierta, y juega por conexión directa.",
+  "hub.enigmajs.text": "Salas de chat cifradas que desaparecen al cerrar la sala. Comparte un código o un QR y habla.",
+  "hub.devboard.text": "Un tablón para freelancers: publica disponibilidad u ofertas firmadas con tu propia clave, votadas por otros, y que desaparecen al caducar.",
+  "hub.relays": "Relays ahora mismo",
+  "hub.relaysText": "Loadout se sincroniza a través de estos relays nostr; elige los tuyos en sus ajustes. Payload y pongjs todavía señalizan por relays gun públicos hasta que también pasen a nostr. Los relays transmiten datos; no pueden leer nada que se cifrara antes.",
+  "hub.footer": "Software libre bajo la GPL: consulta el <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repositorio</a>.",
+  "hub.signedOut": "Sesión cerrada en este dispositivo.",
+  "hub.welcome": "Sesión iniciada como {alias}."
+}

@@ -82,7 +82,7 @@ Everything in an event's `content` is a sealed payload; tags carry only the `d` 
 | 30702 | `LOADOUT_ITEM` | addressable | one list / inventory item per event (`d` = item id); `{ del: 1 }` is a tombstone |
 | 30703 | `LOADOUT_DOC` | addressable | the markdown note of a board (`d` = `doc`) |
 | 30790 | `ACCOUNT` | addressable | username + password account (above) |
-| 30791 | `SETTINGS` | addressable | suite settings (hidden apps, …) — planned |
+| 30791 | `SETTINGS` | addressable | per-app settings, encrypted to the user's key; `d` = app name (Loadout: starters and their templates) |
 | 21700 | `P2P_PRESENCE` | ephemeral | Payload / pong room presence — planned |
 | 21701 | `P2P_SIGNAL` | ephemeral | encrypted WebRTC offers / answers / ICE — planned |
 | 21702 | `P2P_DATA` | ephemeral | encrypted data frames when WebRTC fails — planned |
@@ -97,6 +97,21 @@ Addressable events replace by `(kind, pubkey, d)` with the newest `created_at` w
 4. **Backups** are the raw signed events of everything the user owns plus a readable snapshot, encrypted (AES-256-GCM, PBKDF2-SHA-256 600 000 rounds) with a passphrase. Restoring re-publishes the events, so even the account itself comes back after every relay and every device is gone.
 
 Data is lost only if every device that ever held it is gone *and* there is no backup.
+
+## Languages
+
+Every app ships its strings as one JSON catalog per language (`apps/<app>/locales/<lang>.json`) plus a shared catalog for common words and the core's error messages (`apps/shared/locales/`). `apps/shared/i18n.js` loads the active language and English as the fallback, nothing else, so a device downloads one small file per app (10–20 KB) and caches it offline.
+
+- **Choice.** The browser's language list picks the first supported language. A browser set to a supported non-English language gets the app in that language straight away plus a one-time banner, in that language, to keep it or pick another. English browsers are never asked. The choice is stored on the device only (`wjs.lang`), with a selector in the settings; the shell step moves it into the suite settings.
+- **Content.** Plural forms follow CLDR categories through `Intl.PluralRules` (Polish needs `few`/`many`), dates and relative times through `Intl.DateTimeFormat` / `Intl.RelativeTimeFormat`. Shared code throws errors with a stable `code` and the UI translates by code (`tErr`), so the core never contains UI language.
+- **Languages.** English, German, French, Spanish, Italian, Dutch, Polish and Portuguese, the EU's big languages plus the UK, US and Canada. More are one JSON file each; a unit test checks that every language has every key with the same placeholders, markup and plural forms. Translations are machine-drafted and reviewed, corrections welcome by pull request.
+- **Region is separate from language.** Country for the marketplace and the legal declaration come from settings, never from the UI language.
+
+## One account for the suite
+
+The hub (the installed app's start page) and every app share one origin, so `localStorage` holds one identity (`wjs.identity`) and IndexedDB one event store for all of them. Signing in or creating an account on the hub switches that identity; `adoptIdentity()` keeps the previous key aside and each app carries its own data over on its next start (`previousIdentities()` / `markCarried()`): Loadout re-publishes the wallet entries of the old device key under the account key. Signing in inside an app does the same. Nothing is lost by signing in late.
+
+Publishing is local-first and never blocks the UI: an event is stored, marked pending for every relay, and sent; relays acknowledge in the background and leave the outbox as they do. Only the account event waits, and only for the first relay that accepts it, because other devices must be able to find it.
 
 ## Relays and servers
 
@@ -117,9 +132,9 @@ Items are one event each (not one blob per board), so two people editing differe
 1. ~~Shared core; Loadout on nostr~~ (done — `test/e2e/loadout.mjs` runs 17 multi-device scenarios against the dev relay, including two relay wipes).
 2. **Payload and pongjs on nostr**: presence and signaling as ephemeral events 21700–21702 (encrypted to the room secret), data frames over 21702 when WebRTC fails, TURN servers from the picker; Payload gets a **drop** mode — encrypted chunks on a Blossom server with an expiry — for receivers who are not online right now. Then gun, `apps/shared/gun.js` and `scripts/relay.cjs` go.
 3. **Uplink** (chat): NIP-17 private messages between accounts, ephemeral encrypted rooms (what EnigmaJS did), groups later.
-4. **Outpost** (grow reports): entries and photos encrypted before upload to Blossom, friends list, visibility layers (private / friends / "public" = readable by anyone signed into the app), feed and explore; marketplace for seeds and cuttings behind an 18+ / legal-region declaration and a no-liability agreement. Backups include blobs.
-5. **Suite shell**: one account for every app, app switcher, hidden apps in settings (kind 30791).
+4. **Outpost** (grow reports): entries and photos encrypted before upload to Blossom, friends list, visibility layers (private / friends / "public" = readable by anyone signed into the app), feed and explore; marketplace for seeds, cuttings and gear behind an 18+ / legal-region declaration and a no-liability agreement. Cuttings are an ordinary category everywhere: whether a listing is legal where the user lives is the user's call under that agreement, not the software's. Backups include blobs.
+5. **Suite shell**: one account for every app, app switcher, hidden apps and language in settings (kind 30791), People and Circles.
 6. **kiwi `weaponized` module**; replace the first default relays with kiwi ones.
 7. Retire EnigmaJS and DevBoard once Uplink exists.
 
-Open: contact path for marketplace listings (in-app Uplink vs. external), whether to offer cuttings at all in the marketplace (legally shaky in Germany), which public Blossom servers accept encrypted blobs.
+Open: contact path for marketplace listings (in-app Uplink vs. external), which public Blossom servers accept encrypted blobs.

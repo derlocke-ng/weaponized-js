@@ -6,7 +6,7 @@
 
 import { KINDS, makeAddressable, seal, open, deriveKey, dTag, hex, bytes } from '../../shared/events.js';
 import { generateSecretKey, getPublicKey } from '../../shared/nostr.mjs';
-import { randomId } from '../../shared/util.js';
+import { fail, randomId } from '../../shared/util.js';
 import { pool, db, sync } from './net.js';
 
 const BOARD_KINDS = [KINDS.LOADOUT_INFO, KINDS.LOADOUT_ITEM, KINDS.LOADOUT_DOC];
@@ -127,7 +127,7 @@ export class Board {
   // ---- writes: signed by the board key, stored locally first, relayed by the outbox ----
 
   async put(kind, d, value) {
-    if (!this.w) throw new Error('You can only view this board.');
+    if (!this.w) throw fail('board.error.viewOnly', 'You can only view this board.');
     await sync.publish(makeAddressable(kind, d, await seal(this.key, value), this.w));
   }
 

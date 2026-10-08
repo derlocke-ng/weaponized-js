@@ -30,7 +30,7 @@ export async function until(fn, what, ms = 10000) {
   throw new Error(`Timed out waiting for ${what} (last: ${last})`);
 }
 
-export async function setup(name) {
+export async function setup(name, { webRoot = path.join(root, 'apps') } = {}) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `${name}-e2e-`));
   const gunPort = 20000 + Math.floor(Math.random() * 20000);
   const webPort = gunPort + 1;
@@ -42,7 +42,7 @@ export async function setup(name) {
   let nostrRuns = 0;
   const startNostr = () => startRelay({ port: nostrPort, dir: path.join(tmp, `nostr-${nostrRuns++}`), name: 'e2e relay' });
   let nostr = await startNostr();
-  const web = spawn(process.execPath, [path.join(root, 'scripts/serve.mjs'), path.join(root, 'apps'), String(webPort)], { stdio: 'ignore' });
+  const web = spawn(process.execPath, [path.join(root, 'scripts/serve.mjs'), webRoot, String(webPort)], { stdio: 'ignore' });
   const executablePath = process.env.CHROMIUM_PATH || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
   // mDNS-obfuscated ICE candidates don't resolve in containers; real browsers are fine.
   // A UTF-8 locale keeps non-ASCII download names (minimal containers default to C).
@@ -103,9 +103,9 @@ export async function setup(name) {
   return env;
 }
 
-/** A fresh browser context ("device"); `init` runs before every page script. */
-export async function device(env, name, init, arg) {
-  const ctx = await env.browser.newContext({ viewport: { width: 420, height: 900 }, acceptDownloads: true });
+/** A fresh browser context ("device"); `init` runs before every page script; `options` go to newContext (e.g. locale). */
+export async function device(env, name, init, arg, options = {}) {
+  const ctx = await env.browser.newContext({ viewport: { width: 420, height: 900 }, acceptDownloads: true, ...options });
   if (init) await ctx.addInitScript(init, arg);
   const page = await ctx.newPage();
   page.on('pageerror', (e) => env.errors.push(`${name}: ${e.stack || e.message}`));
@@ -116,8 +116,8 @@ export async function device(env, name, init, arg) {
   return page;
 }
 
-export async function run(name, body) {
-  const env = await setup(name);
+export async function run(name, body, options) {
+  const env = await setup(name, options);
   let failed = false;
   try {
     await body(env);

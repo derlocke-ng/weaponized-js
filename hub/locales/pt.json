@@ -1,0 +1,22 @@
+{
+  "hub.source": "Código-fonte",
+  "hub.signIn": "Iniciar sessão",
+  "hub.title": "Ferramentas web peer-to-peer, armadas com <a href=\"https://nostr.com\" rel=\"noopener\">nostr</a>.",
+  "hub.lead": "Cada ferramenta corre inteiramente no teu navegador e sincroniza através dos relays que escolheres. Sem registo, sem servidor nosso, sem rastreio – e tudo é cifrado antes de sair do teu dispositivo.",
+  "hub.account": "A tua conta",
+  "hub.accountText": "Uma conta para todas as ferramentas. Os teus quadros, ficheiros e conversas seguem-te para cada dispositivo onde inicies sessão; sem conta, ficam neste dispositivo.",
+  "hub.accountSigned": "Todas as ferramentas usam esta conta. Os quadros criados neste dispositivo antes de iniciares sessão são mantidos.",
+  "hub.openLoadout": "Abrir o Loadout",
+  "hub.new": "Novo",
+  "hub.legacy": "Antigo",
+  "hub.loadout.text": "Listas de compras, tarefas, inventário da casa e notas em Markdown sincronizados entre todos os teus dispositivos e com quem os partilhares – links ao estilo rentry, cifrados de ponta a ponta. Funciona offline, e os teus dispositivos repõem o que os relays esquecem.",
+  "hub.payload.text": "Envia ficheiros diretamente para outro navegador enquanto ambos estão online. WebRTC direto quando possível, cifrado através de um relay caso contrário; cada bloco de 64 KB é verificado com SHA-256.",
+  "hub.pongjs.text": "Pong retro para dois jogadores entre dois navegadores. Partilha um link ou código QR, ou escolhe um jogo aberto, e joga por ligação direta.",
+  "hub.enigmajs.text": "Salas de conversa cifradas que desaparecem quando a sala fecha. Partilha um código ou QR e conversa.",
+  "hub.devboard.text": "Um quadro de anúncios para freelancers: disponibilidade ou propostas assinadas com a tua própria chave, votadas pelos outros, apagadas quando expiram.",
+  "hub.relays": "Relays neste momento",
+  "hub.relaysText": "O Loadout sincroniza através destes relays nostr; escolhe os teus nas definições. O Payload e o pongjs ainda sinalizam por relays gun públicos até também passarem para o nostr. Os relays encaminham dados; não conseguem ler nada que tenha sido cifrado antes.",
+  "hub.footer": "Software livre sob a GPL – ver o <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repositório</a>.",
+  "hub.signedOut": "Sessão terminada neste dispositivo.",
+  "hub.welcome": "Sessão iniciada como {alias}."
+}
