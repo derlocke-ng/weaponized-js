@@ -81,10 +81,36 @@ export function checkPassword(pass) {
 }
 
 /** The lookup key pair and wrapping key for a username + password. Slow on purpose. */
-export async function deriveLookup(username, password) {
+/** scrypt in a worker where there is one (the page stays responsive), on this thread otherwise (tests). */
+function scryptOffThread(password, salt, params, onProgress) {
+  const opts = onProgress ? { ...params, onProgress } : params; // scrypt refuses a null callback
+  if (typeof Worker !== 'function') return scryptAsync(password, salt, opts);
+  return new Promise((resolve, reject) => {
+    let w;
+    try {
+      w = new Worker(new URL('./account-worker.js', import.meta.url), { type: 'module' });
+    } catch {
+      return scryptAsync(password, salt, opts).then(resolve, reject);
+    }
+    w.onmessage = (e) => {
+      if (e.data.progress != null) return onProgress?.(e.data.progress);
+      w.terminate();
+      if (e.data.error) reject(new Error(e.data.error));
+      else resolve(new Uint8Array(e.data.dk));
+    };
+    w.onerror = () => {
+      w.terminate();
+      scryptAsync(password, salt, opts).then(resolve, reject);
+    };
+    w.postMessage({ password, salt, params });
+  });
+}
+
+/** @param onProgress gets the derivation's progress as a fraction 0…1 */
+export async function deriveLookup(username, password, onProgress = null) {
   const name = normalizeUsername(username);
   const salt = sha256(te.encode(`wjs/account/v1|${name}`));
-  const dk = await scryptAsync(te.encode(String(password).normalize('NFKC')), salt, SCRYPT);
+  const dk = await scryptOffThread(te.encode(String(password).normalize('NFKC')), salt, SCRYPT, onProgress);
   const lookupSk = bytesToHex(dk.slice(0, 32));
   return { name, lookupSk, lookupPk: getPublicKey(dk.slice(0, 32)), wrapKey: dk.slice(32, 64) };
 }
@@ -119,7 +145,7 @@ export const accountFilter = (lookupPk) => ({ kinds: [KINDS.ACCOUNT], authors: [
 export async function createAccount({ pool, sync }, username, password, skHex, onProgress = () => {}) {
   checkPassword(password);
   onProgress('account.progress.derive');
-  const lookup = await deriveLookup(username, password);
+  const lookup = await deriveLookup(username, password, (p) => onProgress('account.progress.derivePct', { p: Math.floor(p * 100) }));
   if (!pool.online) throw fail('account.error.offlineCreate', 'No relay connected — accounts live on relays, so you need to be online to create one.');
   onProgress('account.progress.check');
   const existing = await pool.fetch([accountFilter(lookup.lookupPk)], { ms: 5000, until: (events) => events.length > 0 });
@@ -141,7 +167,7 @@ export async function createAccount({ pool, sync }, username, password, skHex, o
 /** @returns {Promise<{sk: string, pk: string, alias: string, event: object}>} */
 export async function login(pool, username, password, onProgress = () => {}) {
   onProgress('account.progress.derive');
-  const lookup = await deriveLookup(username, password);
+  const lookup = await deriveLookup(username, password, (p) => onProgress('account.progress.derivePct', { p: Math.floor(p * 100) }));
   if (!pool.online) throw fail('account.error.offline', 'No relay connected — are you online?');
   onProgress('account.progress.ask');
   const events = await timeout(pool.fetch([accountFilter(lookup.lookupPk)], { ms: 8000, until: (found) => found.length > 0 }), 12_000, 'No relay answered.');

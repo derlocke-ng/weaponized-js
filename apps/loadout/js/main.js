@@ -74,11 +74,7 @@ function renderShell() {
 }
 
 function updateAccountBadge() {
-  const a = $('#accountLink');
-  if (!a) return;
-  const alias = app.identity.alias;
-  a.innerHTML = alias ? `<span class="wjs-avatar" aria-hidden="true">${h(alias[0].toUpperCase())}</span>` : icon('user');
-  a.title = alias ? t('app.signedInAs', { alias }) : t('app.deviceKeyBadge');
+  shell?.redraw(); // the shell draws the account button from the saved identity
 }
 
 /** Redraw everything in the current language. */
@@ -106,7 +102,8 @@ async function boot() {
       label: t('app.home'),
       mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
     },
-    right: () => `${statusPill({ href: '../settings.html#relays' })}<a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
+    right: () => statusPill({ href: '../settings.html#relays' }),
+    account: { href: '#/account' },
   });
   shell.onLanguage(rerender);
   await Promise.all([app.wallet.start(), app.settings.start()]);

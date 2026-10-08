@@ -8,7 +8,10 @@
   "db.filter.hiring": "Zoekt mensen",
   "db.filter.available": "Beschikbaar",
   "db.filter.saved": "Bewaard",
-  "db.stats": { "one": "{n} actief briefje", "other": "{n} actieve briefjes" },
+  "db.stats": {
+    "one": "{n} actief briefje",
+    "other": "{n} actieve briefjes"
+  },
   "db.statsMatching": "{n} passend",
   "db.empty": "Nog niets hier. Prik het eerste briefje.",
   "db.emptyFilter": "Geen passende briefjes.",
@@ -86,5 +89,20 @@
   "db.how.2": "Elk briefje draagt proof of work: een paar seconden rekenwerk voor een mens, uren voor een stortvloed. Briefjes zonder worden niet getoond.",
   "db.how.3": "Drie actieve briefjes per persoon, en briefjes verlopen. De relays gooien ze dan weg.",
   "db.how.4": "Stemmen zijn ook ondertekend, één per persoon en briefje. Briefjes die ver genoeg omlaag zijn gestemd klappen in; net als briefjes die meerdere mensen hebben gemeld.",
-  "db.how.5": "Blokkeer iemand vanaf elk briefje: hun briefjes en stemmen verdwijnen op al je apparaten. De lijst staat in de instellingen van de site."
+  "db.how.5": "Blokkeer iemand vanaf elk briefje: hun briefjes en stemmen verdwijnen op al je apparaten. De lijst staat in de instellingen van de site.",
+  "db.settings.title": "DevBoard-instellingen",
+  "db.settings.back": "Terug naar het bord",
+  "db.settings.account": "Jouw sleutel",
+  "db.settings.accountSigned": "Ingelogd als {alias}. Briefjes worden ondertekend met de sleutel van je account, dus je andere apparaten kunnen ze ook bewerken.",
+  "db.settings.accountDevice": "Briefjes worden ondertekend met de sleutel van dit apparaat. Met een account volgen je briefjes en bewaarde briefjes je naar elk apparaat.",
+  "db.settings.siteHint": "Account, relays, taal, back-up en geblokkeerde mensen staan in de instellingen van de site.",
+  "db.settings.openSite": "Instellingen van de site openen",
+  "db.settings.defaults": "Nieuwe briefjes",
+  "db.settings.defaultsText": "Vooraf ingevuld als je een briefje prikt; daar blijft alles aanpasbaar. Opgeslagen in je account.",
+  "db.settings.board": "Bord",
+  "db.settings.showCollapsed": "Ingeklapte briefjes open tonen",
+  "db.settings.pow": "Proof of work",
+  "db.settings.powText": "Een briefje prikken kost een moment rekenwerk. Meer kernen zijn sneller klaar; dit apparaat heeft er {n}.",
+  "db.settings.cores": "Te gebruiken kernen",
+  "db.settings.saved": "Opgeslagen."
 }

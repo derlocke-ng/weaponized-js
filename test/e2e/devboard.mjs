@@ -64,6 +64,7 @@ await run(
     const A = await dev('A');
     await open(A);
     assert.match(await A.textContent('#board'), /Nothing here yet/);
+    assert.ok(await A.$('#accountLink .icon'), 'the account button is in the top bar');
     await pin(A, { title: 'React dev wanted', text: 'Shop relaunch, 3 months, remote.', tags: 'React, Node.js', rate: '€60/h', contact: 'jobs@example.com' });
     assert.ok(await A.$('.note.mine.hiring'), 'own hiring note is marked');
     assert.match(await A.textContent('#stats'), /1 live note/);
@@ -161,6 +162,31 @@ await run(
     await A.waitForSelector('#postBtn');
     await until(async () => (await titles(A)).length === 3, 'three notes after a reload', 15000);
     assert.ok(!(await titles(A)).includes('Senior React dev wanted'), 'the tombstone holds after a reload');
+
+    step('DevBoard’s own settings: defaults for new notes, collapsed notes, cores for mining');
+    await B.click('#accountLink');
+    await B.waitForSelector('#defaultsForm');
+    assert.ok(B.url().includes('#/settings'), 'the account button opens DevBoard’s settings');
+    assert.ok(await B.$('a[href="../settings.html#account"]'), 'the site settings are one link away');
+    await B.check('#defaultsForm input[name=type][value=available]', { force: true });
+    await B.waitForSelector('.toast-success');
+    await B.fill('#defaultsForm [name=contact]', 'hello@example.com');
+    await B.press('#defaultsForm [name=contact]', 'Tab');
+    await B.selectOption('#defaultsForm [name=days]', '3');
+    await B.selectOption('#coresSelect', '1');
+    assert.equal(await B.evaluate(() => localStorage.getItem('wjs.pow.cores')), '1', 'cores are a device setting');
+    await B.reload();
+    await B.waitForSelector('#defaultsForm');
+    assert.equal(await B.inputValue('#defaultsForm [name=contact]'), 'hello@example.com', 'defaults survive a reload');
+    await B.click('.page-head .back');
+    await B.waitForSelector('#postBtn');
+    await B.click('#postBtn');
+    await B.waitForSelector('#compose');
+    assert.ok(await B.isChecked('#compose input[name=type][value=available]'), 'the default type is preselected');
+    assert.equal(await B.inputValue('#compose [name=contact]'), 'hello@example.com', 'the default contact is filled in');
+    assert.equal(await B.inputValue('#compose [name=days]'), '3', 'the default duration is selected');
+    await B.click('#compose .modal-actions [data-close]');
+    await until(async () => !(await B.$('#compose')), 'compose closed');
 
     step('a German browser gets the board in German');
     const D = await dev('D', { locale: 'de-DE' });

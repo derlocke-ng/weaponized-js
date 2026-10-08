@@ -33,7 +33,7 @@ await run(
     const A = await dev('A');
     await A.goto(env.base);
     await A.waitForSelector('#accountCta:not([hidden])');
-    assert.equal(await A.textContent('#accountName'), 'Sign in');
+    assert.equal(await A.getAttribute('#accountLink', 'title'), 'Sign in');
     await until(async () => (await A.$$('#relayList li.up')).length === 1, 'the test relay is up', 15000);
 
     step('creating an account in the settings signs the whole suite in');
@@ -145,7 +145,7 @@ await run(
     B.on('dialog', (d) => d.accept());
     await Promise.all([B.waitForEvent('load', { timeout: 30000 }), B.click('[data-act=wipe]')]);
     await B.waitForSelector('#accountCta:not([hidden])', { timeout: 30000 });
-    assert.equal(await B.textContent('#accountName'), 'Sign in');
+    assert.equal(await B.getAttribute('#accountLink', 'title'), 'Sign in');
 
     step('a wrong password shows the error inline');
     const C = await dev('C');

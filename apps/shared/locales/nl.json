@@ -43,6 +43,7 @@
   "sync.titleOff": "Geen relay verbonden — wijzigingen blijven op dit apparaat en worden later verzonden",
   "sync.rejected": "De relays hebben deze wijziging geweigerd: {reason}",
   "account.progress.derive": "Sleutels afleiden…",
+  "account.progress.derivePct": "Sleutels afleiden… {p}%",
   "account.progress.check": "Relays controleren…",
   "account.progress.publish": "Publiceren…",
   "account.progress.ask": "Relays raadplegen…",

@@ -8,7 +8,12 @@
   "db.filter.hiring": "Szuka ludzi",
   "db.filter.available": "Dostępni",
   "db.filter.saved": "Zapisane",
-  "db.stats": { "one": "{n} aktywna notka", "few": "{n} aktywne notki", "many": "{n} aktywnych notek", "other": "{n} aktywnej notki" },
+  "db.stats": {
+    "one": "{n} aktywna notka",
+    "few": "{n} aktywne notki",
+    "many": "{n} aktywnych notek",
+    "other": "{n} aktywnej notki"
+  },
   "db.statsMatching": "{n} pasuje",
   "db.empty": "Jeszcze nic tu nie ma. Przypnij pierwszą notkę.",
   "db.emptyFilter": "Żadna notka nie pasuje.",
@@ -86,5 +91,20 @@
   "db.how.2": "Każda notka niesie proof of work: kilka sekund obliczeń dla człowieka, godziny dla zalewu. Notki bez niego nie są pokazywane.",
   "db.how.3": "Trzy aktywne notki na osobę, a notki wygasają. Przekaźniki wtedy je usuwają.",
   "db.how.4": "Głosy też są podpisane, jeden na osobę i notkę. Notki przegłosowane wystarczająco na minus zwijają się; tak samo te zgłoszone przez kilka osób.",
-  "db.how.5": "Zablokuj kogoś z poziomu dowolnej notki: jego notki i głosy znikną na wszystkich twoich urządzeniach. Lista jest w ustawieniach strony."
+  "db.how.5": "Zablokuj kogoś z poziomu dowolnej notki: jego notki i głosy znikną na wszystkich twoich urządzeniach. Lista jest w ustawieniach strony.",
+  "db.settings.title": "Ustawienia DevBoard",
+  "db.settings.back": "Wróć do tablicy",
+  "db.settings.account": "Twój klucz",
+  "db.settings.accountSigned": "Zalogowano jako {alias}. Notki są podpisywane kluczem twojego konta, więc inne twoje urządzenia też mogą je edytować.",
+  "db.settings.accountDevice": "Notki są podpisywane kluczem tego urządzenia. Z kontem twoje notki i zapisane notki podążają za tobą na każde urządzenie.",
+  "db.settings.siteHint": "Konto, przekaźniki, język, kopia zapasowa i zablokowane osoby są w ustawieniach strony.",
+  "db.settings.openSite": "Otwórz ustawienia strony",
+  "db.settings.defaults": "Nowe notki",
+  "db.settings.defaultsText": "Wypełniane przy przypinaniu notki; tam wszystko można zmienić. Zapisane w twoim koncie.",
+  "db.settings.board": "Tablica",
+  "db.settings.showCollapsed": "Pokazuj zwinięte notki rozwinięte",
+  "db.settings.pow": "Proof of work",
+  "db.settings.powText": "Przypięcie notki zajmuje chwilę obliczeń. Więcej rdzeni kończy szybciej; to urządzenie ma {n}.",
+  "db.settings.cores": "Używane rdzenie",
+  "db.settings.saved": "Zapisano."
 }

@@ -85,7 +85,7 @@ async function onSubmit(e, draw) {
   const btn = $('#authBtn');
   const progress = $('#authProgress');
   const error = $('#authError');
-  const onProgress = (msg) => (progress.textContent = has(msg) ? t(msg) : msg);
+  const onProgress = (msg, params) => (progress.textContent = has(msg) ? t(msg, params) : msg);
   error.hidden = true;
   btn.disabled = true;
   try {

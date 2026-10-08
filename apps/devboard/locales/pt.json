@@ -8,7 +8,11 @@
   "db.filter.hiring": "Contrata",
   "db.filter.available": "Disponível",
   "db.filter.saved": "Guardadas",
-  "db.stats": { "one": "{n} nota ativa", "many": "{n} notas ativas", "other": "{n} notas ativas" },
+  "db.stats": {
+    "one": "{n} nota ativa",
+    "many": "{n} notas ativas",
+    "other": "{n} notas ativas"
+  },
   "db.statsMatching": "{n} a corresponder",
   "db.empty": "Ainda nada por aqui. Afixe a primeira nota.",
   "db.emptyFilter": "Nenhuma nota corresponde.",
@@ -86,5 +90,20 @@
   "db.how.2": "Cada nota traz prova de trabalho: alguns segundos de cálculo para uma pessoa, horas para uma enxurrada. Notas sem ela não são mostradas.",
   "db.how.3": "Três notas ativas por pessoa, e as notas expiram. Os relays descartam-nas então.",
   "db.how.4": "Os votos também são assinados, um por pessoa e nota. Notas votadas contra o suficiente recolhem-se; o mesmo para as que várias pessoas denunciaram.",
-  "db.how.5": "Bloqueie alguém a partir de qualquer nota: as suas notas e votos desaparecem em todos os seus dispositivos. A lista está nas definições do site."
+  "db.how.5": "Bloqueie alguém a partir de qualquer nota: as suas notas e votos desaparecem em todos os seus dispositivos. A lista está nas definições do site.",
+  "db.settings.title": "Definições do DevBoard",
+  "db.settings.back": "Voltar ao quadro",
+  "db.settings.account": "A sua chave",
+  "db.settings.accountSigned": "Sessão iniciada como {alias}. As notas são assinadas com a chave da sua conta, por isso os seus outros dispositivos também as podem editar.",
+  "db.settings.accountDevice": "As notas são assinadas com a chave deste dispositivo. Com uma conta, as suas notas e as notas guardadas seguem-no para todos os dispositivos.",
+  "db.settings.siteHint": "Conta, relays, idioma, cópia de segurança e pessoas bloqueadas estão nas definições do site.",
+  "db.settings.openSite": "Abrir as definições do site",
+  "db.settings.defaults": "Notas novas",
+  "db.settings.defaultsText": "Preenchido ao afixar uma nota; lá tudo continua editável. Guardado na sua conta.",
+  "db.settings.board": "Quadro",
+  "db.settings.showCollapsed": "Mostrar as notas recolhidas abertas",
+  "db.settings.pow": "Prova de trabalho",
+  "db.settings.powText": "Afixar uma nota leva um momento de cálculo. Mais núcleos terminam mais depressa; este dispositivo tem {n}.",
+  "db.settings.cores": "Núcleos a usar",
+  "db.settings.saved": "Guardado."
 }

@@ -45,6 +45,7 @@
   "sync.titleOff": "Aucun relais connecté — les modifications sont conservées sur cet appareil et envoyées plus tard",
   "sync.rejected": "Les relais ont refusé cette modification : {reason}",
   "account.progress.derive": "Dérivation des clés…",
+  "account.progress.derivePct": "Dérivation des clés… {p} %",
   "account.progress.check": "Vérification des relais…",
   "account.progress.publish": "Publication…",
   "account.progress.ask": "Interrogation des relais…",

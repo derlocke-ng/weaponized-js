@@ -8,14 +8,15 @@ import { initI18n, setLanguage, savedLanguage, currentLanguage, LANGUAGES } from
 import { applyTheme, setTheme, theme, watchDeviceSettings } from './theme.js';
 import { loadIdentity } from './account.js';
 import { AccountSettings } from './settings.js';
-import { mountTopbar } from './topbar.js';
+import { mountTopbar, accountLink } from './topbar.js';
+import { mountStatus } from './status.js';
 import { setSprite } from './ui.js';
 
 /**
  * @param {{ current: string, brand: object, right?: string, base?: string, header?: HTMLElement, dirs?: string[], sprite?: string, net?: object }} options
  *   base: path to the site root ('../' for an app); dirs: catalog dirs (shared + the app's own `locales/`)
  */
-export async function initAppShell({ current, brand, right = '', base = '../', header = '#top', dirs = [`${base}shared/locales/`, 'locales/'], sprite = 'icons.svg', net = null }) {
+export async function initAppShell({ current, brand, right = '', account = null, base = '../', header = '#top', dirs = [`${base}shared/locales/`, 'locales/'], sprite = 'icons.svg', net = null }) {
   // The header is looked up on every draw: apps that re-render their shell get a fresh element.
   const headerEl = () => (typeof header === 'string' ? document.querySelector(header) : header);
   applyTheme();
@@ -27,9 +28,16 @@ export async function initAppShell({ current, brand, right = '', base = '../', h
   const suite = new AccountSettings(identity, net, 'suite');
   if (net) await suite.start();
   const listeners = new Set();
+  let offStatus = null;
   const draw = () => {
     const el = headerEl();
-    if (el) mountTopbar(el, { base, current, brand, right: typeof right === 'function' ? right() : right, hidden: () => suite.get('hiddenApps', []) || [], sprite });
+    if (!el) return;
+    const extra = account ? accountLink({ ...account, identity: loadIdentity(), sprite }) : '';
+    mountTopbar(el, { base, current, brand, right: (typeof right === 'function' ? right() : right) + extra, hidden: () => suite.get('hiddenApps', []) || [], sprite });
+    // A connection pill in the bar (statusPill()) is kept live here, so apps need not remount it after a redraw.
+    offStatus?.();
+    const pill = net ? el.querySelector('.wjs-status') : null;
+    offStatus = pill ? mountStatus(pill, net) : null;
   };
   draw();
   const languageChanged = () => {

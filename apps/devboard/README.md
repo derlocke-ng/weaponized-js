@@ -7,7 +7,7 @@ Part of [weaponized.js](../../README.md). A public noticeboard on nostr: pin tha
 ## What a note is
 
 - A **kind 30810** addressable nostr event: a `d` tag per note, an `expiration` tag (NIP-40) between 24 hours and 30 days, one `t` tag per skill, and JSON content `{ type: "hiring" | "available", title, text, tags, rate, contact }`. Editing republishes under the same `d`; deleting publishes a `{ "del": 1 }` tombstone.
-- **Proof of work** (NIP-13): a note needs 20 leading zero bits in its id — a few seconds in a web worker, hours for a flood. Votes and reports need 12. Events without it are not shown, whatever a relay accepts.
+- **Proof of work** (NIP-13): a note needs 18 leading zero bits in its id, votes and reports 10. The shared engine in `apps/shared/pow.js` mines in parallel workers, so a note takes well under a second on a laptop and a second or two on a phone, while a flood still costs hours of CPU. Events without the work are not shown, whatever a relay accepts.
 - **Votes** are NIP-25 reactions (`+` or `-`; one per person and note, the newest wins, empty content takes a vote back). **Reports** are NIP-56 events (kind 1984) carrying the note's address.
 - **Saved notes** live in the account's encrypted settings (kind 30791, `d` = `devboard`) and follow you to every device.
 
@@ -18,7 +18,7 @@ Three live notes per person; the newest count and the rest collapse. Notes voted
 ## Files
 
 - `index.html`, `devboard.js`, `devboard.css` — the app, built on `apps/shared/` (design library, app shell, relays, sync, i18n, moderation).
-- `pow-worker.js` — mines the nonce off the main thread and reports progress.
+- The settings view (`#/settings`, behind the account button) — defaults for new notes (type, contact, duration; saved in the account), collapsed notes shown opened, and the cores to mine with.
 - `locales/` — strings in the suite's eight languages.
 
 ## Testing

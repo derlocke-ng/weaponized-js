@@ -47,6 +47,7 @@
   "sync.titleOff": "Brak połączenia z przekaźnikami – zmiany czekają na tym urządzeniu i zostaną wysłane później",
   "sync.rejected": "Przekaźniki odrzuciły tę zmianę: {reason}",
   "account.progress.derive": "Wyprowadzanie kluczy…",
+  "account.progress.derivePct": "Wyprowadzanie kluczy… {p}%",
   "account.progress.check": "Sprawdzanie przekaźników…",
   "account.progress.publish": "Publikowanie…",
   "account.progress.ask": "Odpytywanie przekaźników…",

@@ -8,7 +8,11 @@
   "db.filter.hiring": "Cerca persone",
   "db.filter.available": "Disponibile",
   "db.filter.saved": "Salvate",
-  "db.stats": { "one": "{n} nota attiva", "many": "{n} note attive", "other": "{n} note attive" },
+  "db.stats": {
+    "one": "{n} nota attiva",
+    "many": "{n} note attive",
+    "other": "{n} note attive"
+  },
   "db.statsMatching": "{n} corrispondenti",
   "db.empty": "Ancora niente qui. Appunta tu la prima nota.",
   "db.emptyFilter": "Nessuna nota corrisponde.",
@@ -86,5 +90,20 @@
   "db.how.2": "Ogni nota porta una proof of work: qualche secondo di calcolo per una persona, ore per un’ondata. Le note senza non vengono mostrate.",
   "db.how.3": "Tre note attive per persona, e le note scadono. Allora i relay le scartano.",
   "db.how.4": "Anche i voti sono firmati, uno per persona e nota. Le note votate contro abbastanza si ripiegano; così quelle segnalate da più persone.",
-  "db.how.5": "Blocca qualcuno da qualsiasi nota: le sue note e i suoi voti spariscono su tutti i tuoi dispositivi. L’elenco è nelle impostazioni del sito."
+  "db.how.5": "Blocca qualcuno da qualsiasi nota: le sue note e i suoi voti spariscono su tutti i tuoi dispositivi. L’elenco è nelle impostazioni del sito.",
+  "db.settings.title": "Impostazioni di DevBoard",
+  "db.settings.back": "Torna alla bacheca",
+  "db.settings.account": "La tua chiave",
+  "db.settings.accountSigned": "Accesso come {alias}. Le note sono firmate con la chiave del tuo account, quindi anche gli altri tuoi dispositivi possono modificarle.",
+  "db.settings.accountDevice": "Le note sono firmate con la chiave di questo dispositivo. Con un account, le tue note e quelle salvate ti seguono su ogni dispositivo.",
+  "db.settings.siteHint": "Account, relay, lingua, backup e persone bloccate sono nelle impostazioni del sito.",
+  "db.settings.openSite": "Apri le impostazioni del sito",
+  "db.settings.defaults": "Nuove note",
+  "db.settings.defaultsText": "Precompilato quando appunti una nota; lì resta tutto modificabile. Salvato nel tuo account.",
+  "db.settings.board": "Bacheca",
+  "db.settings.showCollapsed": "Mostra aperte le note ripiegate",
+  "db.settings.pow": "Proof of work",
+  "db.settings.powText": "Appuntare una nota richiede un attimo di calcolo. Più core finiscono prima; questo dispositivo ne ha {n}.",
+  "db.settings.cores": "Core da usare",
+  "db.settings.saved": "Salvato."
 }

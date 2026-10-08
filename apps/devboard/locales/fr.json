@@ -8,7 +8,11 @@
   "db.filter.hiring": "Recrute",
   "db.filter.available": "Disponible",
   "db.filter.saved": "Enregistrées",
-  "db.stats": { "one": "{n} note en ligne", "many": "{n} notes en ligne", "other": "{n} notes en ligne" },
+  "db.stats": {
+    "one": "{n} note en ligne",
+    "many": "{n} notes en ligne",
+    "other": "{n} notes en ligne"
+  },
   "db.statsMatching": "{n} qui correspondent",
   "db.empty": "Rien ici pour l’instant. Épinglez la première note.",
   "db.emptyFilter": "Aucune note ne correspond.",
@@ -86,5 +90,20 @@
   "db.how.2": "Chaque note porte une preuve de travail : quelques secondes de calcul pour une personne, des heures pour un déluge. Les notes sans preuve ne sont pas affichées.",
   "db.how.3": "Trois notes en ligne par personne, et les notes expirent. Les relais les suppriment alors.",
   "db.how.4": "Les votes sont signés aussi, un par personne et par note. Les notes trop votées contre se replient ; de même celles que plusieurs personnes ont signalées.",
-  "db.how.5": "Bloquez quelqu’un depuis n’importe quelle note : ses notes et ses votes disparaissent sur tous vos appareils. La liste se trouve dans les réglages du site."
+  "db.how.5": "Bloquez quelqu’un depuis n’importe quelle note : ses notes et ses votes disparaissent sur tous vos appareils. La liste se trouve dans les réglages du site.",
+  "db.settings.title": "Réglages de DevBoard",
+  "db.settings.back": "Retour au tableau",
+  "db.settings.account": "Votre clé",
+  "db.settings.accountSigned": "Connecté en tant que {alias}. Les notes sont signées avec la clé de votre compte, vos autres appareils peuvent donc aussi les modifier.",
+  "db.settings.accountDevice": "Les notes sont signées avec la clé de cet appareil. Avec un compte, vos notes et vos notes enregistrées vous suivent sur chaque appareil.",
+  "db.settings.siteHint": "Compte, relais, langue, sauvegarde et personnes bloquées se trouvent dans les réglages du site.",
+  "db.settings.openSite": "Ouvrir les réglages du site",
+  "db.settings.defaults": "Nouvelles notes",
+  "db.settings.defaultsText": "Pré-rempli quand vous épinglez une note ; tout reste modifiable là-bas. Enregistré dans votre compte.",
+  "db.settings.board": "Tableau",
+  "db.settings.showCollapsed": "Afficher les notes repliées dépliées",
+  "db.settings.pow": "Preuve de travail",
+  "db.settings.powText": "Épingler une note demande un instant de calcul. Plus de cœurs finissent plus vite ; cet appareil en a {n}.",
+  "db.settings.cores": "Cœurs à utiliser",
+  "db.settings.saved": "Enregistré."
 }

@@ -45,6 +45,7 @@
   "sync.titleOff": "Nessun relay connesso — le modifiche restano su questo dispositivo e verranno inviate più tardi",
   "sync.rejected": "I relay hanno rifiutato questa modifica: {reason}",
   "account.progress.derive": "Derivazione delle chiavi…",
+  "account.progress.derivePct": "Derivazione delle chiavi… {p}%",
   "account.progress.check": "Controllo dei relay…",
   "account.progress.publish": "Pubblicazione…",
   "account.progress.ask": "Richiesta ai relay…",

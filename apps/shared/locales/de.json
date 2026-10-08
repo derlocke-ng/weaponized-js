@@ -43,6 +43,7 @@
   "sync.titleOff": "Kein Relay verbunden – Änderungen bleiben auf diesem Gerät und werden später gesendet",
   "sync.rejected": "Die Relays haben diese Änderung abgelehnt: {reason}",
   "account.progress.derive": "Schlüssel werden abgeleitet…",
+  "account.progress.derivePct": "Schlüssel werden abgeleitet… {p} %",
   "account.progress.check": "Relays werden geprüft…",
   "account.progress.publish": "Wird veröffentlicht…",
   "account.progress.ask": "Relays werden abgefragt…",

@@ -292,3 +292,27 @@ body {
 .foot a {
   color: var(--muted);
 }
+
+/* ---- settings view ---- */
+.settings {
+  display: grid;
+  gap: 1rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.settings .page-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings .page-head h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.settings .card .btn {
+  justify-self: start;
+}

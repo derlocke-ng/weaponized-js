@@ -8,7 +8,10 @@
   "db.filter.hiring": "Hiring",
   "db.filter.available": "Available",
   "db.filter.saved": "Saved",
-  "db.stats": { "one": "{n} live note", "other": "{n} live notes" },
+  "db.stats": {
+    "one": "{n} live note",
+    "other": "{n} live notes"
+  },
   "db.statsMatching": "{n} matching",
   "db.empty": "Nothing here yet. Be the first to pin a note.",
   "db.emptyFilter": "No notes match.",
@@ -86,5 +89,20 @@
   "db.how.2": "Every note carries proof of work: a few seconds of computing for a person, hours for a flood. Notes without it are not shown.",
   "db.how.3": "Three live notes per person, and notes expire. Relays drop them when they do.",
   "db.how.4": "Votes are signed too, one per person and note. Notes voted down far enough collapse; so do notes several people reported.",
-  "db.how.5": "Block someone from any note: their notes and votes disappear on all your devices. The list lives in the site settings."
+  "db.how.5": "Block someone from any note: their notes and votes disappear on all your devices. The list lives in the site settings.",
+  "db.settings.title": "DevBoard settings",
+  "db.settings.back": "Back to the board",
+  "db.settings.account": "Your key",
+  "db.settings.accountSigned": "Signed in as {alias}. Notes are signed with your account’s key, so your other devices can edit them too.",
+  "db.settings.accountDevice": "Notes are signed with this device’s key. With an account, your notes and saved notes follow you to every device.",
+  "db.settings.siteHint": "Account, relays, language, backup and blocked people are in the site settings.",
+  "db.settings.openSite": "Open the site settings",
+  "db.settings.defaults": "New notes",
+  "db.settings.defaultsText": "Filled in when you pin a note; everything stays editable there. Saved in your account.",
+  "db.settings.board": "Board",
+  "db.settings.showCollapsed": "Show collapsed notes opened",
+  "db.settings.pow": "Proof of work",
+  "db.settings.powText": "Pinning a note takes a moment of computing. More cores finish faster; this device has {n}.",
+  "db.settings.cores": "Cores to use",
+  "db.settings.saved": "Saved."
 }

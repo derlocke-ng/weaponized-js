@@ -4,7 +4,7 @@ import { t, LANGUAGES, currentLanguage, shouldAskLanguage } from './shared/i18n.
 import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
-import { mountTopbar } from './shared/topbar.js';
+import { mountTopbar, accountLink } from './shared/topbar.js';
 import { statusPill, mountStatus } from './shared/status.js';
 
 const infos = new Map();
@@ -26,9 +26,7 @@ function drawHeader() {
     current: 'hub',
     hidden: hiddenApps,
     brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
-    right: `${statusPill()}<a class="icon-btn" href="settings.html#account" id="accountLink" title="${h(id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn'))}">${
-      id.alias ? `<span class="wjs-avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName" class="sr-only">${h(t('hub.signIn'))}</span>`
-    }</a>`,
+    right: statusPill() + accountLink({ href: 'settings.html#account', identity: id, label: t('hub.signIn') }),
   });
   $('#accountCta').hidden = Boolean(id.alias);
   mountStatus($('#sync'), net);

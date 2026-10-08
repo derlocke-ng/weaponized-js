@@ -23,6 +23,18 @@ export const SITE_MARK = `<svg class="wjs-mark" viewBox="0 0 32 32" aria-hidden=
  * `right` is trusted markup for the right-hand side; `brand.name` may contain a
  * `<span class="wjs-brand-ext">` suffix when `brand.html` is given instead.
  */
+/**
+ * The account button: the first letter of the alias in a circle when signed
+ * in, a user icon otherwise. `label` is the signed-out title (default: the
+ * device-key hint). Pure markup, the same in every top bar.
+ */
+export function accountLink({ href, identity, label = null, id = 'accountLink', sprite = 'icons.svg' }) {
+  const alias = identity?.alias;
+  const title = alias ? t('app.signedInAs', { alias }) : label || t('app.deviceKeyBadge');
+  const body = alias ? `<span class="wjs-avatar" aria-hidden="true">${h(alias[0].toUpperCase())}</span>` : `<svg class="icon" aria-hidden="true"><use href="${h(sprite)}#user"></use></svg>`;
+  return `<a class="icon-btn" href="${h(href)}" id="${h(id)}" title="${h(title)}" aria-label="${h(title)}">${body}</a>`;
+}
+
 export function mountTopbar(header, { base, current, brand, right = '', hidden, sprite = 'icons.svg' }) {
   ensureStyles(base);
   header.classList.add('wjs-top');

@@ -30,7 +30,8 @@ Costs accepted: nostr relays see the same metadata gun relays saw (who writes wh
 | `events.js` | Kind numbers, event helpers (`makeAddressable`, `sign`, `stamp`), AES-GCM content encryption (`seal` / `open`), HKDF key derivation. |
 | `store.js` | `LocalStore`: IndexedDB (`wjs`) with the device's copy of every event it cares about, an outbox of events not yet accepted by each relay, and small metadata. |
 | `relays.js` | `RelayPool`: the user's relay list (`localStorage` `wjs.relays`), connections with ping/reconnect, latency, NIP-11 info (name, country) for the server picker, publish to all with per-relay results, de-duplicated subscriptions. |
-| `account.js` | Device key, username + password accounts (below), nsec / ncryptsec import and export. |
+| `account.js` | Device key, username + password accounts (below), nsec / ncryptsec import and export. The scrypt derivation runs in `account-worker.js`, so signing in never freezes the page, and reports progress. |
+| `pow.js` | NIP-13 proof of work for any app: `minePow` mines in parallel workers (`pow-worker.js`, every core but one or the device setting `wjs.pow.cores`), serialising the event once and patching only the nonce digits into the bytes; `hasPow` checks what arrives. |
 | `sync.js` | `Sync`: publish = store locally + send to every relay + queue what failed; flush the outbox on (re)connect; heal relays with the device's copy of watched authors. |
 | `util.js` | base64url, ids, safe `localStorage`. |
 
@@ -164,9 +165,10 @@ Items are one event each (not one blob per board), so two people editing differe
 The freelancer noticeboard is public by nature, so its defence is not encryption but cost and consensus, applied by every reader (`apps/devboard/`):
 
 - **A note** is a kind 30810 event (see the table) that lives 24 hours to 30 days; relays drop it at `expiration`, readers drop it even if a relay does not. Editing republishes under the same `d`; deleting publishes a `{ "del": 1 }` tombstone that supersedes the note and is kept in memory so an older copy cannot resurrect it.
-- **Proof of work** (NIP-13): 20 leading zero bits per note, mined in a web worker (`pow-worker.js`, a few seconds on a phone); 12 bits per vote or report. Events below the bar are not shown, whatever a relay accepted. The bar is a constant in the client, so a relay policy can enforce the same numbers server-side later (strfry plugin).
+- **Proof of work** (NIP-13): 18 leading zero bits per note, 10 per vote or report, mined by the shared engine (`apps/shared/pow.js`): well under a second on a laptop, a second or two on a phone, hours for a flood. Events below the bar are not shown, whatever a relay accepted. The bar is a constant in the client, so a relay policy can enforce the same numbers server-side later (strfry plugin). The cores to mine with are a device setting in DevBoard's settings.
 - **Three live notes per person**; the newest three count and the rest collapse. **Votes** are NIP-25 reactions with `+`/`-`, one per person and note (the newest wins, empty content takes it back), capped at ten per half minute per device. A note at −5 collapses; so does one that three or more people reported (NIP-56, with the note's address). Collapsed notes can be opened anyway; your own never collapse for you.
 - **The suite's moderation applies**: a blocked person's notes, votes and reports vanish on every device (encrypted NIP-51 list), and blocking is one tap from any note. Saved notes are account settings (kind 30791, `d` = `devboard`).
+- **Its own settings** (`#/settings`, behind the account button): defaults for new notes (type, contact, duration; kept in the account), collapsed notes shown opened, and the cores to mine with. Account, relays, language, backup and blocks stay in the site settings.
 - **Contact** is whatever the poster wrote (mail, handle, npub), shown only on request, with a reminder to check who you are talking to; Uplink becomes the in-app path once it exists.
 
 ## Roadmap

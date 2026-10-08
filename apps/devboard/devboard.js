@@ -10,17 +10,17 @@ import { KINDS, now, sign, stamp, addressOf, fingerprint } from '../shared/event
 import { loadIdentity, npub } from '../shared/account.js';
 import { AccountSettings } from '../shared/settings.js';
 import { BlockList, REPORT_TYPES } from '../shared/moderation.js';
-import { nip13 } from '../shared/nostr.mjs';
+import { minePow, hasPow, cores, hardwareCores, CORES_KEY } from '../shared/pow.js';
 import { initAppShell } from '../shared/appshell.js';
-import { statusPill, mountStatus } from '../shared/status.js';
+import { statusPill } from '../shared/status.js';
 import { t, tErr, relTime } from '../shared/i18n.js';
 import { $, $$, h, icon, toast, modal, confirmDialog } from '../shared/ui.js';
 import { store, randomId } from '../shared/util.js';
 
 // ---- rules ----
 const LIMITS = { title: 80, text: 300, tags: 10, tag: 24, rate: 60, contact: 200, perKey: 3, maxDays: 31 };
-const POW_POST = Number(store.get('devboard.pow')) || 20; // leading zero bits a note needs
-const POW_VOTE = Math.min(12, POW_POST);
+const POW_POST = Number(store.get('devboard.pow')) || 18; // leading zero bits a note needs (~0.3 s on a laptop with the shared miner)
+const POW_VOTE = Math.min(10, POW_POST);
 const COLLAPSE_SCORE = -5;
 const COLLAPSE_REPORTS = 3;
 const VOTE_WINDOW = 30_000;
@@ -50,8 +50,7 @@ function parsePost(ev) {
   const address = addressOf(ev);
   if (!address) return null;
   const exp = Number(ev.tags.find((x) => x[0] === 'expiration')?.[1]);
-  const nonce = ev.tags.find((x) => x[0] === 'nonce');
-  if (!(nip13.getPow(ev.id) >= POW_POST && Number(nonce?.[2]) >= POW_POST)) return null; // no proof of work, no board
+  if (!hasPow(ev, POW_POST)) return null; // no proof of work, no board
   if (!(exp > ev.created_at && exp - ev.created_at <= LIMITS.maxDays * 86_400)) return null;
   let data;
   try {
@@ -87,7 +86,7 @@ function receive(ev) {
   } else if (ev.kind === KINDS.REACTION) {
     const a = ev.tags.find((x) => x[0] === 'a')?.[1];
     const v = ev.content === '+' ? 1 : ev.content === '-' ? -1 : 0;
-    if (!a || !v || nip13.getPow(ev.id) < POW_VOTE) return;
+    if (!a || !v || !hasPow(ev, POW_VOTE)) return;
     if (!votes.has(a)) votes.set(a, new Map());
     const cur = votes.get(a).get(ev.pubkey);
     if (cur && cur.at >= ev.created_at) return;
@@ -95,7 +94,7 @@ function receive(ev) {
     scheduleRender();
   } else if (ev.kind === KINDS.REPORT) {
     const a = ev.tags.find((x) => x[0] === 'a')?.[1];
-    if (!a || nip13.getPow(ev.id) < POW_VOTE) return;
+    if (!a || !hasPow(ev, POW_VOTE)) return;
     if (!reports.has(a)) reports.set(a, new Map());
     reports.get(a).set(ev.pubkey, ev.created_at);
     scheduleRender();
@@ -144,10 +143,30 @@ function visiblePosts() {
 
 const saved = () => new Set(prefs?.get('saved', []) || []);
 
+/** What the settings prefill and how the board behaves; kept in the account. */
+const defaults = () => ({
+  type: prefs?.get('type') === 'available' ? 'available' : 'hiring',
+  contact: String(prefs?.get('contact') || '').slice(0, LIMITS.contact),
+  days: DURATIONS.includes(Number(prefs?.get('days'))) ? Number(prefs.get('days')) : 7,
+  showCollapsed: Boolean(prefs?.get('showCollapsed')),
+});
+
 // ---- render ----
 
 function render() {
   const main = $('#main');
+  const wanted = location.hash.startsWith('#/settings') ? 'settings' : 'board';
+  if (main.dataset.view !== wanted) {
+    delete main.dataset.ready;
+    main.dataset.view = wanted;
+  }
+  if (wanted === 'settings') {
+    if (!main.dataset.ready) {
+      main.dataset.ready = '1';
+      renderSettings(main);
+    }
+    return;
+  }
   const all = visiblePosts();
   const q = query.trim().toLowerCase();
   const items = all
@@ -186,10 +205,51 @@ function render() {
   board.innerHTML = items.length ? items.map(card).join('') : `<p class="empty">${h(all.length ? t('db.emptyFilter') : t('db.empty'))}</p>`;
 }
 
+/** DevBoard's own settings; account, relays, language and blocks are the site's. */
+function renderSettings(main) {
+  const { alias } = identity;
+  const d = defaults();
+  const max = Math.max(hardwareCores(), cores());
+  main.innerHTML = `
+    <section class="settings">
+      <div class="page-head">
+        <a class="icon-btn back" href="#/" aria-label="${h(t('db.settings.back'))}">${icon('chevron-left')}</a>
+        <h1>${h(t('db.settings.title'))}</h1>
+      </div>
+      <div class="card">
+        <h2>${icon('key-round')}${h(t('db.settings.account'))}</h2>
+        <p>${h(alias ? t('db.settings.accountSigned', { alias }) : t('db.settings.accountDevice'))} <code title="${h(npub(identity.pk))}">${h(fingerprint(identity.pk))}</code></p>
+        <p class="muted small">${h(t('db.settings.siteHint'))}</p>
+        <a class="btn btn-primary" href="../settings.html#account">${icon('settings')}<span>${h(t('db.settings.openSite'))}</span></a>
+      </div>
+      <div class="card">
+        <h2>${icon('pencil')}${h(t('db.settings.defaults'))}</h2>
+        <p class="muted small">${h(t('db.settings.defaultsText'))}</p>
+        <form class="form" id="defaultsForm">
+          <div class="seg" role="radiogroup" aria-label="${h(t('db.compose.iam'))}">
+            <label><input type="radio" name="type" value="hiring" ${d.type === 'hiring' ? 'checked' : ''}><span>${h(t('db.compose.hiring'))}</span></label>
+            <label><input type="radio" name="type" value="available" ${d.type === 'available' ? 'checked' : ''}><span>${h(t('db.compose.available'))}</span></label>
+          </div>
+          <label class="field">${h(t('db.compose.contact'))}<input name="contact" maxlength="${LIMITS.contact}" value="${h(d.contact)}" placeholder="${h(t('db.compose.contactPlaceholder'))}"></label>
+          <label class="field">${h(t('db.compose.duration'))}<select name="days">${DURATIONS.map((n) => `<option value="${n}" ${n === d.days ? 'selected' : ''}>${h(t(`db.duration.${n}`))}</option>`).join('')}</select></label>
+        </form>
+      </div>
+      <div class="card">
+        <h2>${icon('eye')}${h(t('db.settings.board'))}</h2>
+        <label class="check-row"><input type="checkbox" id="showCollapsed" ${d.showCollapsed ? 'checked' : ''}><span>${h(t('db.settings.showCollapsed'))}</span></label>
+      </div>
+      <div class="card">
+        <h2>${icon('shield')}${h(t('db.settings.pow'))}</h2>
+        <p class="muted small">${h(t('db.settings.powText', { n: hardwareCores() }))}</p>
+        <label class="field">${h(t('db.settings.cores'))}<select id="coresSelect">${Array.from({ length: max }, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === cores() ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      </div>
+    </section>`;
+}
+
 function card(p) {
   const mineNote = p.pubkey === identity.pk;
   const my = votes.get(p.address)?.get(identity.pk)?.v || 0;
-  const collapsed = p.collapsed && !revealed.has(p.address);
+  const collapsed = p.collapsed && !revealed.has(p.address) && !defaults().showCollapsed;
   const reason = { cap: 'db.collapsedCap', reports: 'db.collapsedReports', score: 'db.collapsedScore' }[p.collapsed];
   return `
     <article class="note ${p.data.type} ${mineNote ? 'mine' : ''} ${collapsed ? 'collapsed' : ''}" data-a="${h(p.address)}">
@@ -223,22 +283,8 @@ function card(p) {
 
 // ---- events out ----
 
-const worker = new Worker('pow-worker.js', { type: 'module' });
-let mining = null;
-/** Mine a nonce for an unsigned event in the worker; onProgress gets seconds elapsed. */
-function mine(template, difficulty, onProgress) {
-  if (mining) return Promise.reject(new Error('busy'));
-  return new Promise((resolve, reject) => {
-    mining = { resolve, reject };
-    worker.onmessage = (e) => {
-      if (e.data.progress != null) return onProgress?.(Math.round(e.data.progress / 1000));
-      mining = null;
-      if (e.data.error) reject(new Error(e.data.error));
-      else resolve(e.data.event);
-    };
-    worker.postMessage({ event: template, difficulty });
-  });
-}
+/** Mine in the shared workers (every core but one, or the device setting); onProgress gets seconds elapsed. */
+const mine = (template, bits, onProgress) => minePow(template, bits, { onProgress: ({ ms }) => onProgress?.(Math.round(ms / 1000)) });
 
 async function publishPost(data, { d = randomId(), days = 7, onProgress } = {}) {
   if (!net.pool.online) throw new Error(t('db.compose.needRelay'));
@@ -289,7 +335,8 @@ async function report(p, type, text) {
 // ---- dialogs ----
 
 function composeDialog(existing = null) {
-  const d = existing?.data || { type: 'hiring', title: '', text: '', tags: [], rate: '', contact: '' };
+  const dflt = defaults();
+  const d = existing?.data || { type: dflt.type, title: '', text: '', tags: [], rate: '', contact: dflt.contact };
   const mineLive = visiblePosts().filter((p) => p.pubkey === identity.pk).length;
   if (!existing && mineLive >= LIMITS.perKey) return toast(t('db.limit'), 'error', 5000);
   const m = modal({
@@ -306,7 +353,7 @@ function composeDialog(existing = null) {
         <label class="field">${h(t('db.compose.tags'))}<input name="tags" maxlength="200" value="${h(d.tags.join(', '))}" placeholder="${h(t('db.compose.tagsPlaceholder'))}"></label>
         <div class="row">
           <label class="field">${h(t('db.compose.rate'))}<input name="rate" maxlength="${LIMITS.rate}" value="${h(d.rate)}" placeholder="${h(t('db.compose.ratePlaceholder'))}"></label>
-          <label class="field">${h(t('db.compose.duration'))}<select name="days">${DURATIONS.map((n) => `<option value="${n}" ${n === 7 ? 'selected' : ''}>${h(t(`db.duration.${n}`))}</option>`).join('')}</select></label>
+          <label class="field">${h(t('db.compose.duration'))}<select name="days">${DURATIONS.map((n) => `<option value="${n}" ${n === dflt.days ? 'selected' : ''}>${h(t(`db.duration.${n}`))}</option>`).join('')}</select></label>
         </div>
         <label class="field">${h(t('db.compose.contact'))}<input name="contact" required maxlength="${LIMITS.contact}" value="${h(d.contact)}" placeholder="${h(t('db.compose.contactPlaceholder'))}"></label>
         <p class="hint">${h(t('db.compose.contactHint'))}</p>
@@ -461,10 +508,11 @@ async function boot() {
   shell = await initAppShell({
     current: 'devboard',
     net,
-    brand: { href: './', name: 'DevBoard', mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path d="M18 20h28v26l-8-6-8 6V20z"/></svg>' },
-    right: () => `${statusPill({ href: '../settings.html#relays' })}`,
+    brand: { href: '#/', name: 'DevBoard', mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path d="M18 20h28v26l-8-6-8 6V20z"/></svg>' },
+    right: () => statusPill({ href: '../settings.html#relays' }),
+    account: { href: '#/settings' },
+    sprite: '../icons.svg',
   });
-  mountStatus($('#sync'), net);
   shell.onLanguage(() => {
     delete $('#main').dataset.ready;
     render();
@@ -488,11 +536,23 @@ async function boot() {
     }
   });
   $('#main').addEventListener('change', (e) => {
+    const form = e.target.closest('#defaultsForm');
     if (e.target.name === 'filter') {
       filter = e.target.value;
       render();
+    } else if (form) {
+      prefs
+        .set({ type: form.type.value, contact: form.contact.value.trim().slice(0, LIMITS.contact), days: Number(form.days.value) })
+        .then(() => toast(t('db.settings.saved'), 'success'))
+        .catch((err) => toast(tErr(err), 'error'));
+    } else if (e.target.id === 'showCollapsed') {
+      prefs.set({ showCollapsed: e.target.checked }).catch((err) => toast(tErr(err), 'error'));
+    } else if (e.target.id === 'coresSelect') {
+      store.set(CORES_KEY, Number(e.target.value));
+      toast(t('db.settings.saved'), 'success');
     }
   });
+  window.addEventListener('hashchange', render);
   setInterval(render, 60_000); // "expires in …" and expired notes
 }
 
