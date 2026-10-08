@@ -77,7 +77,6 @@
   "db.compose.submit": "Fijar",
   "db.compose.save": "Guardar cambios",
   "db.compose.pow": "Demostrando que esto no es spam… {s} s",
-  "db.compose.powHint": "Fijar lleva unos segundos de cálculo: eso es lo que mantiene el tablón libre de bots.",
   "db.compose.published": "Fijada. Los demás la verán a medida que los relés la pasen.",
   "db.compose.needRelay": "Ningún relé conectado: una nota tiene que llegar a un relé para que se vea.",
   "db.compose.titleRequired": "Ponle un título a la nota.",

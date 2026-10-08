@@ -77,7 +77,6 @@
   "db.compose.submit": "Épingler",
   "db.compose.save": "Enregistrer les modifications",
   "db.compose.pow": "Preuve que ce n’est pas du spam… {s} s",
-  "db.compose.powHint": "Épingler demande quelques secondes de calcul : c’est ce qui garde le tableau sans bots.",
   "db.compose.published": "Épinglée. Les autres la verront à mesure que les relais la transmettent.",
   "db.compose.needRelay": "Aucun relais connecté : une note doit atteindre un relais pour être vue.",
   "db.compose.titleRequired": "Donnez un titre à la note.",

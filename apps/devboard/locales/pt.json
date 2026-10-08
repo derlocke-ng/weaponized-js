@@ -77,7 +77,6 @@
   "db.compose.submit": "Afixar",
   "db.compose.save": "Guardar alterações",
   "db.compose.pow": "A provar que isto não é spam… {s} s",
-  "db.compose.powHint": "Afixar leva alguns segundos de cálculo: é isso que mantém o quadro livre de bots.",
   "db.compose.published": "Afixada. Os outros vão vê-la à medida que os relays a passam.",
   "db.compose.needRelay": "Nenhum relay ligado: uma nota tem de chegar a um relay para ser vista.",
   "db.compose.titleRequired": "Dê um título à nota.",

@@ -76,7 +76,6 @@
   "db.compose.submit": "Prikken",
   "db.compose.save": "Wijzigingen opslaan",
   "db.compose.pow": "Bewijzen dat dit geen spam is… {s} s",
-  "db.compose.powHint": "Prikken kost een paar seconden rekenwerk: dat houdt het bord vrij van bots.",
   "db.compose.published": "Geprikt. Anderen zien het zodra de relays het doorgeven.",
   "db.compose.needRelay": "Geen relay verbonden: een briefje moet een relay bereiken om gezien te worden.",
   "db.compose.titleRequired": "Geef het briefje een titel.",

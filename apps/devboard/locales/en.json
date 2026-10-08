@@ -76,7 +76,6 @@
   "db.compose.submit": "Pin it",
   "db.compose.save": "Save changes",
   "db.compose.pow": "Proving this isn’t spam… {s} s",
-  "db.compose.powHint": "Pinning takes a few seconds of computing: that is what keeps the board free of bots.",
   "db.compose.published": "Pinned. It shows up for others as the relays pass it on.",
   "db.compose.needRelay": "No relay connected: a note has to reach a relay to be seen.",
   "db.compose.titleRequired": "Give the note a title.",

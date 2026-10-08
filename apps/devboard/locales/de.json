@@ -76,7 +76,6 @@
   "db.compose.submit": "Anpinnen",
   "db.compose.save": "Änderungen speichern",
   "db.compose.pow": "Beweise, dass das kein Spam ist… {s} s",
-  "db.compose.powHint": "Anpinnen kostet ein paar Sekunden Rechenzeit: das hält Bots vom Brett fern.",
   "db.compose.published": "Angepinnt. Andere sehen die Notiz, sobald die Relays sie weitergeben.",
   "db.compose.needRelay": "Kein Relay verbunden: eine Notiz muss ein Relay erreichen, um gesehen zu werden.",
   "db.compose.titleRequired": "Gib der Notiz einen Titel.",

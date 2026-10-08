@@ -77,7 +77,6 @@
   "db.compose.submit": "Appunta",
   "db.compose.save": "Salva modifiche",
   "db.compose.pow": "Dimostro che non è spam… {s} s",
-  "db.compose.powHint": "Appuntare richiede qualche secondo di calcolo: è ciò che tiene la bacheca libera dai bot.",
   "db.compose.published": "Appuntata. Gli altri la vedranno man mano che i relay la passano.",
   "db.compose.needRelay": "Nessun relay connesso: una nota deve raggiungere un relay per essere vista.",
   "db.compose.titleRequired": "Dai un titolo alla nota.",

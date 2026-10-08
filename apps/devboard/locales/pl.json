@@ -78,7 +78,6 @@
   "db.compose.submit": "Przypnij",
   "db.compose.save": "Zapisz zmiany",
   "db.compose.pow": "Dowodzę, że to nie spam… {s} s",
-  "db.compose.powHint": "Przypięcie zajmuje kilka sekund obliczeń: to właśnie trzyma boty z dala od tablicy.",
   "db.compose.published": "Przypięto. Inni zobaczą notkę, gdy przekaźniki ją przekażą.",
   "db.compose.needRelay": "Brak połączonego przekaźnika: notka musi dotrzeć do przekaźnika, żeby ktoś ją zobaczył.",
   "db.compose.titleRequired": "Nadaj notce tytuł.",

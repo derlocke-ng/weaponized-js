@@ -516,6 +516,15 @@ select:focus {
   margin-top: 0.25rem;
 }
 
+/* A long form scrolls inside the dialog; its buttons stay in reach at the bottom. */
+.modal .modal-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 0.25rem -1.2rem -1.2rem;
+  padding: 0.6rem 1.2rem 1.2rem;
+  background: var(--surface);
+}
+
 .modal-actions .progress-text {
   margin-right: auto;
 }

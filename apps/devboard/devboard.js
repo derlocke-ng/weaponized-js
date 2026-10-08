@@ -362,7 +362,6 @@ function composeDialog(existing = null) {
         </div>
         <label class="field">${h(t('db.compose.contact'))}<input name="contact" required maxlength="${LIMITS.contact}" value="${h(d.contact)}" placeholder="${h(t('db.compose.contactPlaceholder'))}"></label>
         <p class="hint">${h(t('db.compose.contactHint'))}</p>
-        <p class="hint">${h(t('db.compose.powHint'))}</p>
         <p class="pow" id="pow" hidden><span class="spinner"></span><span id="powText"></span></p>
         <div class="modal-actions">
           <button type="button" class="btn" data-close>${h(t('common.cancel'))}</button>
