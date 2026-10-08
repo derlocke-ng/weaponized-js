@@ -22,8 +22,7 @@
       <span>weaponized<span class="logo-ext">.js</span></span>
     </a>
     <span class="spacer"></span>
-    <a class="top-link account-link" href="#account" id="accountLink"><svg class="icon"><use href="icons.svg#user"/></svg><span id="accountName" data-i18n="hub.signIn">Sign in</span></a>
-    <a class="top-link" href="settings.html" id="settingsLink" aria-label="Settings"><svg class="icon"><use href="icons.svg#settings"/></svg><span data-i18n="hub.settings">Settings</span></a>
+    <a class="top-link account-link" href="settings.html#account" id="accountLink"><svg class="icon"><use href="icons.svg#user"/></svg><span id="accountName" data-i18n="hub.signIn">Sign in</span></a>
   </header>
 
   <div id="langBanner"></div>
@@ -34,10 +33,10 @@
       <p data-i18n="hub.lead">Every tool here runs entirely in your browser and syncs over relays you choose. No sign-up needed, no server of ours, no tracking — and encryption happens before anything leaves your device.</p>
     </section>
 
-    <section class="card account" id="account" aria-labelledby="accountTitle">
-      <h2 id="accountTitle"><svg class="icon"><use href="icons.svg#key-round"/></svg><span data-i18n="hub.account">Your account</span></h2>
-      <div id="accountBody"><p class="muted" data-i18n="hub.accountText">One account for every tool here.</p></div>
-    </section>
+    <a class="banner account-cta" id="accountCta" href="settings.html#account" hidden>
+      <svg class="icon"><use href="icons.svg#key-round"/></svg>
+      <p><b data-i18n="hub.ctaTitle">Sign in or create an account</b> <span data-i18n="hub.ctaText">to use your boards, files and chats on every device.</span></p>
+    </a>
 
     <a class="feature" href="loadout/" data-app="loadout">
       <div class="feature-icon"><svg class="icon"><use href="icons.svg#list-checks"/></svg></div>

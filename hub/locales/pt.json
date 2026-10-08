@@ -34,5 +34,7 @@
     "one": "Backup com {n} entrada descarregado",
     "many": "Backup com {n} entradas descarregado",
     "other": "Backup com {n} entradas descarregado"
-  }
+  },
+  "hub.ctaTitle": "Inicia sessão ou cria uma conta",
+  "hub.ctaText": "para usares os teus quadros, ficheiros e conversas em todos os dispositivos."
 }

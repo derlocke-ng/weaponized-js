@@ -208,6 +208,32 @@ export class RelayPool {
     return [...events.values()];
   }
 
+  /** What one relay holds for these filters (until its EOSE or `ms`). Rejects when the relay is not connected. */
+  fetchFrom(url, filters, { ms = 8000 } = {}) {
+    const entry = this.relays.get(url);
+    if (!entry?.relay.connected) return Promise.reject(new Error('offline'));
+    return new Promise((resolve, reject) => {
+      const events = [];
+      let sub;
+      const t = setTimeout(() => finish(), ms);
+      const finish = () => {
+        clearTimeout(t);
+        try {
+          sub?.close();
+        } catch {
+          /* closed already */
+        }
+        resolve(events);
+      };
+      try {
+        sub = entry.relay.subscribe(filters, { onevent: (e) => events.push(e), oneose: finish, onclose: finish });
+      } catch (err) {
+        clearTimeout(t);
+        reject(err);
+      }
+    });
+  }
+
   /** Remember the last answer a relay gave to a publish, for the settings screen. */
   notePublish(url, error) {
     const entry = this.relays.get(url);

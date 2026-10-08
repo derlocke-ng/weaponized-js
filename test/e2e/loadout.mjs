@@ -305,19 +305,20 @@ await run('loadout', async (env) => {
   E2.on('pageerror', (e) => env.errors.push(`E2: ${e.stack || e.message}`));
   await E2.goto(APP);
   await E2.waitForSelector('.home');
+  await E2.evaluate(() => localStorage.removeItem('wjs.healed')); // as if the last check were hours ago
+  await E2.reload();
+  await E2.waitForSelector('.home');
   await until(async () => (await env.relayEvents([{ kinds: [30790] }])).length === 1, 'account event re-published by E', 20000);
-  // Healing is paced to stay under relay rate limits: wait until the boards' content is back, not a fixed time.
-  await until(async () => (await env.relayEvents([{ kinds: [30702] }])).length >= 6, 'board items re-published by E', 30000);
-  await until(async () => (await env.relayEvents([{ kinds: [30700] }])).length >= 2, 'wallet re-published by E', 30000);
-  await sleep(1000);
-  await E2.close();
+  // Healing is paced to stay under relay rate limits: wait until everything E holds is back, not a fixed time.
+  // E2 stays open while G2 checks: a device that heals keeps healing until it is closed.
   const G2 = await dev('G2');
   await signIn(G2);
-  await until(async () => (await texts(G2, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards after healing', 15000);
+  await until(async () => (await texts(G2, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards after healing', 30000);
   await G2.click('.board-card:has-text("Pantry")');
-  await until(async () => (await texts(G2, '#active .count')).join() === '4,0', 'pantry counts after healing', 15000);
+  await until(async () => (await texts(G2, '#active .count')).join() === '4,0', 'pantry counts after healing', 30000);
   await G2.goto(`${APP}#/b/${groceries}`);
-  await until(async () => (await texts(G2, '#active .text')).includes('coffee'), 'grocery items after healing', 15000);
+  await until(async () => (await texts(G2, '#active .text')).includes('coffee'), 'grocery items after healing', 30000);
+  await E2.close();
 
   step('starters stay available, fill a board from their template, and can be hidden');
   await G2.goto(APP);

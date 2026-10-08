@@ -493,11 +493,11 @@ code {
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
   background: var(--surface-2);
+  border-radius: 12px;
+  border: 1px solid var(--border);
   margin: 0.25rem 0 0.9rem;
 }
 
@@ -507,20 +507,21 @@ code {
 
 .seg input {
   position: absolute;
-  inset: 0;
   opacity: 0;
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .seg span {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9px;
   font-size: 0.9rem;
   font-weight: 550;
   color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .seg input:checked + span {
@@ -861,4 +862,18 @@ select:focus-visible {
 .switcher-btn .icon {
   width: 1.35rem;
   height: 1.35rem;
+}
+
+.account-cta {
+  text-decoration: none;
+  color: var(--text);
+  margin: 0 0 1.25rem;
+}
+
+.account-cta p {
+  flex: 1;
+}
+
+.account-cta .icon {
+  color: var(--accent);
 }

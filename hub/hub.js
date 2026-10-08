@@ -4,7 +4,6 @@ import { t, LANGUAGES, currentLanguage, shouldAskLanguage } from './shared/i18n.
 import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
-import { mountAccount, onAccountChange } from './account.js';
 import { mountSwitcher } from './shared/switcher.js';
 
 const infos = new Map();
@@ -25,6 +24,7 @@ function drawHeader() {
   link.classList.toggle('signed', Boolean(id.alias));
   link.title = id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn');
   link.innerHTML = id.alias ? `<span class="avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName">${h(t('hub.signIn'))}</span>`;
+  $('#accountCta').hidden = Boolean(id.alias);
 }
 
 function drawApps() {
@@ -48,7 +48,6 @@ function drawRelays() {
 async function boot() {
   await bootShell();
   mountSwitcher($('#switcher'), { base: './', current: 'hub', hidden: hiddenApps });
-  const redrawAccount = mountAccount($('#accountBody'));
   languageBanner();
   drawHeader();
   drawApps();
@@ -66,13 +65,9 @@ async function boot() {
     languageBanner();
     drawHeader();
     drawRelays();
-    redrawAccount();
   });
   onSuite(drawApps);
-  onAccountChange(() => {
-    drawHeader();
-    drawApps();
-  });
+  addEventListener('storage', (e) => e.key === 'wjs.identity' && drawHeader());
 }
 
 boot().catch((err) => {

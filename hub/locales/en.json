@@ -33,5 +33,7 @@
   "settings.backedUp": {
     "one": "Backup with {n} entry downloaded",
     "other": "Backup with {n} entries downloaded"
-  }
+  },
+  "hub.ctaTitle": "Sign in or create an account",
+  "hub.ctaText": "to use your boards, files and chats on every device."
 }

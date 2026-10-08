@@ -34,5 +34,7 @@
     "one": "Backup con {n} voce scaricato",
     "many": "Backup con {n} voci scaricato",
     "other": "Backup con {n} voci scaricato"
-  }
+  },
+  "hub.ctaTitle": "Accedi o crea un account",
+  "hub.ctaText": "per usare bacheche, file e chat su ogni dispositivo."
 }

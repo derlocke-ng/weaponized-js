@@ -29,23 +29,28 @@ await run(
       await until(async () => (await page.textContent('#boardName')) === title, 'board title');
     }
 
-    step('the hub shows the sign-in form and the relay status');
+    step('the start page points to sign-in and shows the relay status');
     const A = await dev('A');
     await A.goto(env.base);
-    await A.waitForSelector('#authForm');
+    await A.waitForSelector('#accountCta:not([hidden])');
     assert.equal(await A.textContent('#accountName'), 'Sign in');
     await until(async () => (await A.$$('#relayList li.up')).length === 1, 'the test relay is up', 15000);
 
-    step('creating an account on the hub signs the whole suite in');
+    step('creating an account in the settings signs the whole suite in');
+    await A.click('#accountLink');
+    await A.waitForSelector('#authForm');
     await A.check('input[name=authTab][value=create]', { force: true });
     await A.fill('#authForm [name=alias]', alias);
     await A.fill('#authForm [name=pass]', pass);
     await A.fill('#authForm [name=pass2]', pass);
     await A.click('#authBtn');
-    await until(async () => (await A.textContent('#accountBody')).includes(alias), 'signed in on the hub', 60000);
+    await until(async () => (await A.textContent('#accountBody')).includes(alias), 'signed in on the settings page', 60000);
+    assert.equal(await A.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
+    await A.goto(env.base);
+    await A.waitForSelector('#accountLink .avatar');
     assert.equal(await A.textContent('#accountLink .avatar'), alias[0].toUpperCase());
     assert.ok((await A.getAttribute('#accountLink', 'title')).includes(alias));
-    assert.equal(await A.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
+    assert.equal(await A.$('#accountCta:not([hidden])'), null, 'no sign-in nudge once signed in');
     await A.goto(`${env.base}loadout/`);
     await A.waitForSelector('.home');
     await until(async () => (await A.getAttribute('#accountLink', 'title'))?.includes(alias), 'Loadout knows the account');
@@ -56,12 +61,12 @@ await run(
     await B.goto(`${env.base}loadout/`);
     await B.waitForSelector('.home');
     await newBoard(B, 'Device board');
-    await B.goto(env.base);
+    await B.goto(`${env.base}settings.html`);
     await B.waitForSelector('#authForm');
     await B.fill('#authForm [name=alias]', alias);
     await B.fill('#authForm [name=pass]', pass);
     await B.click('#authBtn');
-    await until(async () => (await B.textContent('#accountBody')).includes(alias), 'B signed in on the hub', 60000);
+    await until(async () => (await B.textContent('#accountBody')).includes(alias), 'B signed in on the settings page', 60000);
     await B.goto(`${env.base}loadout/`);
     await B.waitForSelector('.home');
     await until(async () => (await texts(B, '.board-title')).sort().join('|') === 'Device board|Hub board', 'account boards plus the carried board', 20000);
@@ -78,7 +83,7 @@ await run(
     await until(async () => (await A.getAttribute('html', 'lang')) === 'fr', 'settings page in French');
     await A.uncheck('#appToggles input[data-app=pongjs]', { force: true });
     await A.goto(env.base);
-    await A.waitForSelector('#accountBody');
+    await A.waitForSelector('#accountLink');
     assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'the start page follows the theme');
     assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'the start page follows the language');
     await until(async () => await A.$eval('li[data-app=pongjs]', (el) => el.hidden), 'hidden app gone from the start page');
@@ -123,12 +128,12 @@ await run(
     B.removeAllListeners('dialog');
     B.on('dialog', (d) => d.accept());
     await Promise.all([B.waitForEvent('load', { timeout: 30000 }), B.click('[data-act=wipe]')]);
-    await B.waitForSelector('#authForm', { timeout: 30000 });
+    await B.waitForSelector('#accountCta:not([hidden])', { timeout: 30000 });
     assert.equal(await B.textContent('#accountName'), 'Sign in');
 
     step('a wrong password shows the error inline');
     const C = await dev('C');
-    await C.goto(env.base);
+    await C.goto(`${env.base}settings.html`);
     await C.waitForSelector('#authForm');
     await C.fill('#authForm [name=alias]', alias);
     await C.fill('#authForm [name=pass]', 'definitely not it');
@@ -139,7 +144,7 @@ await run(
     step('a German browser gets the hub in German');
     const D = await dev('D', { locale: 'de-DE' });
     await D.goto(env.base);
-    await D.waitForSelector('#authForm');
+    await D.waitForSelector('#accountCta:not([hidden])');
     assert.equal(await D.getAttribute('html', 'lang'), 'de');
     await D.waitForSelector('#langBanner .lang-banner');
     const english = JSON.parse(fs.readFileSync(path.join(root, 'hub/locales/en.json'), 'utf8'));

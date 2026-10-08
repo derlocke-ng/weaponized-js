@@ -33,5 +33,7 @@
   "settings.backedUp": {
     "one": "Back-up met {n} item gedownload",
     "other": "Back-up met {n} items gedownload"
-  }
+  },
+  "hub.ctaTitle": "Log in of maak een account",
+  "hub.ctaText": "om je borden, bestanden en chats op elk apparaat te gebruiken."
 }

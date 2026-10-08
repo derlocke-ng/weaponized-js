@@ -34,5 +34,7 @@
     "one": "Sauvegarde de {n} entrée téléchargée",
     "many": "Sauvegarde de {n} entrées téléchargée",
     "other": "Sauvegarde de {n} entrées téléchargée"
-  }
+  },
+  "hub.ctaTitle": "Connectez-vous ou créez un compte",
+  "hub.ctaText": "pour retrouver vos tableaux, fichiers et discussions sur tous vos appareils."
 }

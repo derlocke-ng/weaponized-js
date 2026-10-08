@@ -33,5 +33,7 @@
   "settings.backedUp": {
     "one": "Backup mit {n} Eintrag heruntergeladen",
     "other": "Backup mit {n} Einträgen heruntergeladen"
-  }
+  },
+  "hub.ctaTitle": "Anmelden oder Account erstellen,",
+  "hub.ctaText": "um deine Boards, Dateien und Chats auf jedem Gerät zu nutzen."
 }

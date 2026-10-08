@@ -34,5 +34,7 @@
     "one": "Copia con {n} entrada descargada",
     "many": "Copia con {n} entradas descargada",
     "other": "Copia con {n} entradas descargada"
-  }
+  },
+  "hub.ctaTitle": "Inicia sesión o crea una cuenta",
+  "hub.ctaText": "para usar tus tableros, archivos y chats en todos tus dispositivos."
 }

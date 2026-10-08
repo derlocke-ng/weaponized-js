@@ -35,5 +35,7 @@
     "few": "Pobrano kopię z {n} wpisami",
     "many": "Pobrano kopię z {n} wpisami",
     "other": "Pobrano kopię z {n} wpisami"
-  }
+  },
+  "hub.ctaTitle": "Zaloguj się lub załóż konto,",
+  "hub.ctaText": "aby używać swoich tablic, plików i czatów na każdym urządzeniu."
 }
