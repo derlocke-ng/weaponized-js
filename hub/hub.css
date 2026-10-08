@@ -97,8 +97,28 @@ main,
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   padding-top: max(1.1rem, env(safe-area-inset-top));
   padding-bottom: 1.1rem;
+}
+
+.top .account-link span {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .top .top-link {
+    padding: 0.45rem 0.6rem;
+  }
+  .top .top-link:not(.account-link) span {
+    display: none;
+  }
+  .top .account-link span {
+    max-width: 7rem;
+  }
 }
 
 .logo {
@@ -807,4 +827,8 @@ select:focus-visible {
   gap: 0.5rem;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.foot-links a {
+  color: var(--muted);
 }
