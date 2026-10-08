@@ -4,6 +4,7 @@ export { Relay } from 'nostr-tools/relay';
 export { finalizeEvent, verifyEvent, generateSecretKey, getPublicKey, getEventHash } from 'nostr-tools/pure';
 export { matchFilter, matchFilters } from 'nostr-tools/filter';
 export { isReplaceableKind, isAddressableKind, isEphemeralKind, isRegularKind } from 'nostr-tools/kinds';
+export * as nip13 from 'nostr-tools/nip13';
 export * as nip19 from 'nostr-tools/nip19';
 export * as nip44 from 'nostr-tools/nip44';
 export * as nip49 from 'nostr-tools/nip49';

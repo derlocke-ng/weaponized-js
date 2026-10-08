@@ -77,7 +77,7 @@ function updateAccountBadge() {
   const a = $('#accountLink');
   if (!a) return;
   const alias = app.identity.alias;
-  a.innerHTML = alias ? `<span class="avatar">${h(alias[0].toUpperCase())}</span>` : icon('user');
+  a.innerHTML = alias ? `<span class="wjs-avatar" aria-hidden="true">${h(alias[0].toUpperCase())}</span>` : icon('user');
   a.title = alias ? t('app.signedInAs', { alias }) : t('app.deviceKeyBadge');
 }
 

@@ -1,80 +1,30 @@
-# DevBoard — The Freelancer Noticeboard
+# DevBoard — the freelancer noticeboard
 
-A fully peer-to-peer, serverless freelancer noticeboard. Post availability or hiring notes that live on the decentralised [Gun.js](https://gun.eco) network. No accounts, no servers, no tracking.
+Part of [weaponized.js](../../README.md). A public noticeboard on nostr: pin that you are hiring or available, signed with your key, voted on by peers, gone when it expires. No server of ours and no sign-up; the suite's one account, block list and settings apply.
 
-**Live:** [derlocke-ng.github.io/devboard](https://derlocke-ng.github.io/devboard)
+**Live:** https://derlocke-ng.github.io/weaponized-js/devboard/
 
----
+## What a note is
 
-## Features
+- A **kind 30810** addressable nostr event: a `d` tag per note, an `expiration` tag (NIP-40) between 24 hours and 30 days, one `t` tag per skill, and JSON content `{ type: "hiring" | "available", title, text, tags, rate, contact }`. Editing republishes under the same `d`; deleting publishes a `{ "del": 1 }` tombstone.
+- **Proof of work** (NIP-13): a note needs 20 leading zero bits in its id — a few seconds in a web worker, hours for a flood. Votes and reports need 12. Events without it are not shown, whatever a relay accepts.
+- **Votes** are NIP-25 reactions (`+` or `-`; one per person and note, the newest wins, empty content takes a vote back). **Reports** are NIP-56 events (kind 1984) carrying the note's address.
+- **Saved notes** live in the account's encrypted settings (kind 30791, `d` = `devboard`) and follow you to every device.
 
-- **P2P & serverless** — data synced via Gun.js across relay peers and directly between browser tabs
-- **Cryptographic identity** — each visitor gets a SEA keypair stored in their browser; no registration required
-- **Signed posts & votes** — every post and vote is signed with your keypair and verified by peers; forgery is rejected
-- **Ephemeral by design** — notes expire automatically (24 h to 30 days); heavily downvoted posts are demoted client-side
-- **Admin moderation** — hardcoded admin public key can remove any post
-- **IndexedDB cache** — posts survive page reload without waiting for Gun resync
-- **No build step** — single `index.html` file; open directly in a browser or serve statically
+## Anti-spam, applied by every reader
 
-## Usage
+Three live notes per person; the newest count and the rest collapse. Notes voted down to −5 collapse, as do notes three or more people reported. Blocked people (the suite's encrypted NIP-51 mute list) disappear with their notes, votes and reports. Ten votes per half minute. Because each client applies the rules itself, a relay that lets spam through still cannot put it on your board.
 
-Open `index.html` in any modern browser, or visit the GitHub Pages URL above.
+## Files
 
-### Posting
+- `index.html`, `devboard.js`, `devboard.css` — the app, built on `apps/shared/` (design library, app shell, relays, sync, i18n, moderation).
+- `pow-worker.js` — mines the nonce off the main thread and reports progress.
+- `locales/` — strings in the suite's eight languages.
 
-On first visit a keypair is generated and stored in `localStorage`. You can post immediately.
+## Testing
 
-### Identity / Keypair
-
-Click your identity badge (top right) to:
-- See your public key, account age, and vote weight
-- **Export** your keypair to a `.json` file (back it up!)
-- **Import** a previously exported keypair to restore your identity on another device
-- Reset and generate a fresh non-linkable identity
-
-> ⚠ Your keypair contains your **private key**. Anyone with it can post and vote as you. Never commit an exported file to version control — it is listed in `.gitignore`.
-
-### Voting
-
-You cannot vote on your own posts. A rate limit of 10 votes per 30 seconds prevents spam.
-
-## Self-hosting / Deployment
-
-The app is a single static file — drop it anywhere:
-
-```bash
-# local dev server (Python)
-python3 -m http.server 8080
-
-# or use pweb
-pweb
-
-# or just open the file
-open index.html
-```
-
-For GitHub Pages, fork this repo and enable Pages (Settings → Pages → Deploy from branch: `main`). The included workflow (`.github/workflows/deploy.yml`) handles deployment automatically on every push to `main`.
-
-## Architecture
-
-```
-Browser A ──┐
-Browser B ──┼──► Gun relay peers ◄──┬── Browser C
-Browser D ──┘                       └── Browser E
-```
-
-Data flows directly between browsers and through public Gun relay peers. There is no central database. Posts are ephemeral — if all peers (browsers + relays) lose a record it is gone.
-
-All cryptographic operations use Gun's built-in [SEA](https://gun.eco/docs/SEA) (Security, Encryption, & Authorization) library.
-
-## Relay Peers
-
-The app connects to these public Gun relays by default:
-
-- `https://gun.defucc.me/gun`
-- `https://gun.o8.is/gun`
-- `https://relay.peer.ooo/gun`
+`npm test` covers the shared pieces. `node test/e2e/devboard.mjs` runs several browsers against a local relay; the test sets `localStorage` key `devboard.pow` to lower the difficulty, which readers honour only on that device.
 
 ## License
 
-[GNU General Public License v3.0](LICENSE) — see `LICENSE` for details.
+GPL-3.0-or-later, like the rest of the suite.

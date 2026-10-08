@@ -112,31 +112,26 @@
   white-space: nowrap;
 }
 
-.wjs-pill.signed {
-  padding: 0;
-  width: 2.25rem;
-  justify-content: center;
-  border-color: var(--accent, #4d7c0f);
-}
-
+/* The signed-in account: one circle with the first letter, the same in every app. */
 .wjs-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--accent, #4d7c0f);
   color: var(--on-accent, #fff);
   font-weight: 700;
   font-size: 0.95rem;
+  line-height: 1;
 }
 
 @media (max-width: 560px) {
-  .wjs-pill span:not(.wjs-avatar) {
+  .wjs-pill span {
     display: none;
   }
-  .wjs-pill:not(.signed) {
+  .wjs-pill {
     width: 2.25rem;
     padding: 0;
     justify-content: center;

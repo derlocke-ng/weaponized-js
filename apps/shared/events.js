@@ -19,7 +19,10 @@ export const KINDS = {
   P2P_DATA: 21702,
   MUTE_LIST: 10000, // NIP-51: who we block (private entries)
   REPORT: 1984, // NIP-56
-};;
+  REACTION: 7, // NIP-25: votes on DevBoard posts
+  DELETION: 5, // NIP-09
+  DEVBOARD_POST: 30810, // public noticeboard post, proof of work required
+};
 
 export const now = () => Math.floor(Date.now() / 1000);
 export const hex = bytesToHex;

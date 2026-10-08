@@ -10,9 +10,9 @@ Peer-to-peer webtools over [nostr](https://nostr.com). Every tool runs entirely 
 | [**Payload**](apps/payload) · [open](https://derlocke-ng.github.io/weaponized-js/payload/) | Send files straight to another online browser; every 64 KB piece checked with SHA-256 | gun signaling, WebRTC (moving to nostr) |
 | [**pongjs**](apps/pongjs) · [open](https://derlocke-ng.github.io/weaponized-js/pongjs/) | Two-player Pong between browsers: link, QR or open-games lobby | gun signaling, WebRTC (moving to nostr) |
 | [EnigmaJS](apps/enigmajs) · [open](https://derlocke-ng.github.io/weaponized-js/enigmajs/) | Encrypted, ephemeral group chat rooms | gun, SEA, Vue + Vite |
-| [DevBoard](apps/devboard) · [open](https://derlocke-ng.github.io/weaponized-js/devboard/) | Freelancer noticeboard with signed posts and votes | gun, SEA, single HTML file |
+| [DevBoard](apps/devboard) · [open](https://derlocke-ng.github.io/weaponized-js/devboard/) | Freelancer noticeboard: signed notes with proof of work, votes, reports, expiry; the suite's account and block list | nostr, NIP-13, NIP-25, NIP-56 |
 
-Coming: **Uplink** (chat between accounts and ephemeral rooms), **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds), and **DevBoard on nostr** with the suite's account, block list and proof-of-work anti-spam. EnigmaJS is legacy and goes once Uplink exists.
+Coming: **Uplink** (chat between accounts and ephemeral rooms) and **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds). EnigmaJS is legacy and goes once Uplink exists.
 
 **One account, one settings page.** Sign in or create an account on the landing page (username + password, or a nostr key) and every tool uses it; boards made on a device before signing in are carried over. Without an account each device simply uses its own key. The site's settings page holds everything that is not specific to one tool: account and key export, relays with live status, backup and restore of everything your devices know, language and appearance (which follow your account), hidden apps, and wiping the device. Each tool keeps only its own settings.
 
@@ -65,4 +65,4 @@ GitHub Pages, built by `.github/workflows/deploy.yml` on every push to `main` (p
 
 ## License
 
-[GPL-3.0-or-later](LICENSE). The legacy apps keep their own: DevBoard is GPL-3.0 and EnigmaJS is PolyForm Noncommercial 1.0.0 (see their folders). Third-party code is listed in `apps/shared/LICENSES.md` and `apps/loadout/vendor/LICENSES.md`.
+[GPL-3.0-or-later](LICENSE). EnigmaJS, the one legacy app, keeps its own license: PolyForm Noncommercial 1.0.0 (see its folder). Third-party code is listed in `apps/shared/LICENSES.md` and `apps/loadout/vendor/LICENSES.md`.

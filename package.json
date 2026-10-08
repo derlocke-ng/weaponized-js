@@ -11,7 +11,7 @@
     "relay": "node scripts/relay.cjs",
     "relay:nostr": "node scripts/nostr-relay.mjs 7777 .nostr",
     "test": "node --test \"test/unit/*.test.js\"",
-    "test:e2e": "node test/e2e/loadout.mjs && node test/e2e/hub.mjs && node test/e2e/payload.mjs && node test/e2e/pong.mjs"
+    "test:e2e": "node test/e2e/loadout.mjs && node test/e2e/hub.mjs && node test/e2e/devboard.mjs && node test/e2e/payload.mjs && node test/e2e/pong.mjs"
   },
   "devDependencies": {
     "dompurify": "3.4.16",

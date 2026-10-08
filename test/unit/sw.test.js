@@ -28,13 +28,13 @@ test('Loadout’s service worker caches every script, style and vendor file', ()
   assert.deepEqual(shell.filter((f) => f !== './' && !fs.existsSync(path.join(app, f))), [], 'SHELL lists files that do not exist');
 });
 
-test('the site service worker caches the hub, Payload, pongjs and shared/', () => {
+test('the site service worker caches the hub, Payload, pongjs, DevBoard and shared/', () => {
   const shell = shellOf(path.join(root, 'hub/sw.js'));
   // The site is assembled from hub/ at the root and apps/<name>/ below it.
-  const onDisk = (entry) => (/^(payload|pongjs|shared)\//.test(entry) ? path.join(root, 'apps', entry) : path.join(root, 'hub', entry));
+  const onDisk = (entry) => (/^(payload|pongjs|devboard|shared)\//.test(entry) ? path.join(root, 'apps', entry) : path.join(root, 'hub', entry));
   const needed = [
     ...walk(path.join(root, 'hub'), (f) => code(f) && !f.endsWith('sw.js')).map((f) => path.relative(path.join(root, 'hub'), f)),
-    ...['payload', 'pongjs', 'shared'].flatMap((app) => walk(path.join(root, 'apps', app), code).map((f) => path.relative(path.join(root, 'apps'), f))),
+    ...['payload', 'pongjs', 'devboard', 'shared'].flatMap((app) => walk(path.join(root, 'apps', app), code).map((f) => path.relative(path.join(root, 'apps'), f))),
   ];
   assert.deepEqual(needed.filter((f) => !shell.includes(f)), [], 'add these to SHELL in hub/sw.js');
   assert.deepEqual(shell.filter((f) => !f.endsWith('/') && !fs.existsSync(onDisk(f))), [], 'SHELL lists files that do not exist');

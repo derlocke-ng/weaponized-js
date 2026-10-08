@@ -34,27 +34,6 @@
   stroke: var(--accent);
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border-strong);
-  flex: none;
-}
-
-.dot.on,
-.avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
 .view {
   width: 100%;
   max-width: 760px;

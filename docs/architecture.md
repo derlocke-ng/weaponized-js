@@ -82,7 +82,8 @@ Everything in an event's `content` is a sealed payload; tags carry only the `d` 
 | 30702 | `LOADOUT_ITEM` | addressable | one list / inventory item per event (`d` = item id); `{ del: 1 }` is a tombstone |
 | 30703 | `LOADOUT_DOC` | addressable | the markdown note of a board (`d` = `doc`) |
 | 30790 | `ACCOUNT` | addressable | username + password account (above) |
-| 30791 | `SETTINGS` | addressable | per-app settings, encrypted to the user's key; `d` = app name (Loadout: starters and their templates) |
+| 30791 | `SETTINGS` | addressable | per-app settings, encrypted to the user's key; `d` = app name (Loadout: starters and their templates; DevBoard: saved notes) |
+| 30810 | `DEVBOARD_POST` | addressable | a public DevBoard note: `d` per note, NIP-40 `expiration`, one `t` tag per skill, NIP-13 `nonce`; JSON content `{ type, title, text, tags, rate, contact }` or `{ del: 1 }` as a tombstone |
 | 21700 | `P2P_PRESENCE` | ephemeral | Payload / pong room presence — planned |
 | 21701 | `P2P_SIGNAL` | ephemeral | encrypted WebRTC offers / answers / ICE — planned |
 | 21702 | `P2P_DATA` | ephemeral | encrypted data frames when WebRTC fails — planned |
@@ -158,6 +159,16 @@ A board is a nostr key pair. Whoever has the secret key (`?w=`) can publish `307
 
 Items are one event each (not one blob per board), so two people editing different items never conflict and a device only transfers what changed. Deleting a board publishes a tombstone `info` and strips its items; wallets of other devices drop it via their own tombstone entries.
 
+## DevBoard
+
+The freelancer noticeboard is public by nature, so its defence is not encryption but cost and consensus, applied by every reader (`apps/devboard/`):
+
+- **A note** is a kind 30810 event (see the table) that lives 24 hours to 30 days; relays drop it at `expiration`, readers drop it even if a relay does not. Editing republishes under the same `d`; deleting publishes a `{ "del": 1 }` tombstone that supersedes the note and is kept in memory so an older copy cannot resurrect it.
+- **Proof of work** (NIP-13): 20 leading zero bits per note, mined in a web worker (`pow-worker.js`, a few seconds on a phone); 12 bits per vote or report. Events below the bar are not shown, whatever a relay accepted. The bar is a constant in the client, so a relay policy can enforce the same numbers server-side later (strfry plugin).
+- **Three live notes per person**; the newest three count and the rest collapse. **Votes** are NIP-25 reactions with `+`/`-`, one per person and note (the newest wins, empty content takes it back), capped at ten per half minute per device. A note at −5 collapses; so does one that three or more people reported (NIP-56, with the note's address). Collapsed notes can be opened anyway; your own never collapse for you.
+- **The suite's moderation applies**: a blocked person's notes, votes and reports vanish on every device (encrypted NIP-51 list), and blocking is one tap from any note. Saved notes are account settings (kind 30791, `d` = `devboard`).
+- **Contact** is whatever the poster wrote (mail, handle, npub), shown only on request, with a reminder to check who you are talking to; Uplink becomes the in-app path once it exists.
+
 ## Roadmap
 
 1. ~~Shared core; Loadout on nostr~~ (done — `test/e2e/loadout.mjs` runs 17 multi-device scenarios against the dev relay, including two relay wipes).
@@ -166,6 +177,6 @@ Items are one event each (not one blob per board), so two people editing differe
 4. **Outpost** (grow reports): entries and photos encrypted before upload to Blossom, friends list, visibility layers (private / friends / "public" = readable by anyone signed into the app), feed and explore; marketplace for seeds, cuttings and gear behind an 18+ / legal-region declaration and a no-liability agreement. Cuttings are an ordinary category everywhere: whether a listing is legal where the user lives is the user's call under that agreement, not the software's. Backups include blobs.
 5. **Suite shell**: one account for every app, app switcher, hidden apps and language in settings (kind 30791), People and Circles.
 6. **kiwi `weaponized` module**; replace the first default relays with kiwi ones.
-7. **DevBoard on nostr**: the freelancer noticeboard stays and moves to nostr. Posts are public addressable events (availability or hiring, skills, rate, place or remote, expiry via NIP-40 so relays drop them); votes are NIP-25 reactions; contact through Uplink. It uses the suite's settings (one account, block list, reports) and gets real anti-spam, because a noticeboard that brings work must not drown: NIP-13 proof of work on every post (seconds on a phone, hours for a flood), a visible cap on posts per key, hiding posts their author's key is too new or too prolific for, mute and report counts from people you trust, and a relay policy that enforces the same rules server-side. EnigmaJS retires once Uplink exists.
+7. ~~DevBoard on nostr~~ (done — see *DevBoard* above; `test/e2e/devboard.mjs` covers notes, votes, reports, blocking and the cap on two devices). Still to come for it: a relay policy that enforces the same proof of work and caps server-side, and trust-weighted report counts once People and Circles exist.
 
 Open: contact path for marketplace listings (in-app Uplink vs. external), which public Blossom servers accept encrypted blobs.

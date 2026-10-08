@@ -11,7 +11,7 @@ export const APPS = [
   { id: 'payload', name: 'Payload', icon: 'send', path: 'payload/' },
   { id: 'pongjs', name: 'pongjs', icon: 'gamepad-2', path: 'pongjs/' },
   { id: 'enigmajs', name: 'EnigmaJS', icon: 'message-square-lock', path: 'enigmajs/', legacy: true },
-  { id: 'devboard', name: 'DevBoard', icon: 'sticky-note', path: 'devboard/', legacy: true },
+  { id: 'devboard', name: 'DevBoard', icon: 'sticky-note', path: 'devboard/' },
 ];
 
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
