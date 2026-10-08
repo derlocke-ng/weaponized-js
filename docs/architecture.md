@@ -98,6 +98,12 @@ Addressable events replace by `(kind, pubkey, d)` with the newest `created_at` w
 
 Data is lost only if every device that ever held it is gone *and* there is no backup.
 
+## Decided for the social layer
+
+- **Friends are mutual**: request and accept, both sides hold each other, delivered as gift wraps so relays see neither who asked nor who answered. The list itself is an encrypted event under the user's key; nostr's public follow list is never used. Each person has a friends key for friends-only content, handed to friends privately and rotated when someone is removed.
+- **Marketplace listings carry coarse plaintext tags**: category, seller country and shipping destinations (country codes, `EU`, worldwide, pickup only), so relays can filter and a phone downloads only what applies to it. Everything else in a listing is encrypted. Accepted trade-off: relays learn that some key lists seeds in a country.
+- **Device settings are site-wide**: language (`wjs.lang`) and theme (`wjs.theme`) are chosen on the hub or in any app and apply everywhere, live across tabs through the storage event. They stay on the device; account settings (kind 30791) are for things that should follow the account.
+
 ## Languages
 
 Every app ships its strings as one JSON catalog per language (`apps/<app>/locales/<lang>.json`) plus a shared catalog for common words and the core's error messages (`apps/shared/locales/`). `apps/shared/i18n.js` loads the active language and English as the fallback, nothing else, so a device downloads one small file per app (10–20 KB) and caches it offline.

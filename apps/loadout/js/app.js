@@ -1,8 +1,6 @@
 // Shared app state, filled in by main.js at boot. Views import this instead
 // of main.js to keep the module graph acyclic.
-import { store } from './util.js';
-
-const THEME_KEY = 'loadout.theme';
+import { theme, setTheme, applyTheme } from '../../shared/theme.js';
 
 export const app = {
   /** @type {{ pair: object, alias: string|null, created: number }} */
@@ -20,14 +18,7 @@ export const app = {
     if (location.hash === hash) app.render();
     else location.hash = hash;
   },
-  theme: () => store.get(THEME_KEY, 'system'),
-  setTheme(t) {
-    store.set(THEME_KEY, t);
-    app.applyTheme();
-  },
-  applyTheme() {
-    const t = app.theme();
-    if (t === 'system') delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t;
-  },
+  theme,
+  setTheme,
+  applyTheme,
 };

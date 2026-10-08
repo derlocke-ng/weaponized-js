@@ -50,6 +50,10 @@ const SHARED_KEYS = [
   'account.export.placeholder',
   'account.export.download',
   'account.export.min10',
+  'account.appearance',
+  'account.theme.system',
+  'account.theme.light',
+  'account.theme.dark',
 ];
 
 const read = (f) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null);

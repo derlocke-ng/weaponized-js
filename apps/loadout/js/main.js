@@ -8,7 +8,8 @@ import { parseRoute } from './links.js';
 import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
-import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, LANGUAGES, t } from '../../shared/i18n.js';
+import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t } from '../../shared/i18n.js';
+import { watchDeviceSettings } from '../../shared/theme.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
 import { renderAccount } from './views/account.js';
@@ -120,6 +121,15 @@ async function boot() {
   app.wallet.onChange(rewatch);
   for (const r of pool.status().relays) if (r.open) sync.healRelay(r.url).catch(() => {});
   onSyncError(({ reason }) => toast(t('sync.rejected', { reason }), 'error', 8000));
+  watchDeviceSettings({
+    onLanguage: async () => {
+      const lang = savedLanguage();
+      if (lang && lang !== currentLanguage()) {
+        await setLanguage(lang);
+        rerender();
+      }
+    },
+  });
   updateAccountBadge();
   window.addEventListener('hashchange', render);
   render();

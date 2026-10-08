@@ -39,6 +39,7 @@ const SHELL = [
   'shared/account.js',
   'shared/sync.js',
   'shared/i18n.js',
+  'shared/theme.js',
   'shared/locales/en.json',
 ];
 

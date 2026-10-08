@@ -2,12 +2,13 @@
 // language, and the relays the apps use. Everything comes from apps/shared/,
 // which the site build serves next to this file as /shared/.
 
-import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, LANGUAGES, t, tErr, has } from './shared/i18n.js';
+import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t, tErr, has } from './shared/i18n.js';
 import { LocalStore } from './shared/store.js';
 import { RelayPool, savedRelays } from './shared/relays.js';
 import { Sync } from './shared/sync.js';
 import { loadIdentity, adoptIdentity, forgetIdentity, createAccount, login, importKey, pubkeyOf, checkPassword } from './shared/account.js';
 import { fingerprint } from './shared/events.js';
+import { theme, setTheme, applyTheme, watchDeviceSettings } from './shared/theme.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -182,7 +183,27 @@ function renderRelays() {
 }
 const infos = new Map();
 
+function themeUi() {
+  const current = theme();
+  for (const input of $$('#themeSeg input')) input.checked = input.value === current;
+}
+
 async function boot() {
+  applyTheme();
+  themeUi();
+  $('#themeSeg').addEventListener('change', (e) => {
+    if (e.target.name === 'theme') setTheme(e.target.value);
+  });
+  watchDeviceSettings({
+    onTheme: () => {
+      applyTheme();
+      themeUi();
+    },
+    onLanguage: async () => {
+      const lang = savedLanguage();
+      if (lang && lang !== currentLanguage()) await switchLanguage(lang);
+    },
+  });
   const i18n = initI18n({ dirs: ['shared/locales/', 'locales/'] });
   db = await LocalStore.open('wjs');
   pool = new RelayPool(savedRelays());

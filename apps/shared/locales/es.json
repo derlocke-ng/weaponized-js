@@ -104,5 +104,9 @@
   "account.export.min10": "Usa al menos 10 caracteres.",
   "account.syncNow": "Sincronizar ahora",
   "account.synced": "Todo lo que hay en este dispositivo se envió a los relays conectados",
-  "account.diagnostics": "Copiar diagnóstico"
+  "account.diagnostics": "Copiar diagnóstico",
+  "account.appearance": "Apariencia",
+  "account.theme.system": "Sistema",
+  "account.theme.light": "Claro",
+  "account.theme.dark": "Oscuro"
 }

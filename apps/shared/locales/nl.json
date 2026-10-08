@@ -102,5 +102,9 @@
   "account.export.min10": "Gebruik minstens 10 tekens.",
   "account.syncNow": "Nu synchroniseren",
   "account.synced": "Alles op dit apparaat is naar de verbonden relays gestuurd",
-  "account.diagnostics": "Diagnose kopiëren"
+  "account.diagnostics": "Diagnose kopiëren",
+  "account.appearance": "Weergave",
+  "account.theme.system": "Systeem",
+  "account.theme.light": "Licht",
+  "account.theme.dark": "Donker"
 }

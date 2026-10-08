@@ -106,5 +106,9 @@
   "account.export.min10": "Użyj co najmniej 10 znaków.",
   "account.syncNow": "Synchronizuj teraz",
   "account.synced": "Wszystko z tego urządzenia wysłano do połączonych przekaźników",
-  "account.diagnostics": "Kopiuj diagnostykę"
+  "account.diagnostics": "Kopiuj diagnostykę",
+  "account.appearance": "Wygląd",
+  "account.theme.system": "Systemowy",
+  "account.theme.light": "Jasny",
+  "account.theme.dark": "Ciemny"
 }

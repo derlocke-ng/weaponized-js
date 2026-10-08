@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https: wss: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="description" content="weaponized.js — peer-to-peer webtools over nostr: encrypted lists, file drops and games that run entirely in your browser.">
-  <meta name="theme-color" content="#0e0f0d">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0f0d" media="(prefers-color-scheme: dark)">
   <title>weaponized.js — peer-to-peer webtools</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -92,7 +93,14 @@
 
   <footer class="foot">
     <p data-i18n-html="hub.footer">Free software under the GPL — see the <a href="https://github.com/derlocke-ng/weaponized-js" rel="noopener">repository</a>.</p>
-    <label class="lang-foot"><svg class="icon"><use href="icons.svg#languages"/></svg><select id="langSelect" aria-label="Language"></select></label>
+    <div class="device-settings">
+      <label class="lang-foot"><svg class="icon"><use href="icons.svg#languages"/></svg><select id="langSelect" aria-label="Language"></select></label>
+      <div class="seg" id="themeSeg" role="radiogroup" aria-label="Appearance">
+        <label><input type="radio" name="theme" value="system"><span data-i18n="account.theme.system">System</span></label>
+        <label><input type="radio" name="theme" value="light"><span data-i18n="account.theme.light">Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span data-i18n="account.theme.dark">Dark</span></label>
+      </div>
+    </div>
   </footer>
   <div id="toasts" class="toasts" aria-live="polite"></div>
 </body>

@@ -68,6 +68,24 @@ await run(
     await A.waitForSelector('.home');
     await until(async () => (await texts(A, '.board-title')).sort().join('|') === 'Device board|Hub board', 'the carried board reaches A', 20000);
 
+    step('theme and language chosen anywhere apply to the whole site');
+    await A.goto(`${env.base}loadout/#/account`);
+    await A.waitForSelector('#themeSeg');
+    await A.check('#themeSeg input[value=dark]', { force: true });
+    await A.goto(env.base);
+    await A.waitForSelector('#authForm, #accountBody');
+    assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'the hub follows the theme set in Loadout');
+    await A.check('#themeSeg input[value=light]', { force: true });
+    await A.selectOption('#langSelect', 'fr');
+    await until(async () => (await A.getAttribute('html', 'lang')) === 'fr', 'hub in French');
+    await A.goto(`${env.base}loadout/`);
+    await A.waitForSelector('.home');
+    assert.equal(await A.getAttribute('html', 'data-theme'), 'light', 'Loadout follows the theme set on the hub');
+    assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'Loadout follows the language set on the hub');
+    await A.goto(`${env.base}loadout/#/account`);
+    await A.selectOption('#langSelect', 'en');
+    await A.check('#themeSeg input[value=system]', { force: true });
+
     step('a wrong password shows the error inline');
     const C = await dev('C');
     await C.goto(env.base);
