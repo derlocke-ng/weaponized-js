@@ -3,7 +3,7 @@
 // same-site responses are cached as they are fetched. Network first, so an
 // update shows up on the next load. Loadout has its own worker with a narrower
 // scope, which takes precedence for its pages. Bump VERSION on release.
-const VERSION = 'wjs-v7';
+const VERSION = 'wjs-v8';
 const SHELL = [
   './',
   'index.html',
@@ -80,8 +80,10 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   const scope = new URL(self.registration.scope).pathname;
   if (req.method !== 'GET' || url.origin !== location.origin || !url.pathname.startsWith(scope)) return;
+  // Revalidate with the server (ETag) rather than trusting the browser's HTTP cache: GitHub Pages
+  // caches for ten minutes, and a page must never run with a script or catalog from the previous deploy.
   e.respondWith(
-    fetch(req)
+    fetch(req.url, { cache: 'no-cache', credentials: 'same-origin', headers: { accept: req.headers.get('accept') || '*/*' } })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

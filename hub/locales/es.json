@@ -35,13 +35,12 @@
     "many": "Copia con {n} entradas descargada",
     "other": "Copia con {n} entradas descargada"
   },
-  "hub.ctaTitle": "Inicia sesión o crea una cuenta",
-  "hub.ctaText": "para usar tus tableros, archivos y chats en todos tus dispositivos.",
   "settings.blocked": "Personas bloqueadas",
   "settings.blockedText": "Quien esté en esta lista no puede escribirte ni añadirte como amigo, y sus publicaciones quedan fuera de tus feeds. La lista está cifrada; solo tus dispositivos pueden leerla.",
   "settings.blockAdd": "Bloquear a alguien por su clave pública",
   "settings.block": "Bloquear",
   "settings.unblock": "Desbloquear",
   "settings.blockedEmpty": "No hay nadie bloqueado.",
-  "settings.blockInvalid": "Eso no es una clave pública (npub1… o 64 caracteres hexadecimales)."
+  "settings.blockInvalid": "Eso no es una clave pública (npub1… o 64 caracteres hexadecimales).",
+  "hub.cta": "Todo lo que creas aquí depende de una clave que existe <b>solo en este navegador</b>. <a href=\"settings.html#account\">Crea una cuenta o inicia sesión</a> para usar tus tableros, archivos y chats en todos tus dispositivos."
 }

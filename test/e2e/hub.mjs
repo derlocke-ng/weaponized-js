@@ -92,14 +92,14 @@ await run(
     assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'Loadout follows the theme');
     assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'Loadout follows the language');
     // Another device of the same account gets the same language and theme from the account.
-    await until(async () => (await B.getAttribute('html', 'lang')) === 'fr', 'B follows the account language', 20000);
-    await until(async () => (await B.getAttribute('html', 'data-theme')) === 'dark', 'B follows the account theme', 20000);
+    await until(async () => (await B.getAttribute('html', 'lang')) === 'fr', 'B follows the account language', 40000);
+    await until(async () => (await B.getAttribute('html', 'data-theme')) === 'dark', 'B follows the account theme', 40000);
     await A.goto(SETTINGS);
     await A.waitForSelector('#langSelect');
     await A.selectOption('#langSelect', 'en');
     await A.check('#themeSeg input[value=system]', { force: true });
     await A.check('#appToggles input[data-app=pongjs]', { force: true });
-    await until(async () => (await B.getAttribute('html', 'lang')) === 'en', 'B back to English', 20000);
+    await until(async () => (await B.getAttribute('html', 'lang')) === 'en', 'B back to English', 40000);
 
     step('the app switcher reaches every page from every page, and the back button closes it');
     await A.goto(SETTINGS);

@@ -34,13 +34,12 @@
     "one": "Backup with {n} entry downloaded",
     "other": "Backup with {n} entries downloaded"
   },
-  "hub.ctaTitle": "Sign in or create an account",
-  "hub.ctaText": "to use your boards, files and chats on every device.",
   "settings.blocked": "Blocked people",
   "settings.blockedText": "People on this list can’t message you, can’t add you as a friend, and their posts stay out of your feeds. The list is encrypted; only your devices can read it.",
   "settings.blockAdd": "Block someone by their public key",
   "settings.block": "Block",
   "settings.unblock": "Unblock",
   "settings.blockedEmpty": "Nobody is blocked.",
-  "settings.blockInvalid": "That is not a public key (npub1… or 64 hex characters)."
+  "settings.blockInvalid": "That is not a public key (npub1… or 64 hex characters).",
+  "hub.cta": "Everything you make here lives under a key that exists <b>only in this browser</b>. <a href=\"settings.html#account\">Create an account or sign in</a> to use your boards, files and chats on every device."
 }

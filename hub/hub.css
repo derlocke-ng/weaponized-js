@@ -387,19 +387,6 @@ select:focus-visible {
 }
 
 
-.account-cta {
-  text-decoration: none;
-  color: var(--text);
-  margin: 0 0 1.25rem;
-}
-
-.account-cta p {
-  flex: 1;
-}
-
-.account-cta .icon {
-  color: var(--accent);
-}
 
 /* the shared top bar lines up with the page content */
 .wjs-top {
@@ -427,6 +414,10 @@ select:focus-visible {
 }
 
 .banner {
+  margin: 0 0 1.25rem;
+}
+
+#langBanner .banner {
   width: 100%;
   max-width: 1040px;
   margin: 1rem auto 0;

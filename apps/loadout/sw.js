@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. Requests go to the
 // network first so updates show up right away, and fall back to the cache
 // when offline (e.g. in a supermarket basement). Bump VERSION on release.
-const VERSION = 'loadout-v8';
+const VERSION = 'loadout-v9';
 const SHELL = [
   './',
   'index.html',
@@ -81,8 +81,10 @@ self.addEventListener('fetch', (e) => {
   const scope = new URL(self.registration.scope).pathname;
   const shared = new URL('../shared/', self.registration.scope).pathname;
   if (req.method !== 'GET' || url.origin !== location.origin || !(url.pathname.startsWith(scope) || url.pathname.startsWith(shared))) return;
+  // Revalidate with the server (ETag) rather than trusting the browser's HTTP cache: GitHub Pages
+  // caches for ten minutes, and a page must never run with a script or catalog from the previous deploy.
   e.respondWith(
-    fetch(req)
+    fetch(req.url, { cache: 'no-cache', credentials: 'same-origin', headers: { accept: req.headers.get('accept') || '*/*' } })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

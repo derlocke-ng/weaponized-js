@@ -34,13 +34,12 @@
     "one": "Backup mit {n} Eintrag heruntergeladen",
     "other": "Backup mit {n} Einträgen heruntergeladen"
   },
-  "hub.ctaTitle": "Anmelden oder Account erstellen,",
-  "hub.ctaText": "um deine Boards, Dateien und Chats auf jedem Gerät zu nutzen.",
   "settings.blocked": "Blockierte Personen",
   "settings.blockedText": "Wer hier steht, kann dir nicht schreiben, dich nicht als Freund hinzufügen, und ihre Beiträge bleiben aus deinen Feeds. Die Liste ist verschlüsselt; nur deine Geräte können sie lesen.",
   "settings.blockAdd": "Jemanden über den öffentlichen Schlüssel blockieren",
   "settings.block": "Blockieren",
   "settings.unblock": "Freigeben",
   "settings.blockedEmpty": "Niemand ist blockiert.",
-  "settings.blockInvalid": "Das ist kein öffentlicher Schlüssel (npub1… oder 64 Hex-Zeichen)."
+  "settings.blockInvalid": "Das ist kein öffentlicher Schlüssel (npub1… oder 64 Hex-Zeichen).",
+  "hub.cta": "Alles, was du hier anlegst, hängt an einem Schlüssel, den es <b>nur in diesem Browser</b> gibt. <a href=\"settings.html#account\">Erstelle einen Account oder melde dich an</a>, um deine Boards, Dateien und Chats auf jedem Gerät zu nutzen."
 }

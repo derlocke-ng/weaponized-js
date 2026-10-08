@@ -34,13 +34,12 @@
     "one": "Back-up met {n} item gedownload",
     "other": "Back-up met {n} items gedownload"
   },
-  "hub.ctaTitle": "Log in of maak een account",
-  "hub.ctaText": "om je borden, bestanden en chats op elk apparaat te gebruiken.",
   "settings.blocked": "Geblokkeerde mensen",
   "settings.blockedText": "Wie op deze lijst staat kan je niet schrijven, je niet als vriend toevoegen, en hun berichten blijven uit je feeds. De lijst is versleuteld; alleen jouw apparaten kunnen hem lezen.",
   "settings.blockAdd": "Iemand blokkeren via de publieke sleutel",
   "settings.block": "Blokkeren",
   "settings.unblock": "Deblokkeren",
   "settings.blockedEmpty": "Niemand is geblokkeerd.",
-  "settings.blockInvalid": "Dat is geen publieke sleutel (npub1… of 64 hex-tekens)."
+  "settings.blockInvalid": "Dat is geen publieke sleutel (npub1… of 64 hex-tekens).",
+  "hub.cta": "Alles wat je hier maakt hangt aan een sleutel die <b>alleen in deze browser</b> bestaat. <a href=\"settings.html#account\">Maak een account of log in</a> om je borden, bestanden en chats op elk apparaat te gebruiken."
 }

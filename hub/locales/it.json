@@ -35,13 +35,12 @@
     "many": "Backup con {n} voci scaricato",
     "other": "Backup con {n} voci scaricato"
   },
-  "hub.ctaTitle": "Accedi o crea un account",
-  "hub.ctaText": "per usare bacheche, file e chat su ogni dispositivo.",
   "settings.blocked": "Persone bloccate",
   "settings.blockedText": "Chi è in questa lista non può scriverti, non può aggiungerti come amico e i suoi post restano fuori dai tuoi feed. La lista è cifrata; solo i tuoi dispositivi possono leggerla.",
   "settings.blockAdd": "Blocca qualcuno tramite la chiave pubblica",
   "settings.block": "Blocca",
   "settings.unblock": "Sblocca",
   "settings.blockedEmpty": "Nessuno è bloccato.",
-  "settings.blockInvalid": "Non è una chiave pubblica (npub1… o 64 caratteri esadecimali)."
+  "settings.blockInvalid": "Non è una chiave pubblica (npub1… o 64 caratteri esadecimali).",
+  "hub.cta": "Tutto ciò che crei qui dipende da una chiave che esiste <b>solo in questo browser</b>. <a href=\"settings.html#account\">Crea un account o accedi</a> per usare bacheche, file e chat su ogni dispositivo."
 }

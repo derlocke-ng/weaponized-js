@@ -2,7 +2,7 @@
 // event store, one outbox), the language, the theme, and the account's own
 // suite settings (language, theme, hidden apps) that follow it everywhere.
 
-import { initI18n, setLanguage, savedLanguage, saveLanguage, currentLanguage, LANGUAGES, t } from './shared/i18n.js';
+import { initI18n, setLanguage, savedLanguage, saveLanguage, currentLanguage, LANGUAGES, t, has } from './shared/i18n.js';
 import { LocalStore } from './shared/store.js';
 import { RelayPool, savedRelays } from './shared/relays.js';
 import { Sync } from './shared/sync.js';
@@ -22,8 +22,9 @@ const languageListeners = new Set();
 
 /** Static text carries its key; fill it from the catalog. */
 export function applyStrings(root = document) {
-  for (const el of $$('[data-i18n]', root)) el.textContent = t(el.dataset.i18n);
-  for (const el of $$('[data-i18n-html]', root)) el.innerHTML = t(el.dataset.i18nHtml);
+  // A key the catalogs don't know (a page newer than its cached catalog) keeps the English text it ships with.
+  for (const el of $$('[data-i18n]', root)) if (has(el.dataset.i18n)) el.textContent = t(el.dataset.i18n);
+  for (const el of $$('[data-i18n-html]', root)) if (has(el.dataset.i18nHtml)) el.innerHTML = t(el.dataset.i18nHtml);
   document.documentElement.classList.add('i18n');
 }
 
