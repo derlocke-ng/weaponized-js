@@ -9,7 +9,7 @@ import { Sync } from '../shared/sync.js';
 import { KINDS, now, sign, stamp, addressOf, fingerprint } from '../shared/events.js';
 import { loadIdentity, npub } from '../shared/account.js';
 import { AccountSettings } from '../shared/settings.js';
-import { BlockList, REPORT_TYPES } from '../shared/moderation.js';
+import { REPORT_TYPES } from '../shared/moderation.js';
 import { minePow, hasPow } from '../shared/pow.js';
 import { settingsView } from '../shared/settingsview.js';
 import { initAppShell } from '../shared/appshell.js';
@@ -30,7 +30,8 @@ const DURATIONS = [1, 3, 7, 14, 30];
 
 const net = { db: null, pool: null, sync: null };
 let identity;
-let blocks;
+let blocks; // the suite's block list (from the app shell)
+let people; // friends, circles, sharing (from the app shell)
 let prefs; // AccountSettings 'devboard': { saved: [address] }
 let shell;
 
@@ -173,6 +174,7 @@ function render() {
   const items = all
     .filter((p) => {
       if (filter === 'saved') return saved().has(p.address);
+      if (filter === 'friends') return people.isFriend(p.pubkey);
       if (filter !== 'all' && p.data.type !== filter) return false;
       if (q && !`${p.data.title} ${p.data.text} ${p.data.tags.join(' ')} ${p.data.rate}`.toLowerCase().includes(q)) return false;
       for (const tf of tagFilters) if (!p.data.tags.some((x) => x.toLowerCase() === tf)) return false;
@@ -190,7 +192,7 @@ function render() {
       <div class="toolbar">
         <input class="search" id="search" type="search" placeholder="${h(t('db.search'))}" aria-label="${h(t('db.search'))}" value="${h(query)}">
         <div class="seg" role="radiogroup">
-          ${['all', 'hiring', 'available', 'saved'].map((f) => `<label><input type="radio" name="filter" value="${f}" ${f === filter ? 'checked' : ''}><span>${h(t(`db.filter.${f}`))}</span></label>`).join('')}
+          ${['all', 'hiring', 'available', 'saved', 'friends'].map((f) => `<label><input type="radio" name="filter" value="${f}" ${f === filter ? 'checked' : ''}><span>${h(t(`db.filter.${f}`))}</span></label>`).join('')}
         </div>
         <button type="button" class="btn btn-primary" id="postBtn">${icon('plus')}<span>${h(t('db.post'))}</span></button>
       </div>
@@ -255,7 +257,8 @@ function card(p) {
       <div class="note-meta">
         <span>${h(t('db.posted', { when: relTime(p.created_at * 1000) }))}</span>
         <span>${h(t('db.expires', { when: relTime(p.expires * 1000) }))}</span>
-        <span>${h(t('db.by'))} <code title="${h(npub(p.pubkey))}">${mineNote ? h(t('db.you')) : h(fingerprint(p.pubkey))}</code></span>
+        <span>${h(t('db.by'))} <code title="${h(npub(p.pubkey))}">${mineNote ? h(t('db.you')) : h(people.nameOf(p.pubkey))}</code></span>
+        ${!mineNote && people.isFriend(p.pubkey) ? `<span class="friend-tag">${icon('user-check')}${h(t('people.friend'))}</span>` : ''}
       </div>
       <div class="note-foot">
         <span class="votes">
@@ -433,6 +436,9 @@ function noteMenu(anchor, p) {
         { label: t('db.delete'), icon: 'trash-2', danger: true, run: async () => (await confirmDialog({ title: t('db.deleteConfirm'), confirm: t('common.delete'), danger: true })) && deletePost(p).catch((err) => toast(tErr(err), 'error')) },
       ]
     : [
+        ...(people.isFriend(p.pubkey)
+          ? []
+          : [{ label: t('people.add'), icon: 'user-plus', run: () => people.request(p.pubkey).then((r) => toast(t(r === 'friends' ? 'people.friend' : 'people.requested'), 'success')).catch((err) => toast(tErr(err), 'error')) }]),
         { label: t('db.report'), icon: 'shield', run: () => reportDialog(p) },
         { label: t('db.block'), icon: 'x', danger: true, run: () => blocks.block(p.pubkey).then(() => toast(t('db.blocked'), 'success')).catch((err) => toast(tErr(err), 'error')) },
       ];
@@ -507,8 +513,10 @@ async function boot() {
     delete $('#main').dataset.ready;
     render();
   });
-  blocks = await new BlockList(identity, net).start();
+  blocks = shell.blocks;
+  people = shell.people;
   blocks.onChange(render);
+  people.onChange(render);
   prefs = await new AccountSettings(identity, net, 'devboard').start();
   prefs.onChange(render);
   const since = now() - LIMITS.maxDays * 86_400;

@@ -8,6 +8,7 @@
   "db.filter.hiring": "Szuka ludzi",
   "db.filter.available": "Dostępni",
   "db.filter.saved": "Zapisane",
+  "db.filter.friends": "Znajomi",
   "db.stats": {
     "one": "{n} aktywna notka",
     "few": "{n} aktywne notki",

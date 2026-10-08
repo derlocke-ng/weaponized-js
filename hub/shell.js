@@ -9,6 +9,9 @@ import { Sync } from './shared/sync.js';
 import { loadIdentity } from './shared/account.js';
 import { theme, setTheme, applyTheme, watchDeviceSettings } from './shared/theme.js';
 import { AccountSettings } from './shared/settings.js';
+import { BlockList } from './shared/moderation.js';
+import { People } from './shared/people.js';
+import { peopleNotices } from './shared/people-ui.js';
 
 export { $, $$, h, icon, toast } from './shared/ui.js';
 import { $, $$ } from './shared/ui.js';
@@ -40,7 +43,21 @@ const languageChanged = () => {
   for (const fn of languageListeners) fn(currentLanguage());
 };
 
-export async function bootShell() {
+/** The account's block list and People (friends, circles, shares), restarted when the identity changes. */
+export let blocks = null;
+export let people = null;
+let offNotices = null;
+export async function startPeople(current = 'hub') {
+  blocks?.stop();
+  people?.stop();
+  offNotices?.();
+  const id = loadIdentity();
+  blocks = await new BlockList(id, net).start();
+  people = await new People(id, net, { isBlocked: (pk) => blocks.isBlocked(pk) }).start();
+  offNotices = peopleNotices(people, { base: './', current });
+}
+
+export async function bootShell({ current = 'hub' } = {}) {
   applyTheme();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
   const i18n = initI18n({ dirs: ['shared/locales/', 'locales/'] });
@@ -49,6 +66,7 @@ export async function bootShell() {
   net.sync = new Sync(net.pool, net.db);
   await i18n;
   await startSuite();
+  await startPeople(current);
   watchDeviceSettings({
     onTheme: applyTheme,
     onLanguage: async () => {

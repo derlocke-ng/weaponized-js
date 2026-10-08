@@ -133,6 +133,7 @@ async function boot() {
   net.sync = new Sync(net.pool, net.db);
   identity = loadIdentity();
   shell = await initAppShell({ app: '${id}', net, brand: { href: '#/' }, right: () => statusPill({ href: '../settings.html#relays' }), account: { href: '#/settings' } });
+  // shell.people (friends, circles, sharing: shared/people.js, pickPeople in people-ui.js) and shell.blocks are ready to use.
   shell.onLanguage(render);
   prefs = await new AccountSettings(identity, net, '${id}').start();
   prefs.onChange(render);

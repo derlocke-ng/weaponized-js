@@ -15,7 +15,8 @@ let spriteUrl = 'icons.svg';
 export const setSprite = (url) => (spriteUrl = url);
 export const icon = (name, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><use href="${spriteUrl}#${name}"></use></svg>`;
 
-export function toast(message, kind = 'info', ms = 3200) {
+/** A toast; `action` is { label, href?, onClick? } for one thing to do about it. */
+export function toast(message, kind = 'info', ms = 3200, action = null) {
   let box = $('#toasts');
   if (!box) {
     box = document.createElement('div');
@@ -27,12 +28,27 @@ export function toast(message, kind = 'info', ms = 3200) {
   const el = document.createElement('div');
   el.className = `toast toast-${kind}`;
   el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
-  el.textContent = message;
-  box.append(el);
-  setTimeout(() => {
+  const text = document.createElement('span');
+  text.textContent = message;
+  el.append(text);
+  const leave = () => {
     el.classList.add('leaving');
     setTimeout(() => el.remove(), 250);
-  }, ms);
+  };
+  if (action) {
+    const a = document.createElement(action.href ? 'a' : 'button');
+    a.className = 'toast-action';
+    if (action.href) a.href = action.href;
+    else a.type = 'button';
+    a.textContent = action.label;
+    a.addEventListener('click', () => {
+      action.onClick?.();
+      leave();
+    });
+    el.append(a);
+  }
+  box.append(el);
+  setTimeout(leave, ms);
   return el;
 }
 

@@ -49,6 +49,28 @@
       <ul class="app-toggles" id="appToggles"></ul>
     </section>
 
+    <section class="card" id="people" aria-labelledby="peopleTitle">
+      <h2 id="peopleTitle"><svg class="icon"><use href="icons.svg#users"/></svg><span data-i18n="settings.people">People</span></h2>
+      <p class="muted" data-i18n="settings.peopleText">Friends are mutual: you ask, they accept, and each of you keeps the other.</p>
+      <p class="small my-key"><span data-i18n="settings.yourKey">Your key, for people who want to add you:</span> <code id="myNpub"></code> <button type="button" class="link-btn" data-act="copy-npub" data-i18n="account.copyNpub">Copy npub</button></p>
+      <ul class="people-list" id="requestList" hidden></ul>
+      <ul class="people-list" id="friendList"></ul>
+      <form class="form" id="friendForm">
+        <label class="field"><span data-i18n="settings.friendAdd">Add a friend by their public key</span><input name="who" placeholder="npub1…" spellcheck="false" autocapitalize="off" autocomplete="off" required></label>
+        <div class="form-actions"><button class="btn btn-sm" data-i18n="settings.friendSend">Send request</button></div>
+      </form>
+    </section>
+
+    <section class="card" id="circles" aria-labelledby="circlesTitle">
+      <h2 id="circlesTitle"><svg class="icon"><use href="icons.svg#users-round"/></svg><span data-i18n="settings.circles">Circles</span></h2>
+      <p class="muted" data-i18n="settings.circlesText">Groups of friends, to send something to several people at once. Only you see your circles.</p>
+      <div class="circle-list" id="circleList"></div>
+      <form class="form" id="circleForm">
+        <label class="field"><span data-i18n="settings.circleAdd">New circle</span><input name="name" maxlength="40" autocomplete="off" required></label>
+        <div class="form-actions"><button class="btn btn-sm" data-i18n="settings.circleCreate">Create</button></div>
+      </form>
+    </section>
+
     <section class="card" id="relays" aria-labelledby="relaysTitle">
       <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg><span data-i18n="account.relays">Relays</span></h2>
       <p class="muted" data-i18n="account.relaysText">Relays pass signed, encrypted events between your devices.</p>

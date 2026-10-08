@@ -152,5 +152,21 @@
   "app.settings.signedIn": "Angemeldet als <b>{alias}</b>. Alles hier wird mit dem Schlüssel deines Kontos signiert und folgt dir auf jedes Gerät.",
   "app.settings.deviceKey": "Alles hier wird mit dem Schlüssel dieses Geräts signiert. Mit einem Konto folgt es dir auf jedes Gerät.",
   "app.settings.siteHint": "Konto, Relays, Sprache, Darstellung, Backup und blockierte Personen sind in den Einstellungen der Seite und gelten für jedes Tool.",
-  "app.settings.openSite": "Einstellungen der Seite öffnen"
+  "app.settings.openSite": "Einstellungen der Seite öffnen",
+  "people.requestNotice": "{name} möchte mit dir befreundet sein.",
+  "people.shareNotice": "{name} hat in {app} etwas mit dir geteilt.",
+  "people.open": "Öffnen",
+  "people.pick.title": "An Freunde senden",
+  "people.pick.send": "Senden",
+  "people.pick.circles": "Kreise",
+  "people.pick.friends": "Freunde",
+  "people.pick.none": "Noch keine Freunde. Füge Leute in den Einstellungen der Seite hinzu.",
+  "people.sent": {
+    "one": "An {n} Person gesendet",
+    "other": "An {n} Personen gesendet"
+  },
+  "people.friend": "Freund",
+  "people.add": "Als Freund hinzufügen",
+  "people.requested": "Freundschaftsanfrage gesendet.",
+  "people.error.key": "Das ist nicht der öffentliche Schlüssel einer anderen Person."
 }

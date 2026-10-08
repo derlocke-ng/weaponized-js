@@ -174,5 +174,7 @@
   "settings.starterTitle": "Titel",
   "settings.starterText": "Inhalt",
   "settings.reset": "Auf Standard zurücksetzen",
-  "settings.saved": "Einstellungen gespeichert"
+  "settings.saved": "Einstellungen gespeichert",
+  "share.friends": "An Freunde senden…",
+  "share.received": "{name} hat „{title}“ mit dir geteilt."
 }

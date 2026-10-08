@@ -11,6 +11,9 @@ import { AccountSettings } from './settings.js';
 import { mountTopbar, accountLink } from './topbar.js';
 import { appById, appMark } from './apps.js';
 import { mountStatus } from './status.js';
+import { BlockList } from './moderation.js';
+import { People } from './people.js';
+import { peopleNotices } from './people-ui.js';
 import { setSprite } from './ui.js';
 
 /**
@@ -70,8 +73,19 @@ export async function initAppShell({ app = null, current = app, brand = {}, righ
       }
     },
   });
+  // The account's block list and People (friends, circles, shares) for every app with a connection,
+  // with notices about requests and shares; apps read shell.blocks / shell.people.
+  let blocks = null;
+  let people = null;
+  if (net) {
+    blocks = await new BlockList(identity, net).start();
+    people = await new People(identity, net, { isBlocked: (pk) => blocks.isBlocked(pk) }).start();
+    peopleNotices(people, { base, current });
+  }
   return {
     suite,
+    blocks,
+    people,
     redraw: draw,
     onLanguage: (fn) => {
       listeners.add(fn);

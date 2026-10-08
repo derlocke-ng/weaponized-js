@@ -8,6 +8,7 @@
   "db.filter.hiring": "Hiring",
   "db.filter.available": "Available",
   "db.filter.saved": "Saved",
+  "db.filter.friends": "Friends",
   "db.stats": {
     "one": "{n} live note",
     "other": "{n} live notes"

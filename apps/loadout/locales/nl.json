@@ -174,5 +174,7 @@
   "settings.starterTitle": "Titel",
   "settings.starterText": "Inhoud",
   "settings.reset": "Standaard herstellen",
-  "settings.saved": "Instellingen opgeslagen"
+  "settings.saved": "Instellingen opgeslagen",
+  "share.friends": "Naar vrienden sturen…",
+  "share.received": "{name} heeft ‘{title}’ met je gedeeld."
 }

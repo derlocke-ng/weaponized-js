@@ -186,5 +186,7 @@
   "settings.starterTitle": "Tytuł",
   "settings.starterText": "Treść",
   "settings.reset": "Przywróć domyślne",
-  "settings.saved": "Zapisano ustawienia"
+  "settings.saved": "Zapisano ustawienia",
+  "share.friends": "Wyślij do znajomych…",
+  "share.received": "{name} udostępnił(a) ci „{title}”."
 }

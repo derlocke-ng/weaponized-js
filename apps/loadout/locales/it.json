@@ -180,5 +180,7 @@
   "settings.starterTitle": "Titolo",
   "settings.starterText": "Contenuto",
   "settings.reset": "Ripristina predefinito",
-  "settings.saved": "Impostazioni salvate"
+  "settings.saved": "Impostazioni salvate",
+  "share.friends": "Invia ad amici…",
+  "share.received": "{name} ha condiviso “{title}” con te."
 }

@@ -9,6 +9,10 @@ export const app = {
   wallet: null,
   /** @type {import('./settings.js').Settings} */
   settings: null,
+  /** @type {import('../../shared/people.js').People|null} friends, circles, sharing (from the app shell) */
+  people: null,
+  /** @type {import('../../shared/moderation.js').BlockList|null} */
+  blocks: null,
   render: () => {},
   /** Redraws the shell and the current view, e.g. after a language change. */
   rerender: () => {},

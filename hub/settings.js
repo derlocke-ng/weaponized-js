@@ -8,11 +8,11 @@ import { isHex64 } from './shared/events.js';
 import { pubkeyOf } from './shared/account.js';
 import { encryptBackup, decryptBackup } from './shared/backup.js';
 import { theme } from './shared/theme.js';
-import { BlockList } from './shared/moderation.js';
 import { npub, decodeKey } from './shared/account.js';
 import { fingerprint } from './shared/events.js';
 import { store } from './shared/util.js';
-import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, $, $$, h, icon, toast } from './shell.js';
+import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, startPeople, blocks, people, $, $$, h, icon, toast } from './shell.js';
+import { copyText } from './shared/ui.js';
 import { APPS } from './shared/apps.js';
 import { cores, hardwareCores, CORES_KEY } from './shared/pow.js';
 import { mountAccount, onAccountChange } from './account.js';
@@ -65,13 +65,40 @@ async function drawRelays() {
   if (!$('#relayForm textarea').value) $('#relayForm textarea').value = savedRelays().join('\n');
 }
 
-let blocks = null;
-
-async function startBlocks() {
-  blocks?.stop();
-  blocks = await new BlockList(loadIdentity(), net).start();
+/** The block list and People come from the shell; after a restart (new identity) they are bound again. */
+function bindPeople() {
   blocks.onChange(drawBlocked);
+  people.onChange(drawPeople);
   drawBlocked();
+  drawPeople();
+}
+
+function drawPeople() {
+  if (!people) return;
+  $('#myNpub').textContent = npub(loadIdentity().pk);
+  const fp = (pk) => `<code title="${h(npub(pk))}">${h(fingerprint(pk))}</code>`;
+  const who = (name, pk) => `<span class="who">${name ? `<b>${h(name)}</b> ` : ''}${fp(pk)}</span>`;
+  const requests = [
+    ...people.incoming().map(
+      (r) => `<li data-pk="${r.pk}">${who(r.name, r.pk)}<span class="muted small">${h(t('settings.requestIncoming'))}</span><span class="actions"><button type="button" class="btn btn-sm btn-primary" data-accept="${r.pk}">${h(t('settings.accept'))}</button><button type="button" class="btn btn-sm btn-ghost" data-ignore="${r.pk}">${h(t('settings.ignore'))}</button></span></li>`,
+    ),
+    ...people.outgoing().map((r) => `<li data-pk="${r.pk}">${who('', r.pk)}<span class="muted small">${h(t('settings.requestOutgoing'))}</span><span class="actions"><button type="button" class="btn btn-sm btn-ghost" data-cancel="${r.pk}">${h(t('settings.cancelRequest'))}</button></span></li>`),
+  ];
+  $('#requestList').innerHTML = requests.join('');
+  $('#requestList').hidden = !requests.length;
+  const friends = people.friends();
+  $('#friendList').innerHTML = friends.length
+    ? friends.map((f) => `<li data-pk="${f.pk}">${who(f.name, f.pk)}<span class="actions"><button type="button" class="btn btn-sm btn-ghost" data-remove="${f.pk}">${h(t('settings.removeFriend'))}</button></span></li>`).join('')
+    : `<li class="muted small">${h(t('settings.noFriends'))}</li>`;
+  $('#circleList').innerHTML = people
+    .circles()
+    .map(
+      (c) => `<div class="circle" data-circle="${c.id}">
+        <div class="circle-head"><b>${h(c.name)}</b><button type="button" class="btn btn-sm btn-ghost" data-circle-delete="${c.id}">${h(t('settings.circleDelete'))}</button></div>
+        ${friends.length ? `<ul class="people-list">${friends.map((f) => `<li><label class="check-row"><input type="checkbox" data-circle-member="${c.id}" value="${f.pk}" ${c.members.includes(f.pk) ? 'checked' : ''}><span>${f.name ? `${h(f.name)} ` : ''}${fp(f.pk)}</span></label></li>`).join('')}</ul>` : `<p class="muted small">${h(t('settings.circleEmpty'))}</p>`}
+      </div>`,
+    )
+    .join('');
 }
 
 function drawBlocked() {
@@ -151,7 +178,7 @@ function wipeDevice() {
 }
 
 async function boot() {
-  await bootShell();
+  await bootShell({ current: 'settings' });
   const drawTop = () => {
     mountTopbar($('#top'), {
       base: './',
@@ -164,7 +191,7 @@ async function boot() {
   };
   drawTop();
   const redrawAccount = mountAccount($('#accountBody'), { full: true });
-  await startBlocks();
+  bindPeople();
   drawLanguage();
   drawApps();
   drawPow();
@@ -184,6 +211,7 @@ async function boot() {
   onLanguage(() => {
     drawTop();
     drawBlocked();
+    drawPeople();
     drawLanguage();
     drawApps();
     drawPow();
@@ -199,7 +227,57 @@ async function boot() {
   onAccountChange(() => {
     drawApps();
     drawLanguage();
-    startBlocks().catch(() => {});
+    startPeople('settings').then(bindPeople).catch(() => {});
+  });
+  $('#people').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-accept],[data-ignore],[data-cancel],[data-remove],[data-act=copy-npub]');
+    if (!b) return;
+    try {
+      if (b.dataset.act === 'copy-npub') await copyText(npub(loadIdentity().pk), t('account.publicKey'));
+      else if (b.dataset.accept) await people.accept(b.dataset.accept);
+      else if (b.dataset.ignore) await people.ignore(b.dataset.ignore);
+      else if (b.dataset.cancel) await people.cancel(b.dataset.cancel);
+      else if (b.dataset.remove) await people.remove(b.dataset.remove);
+    } catch (err) {
+      toast(tErr(err), 'error');
+    }
+  });
+  $('#friendForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let pk;
+    try {
+      pk = decodeKey(e.target.who.value.trim());
+    } catch {
+      return toast(t('settings.blockInvalid'), 'error');
+    }
+    if (pk === loadIdentity().pk) return toast(t('settings.selfKey'), 'error');
+    try {
+      const result = await people.request(pk);
+      e.target.reset();
+      toast(t(result === 'friends' ? 'settings.nowFriends' : 'settings.requestSent'), 'success');
+    } catch (err) {
+      toast(tErr(err), 'error');
+    }
+  });
+  $('#circleForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = e.target.name.value.trim();
+    if (!name) return;
+    try {
+      await people.circleCreate(name);
+      e.target.reset();
+    } catch (err) {
+      toast(tErr(err), 'error');
+    }
+  });
+  $('#circles').addEventListener('click', (e) => {
+    const id = e.target.closest('[data-circle-delete]')?.dataset.circleDelete;
+    if (id) people.circleRemove(id).catch((err) => toast(tErr(err), 'error'));
+  });
+  $('#circles').addEventListener('change', (e) => {
+    const id = e.target.dataset.circleMember;
+    if (!id) return;
+    people.circleSet(id, $$(`[data-circle-member="${id}"]:checked`).map((i) => i.value)).catch((err) => toast(tErr(err), 'error'));
   });
   $('#blockForm').addEventListener('submit', async (e) => {
     e.preventDefault();

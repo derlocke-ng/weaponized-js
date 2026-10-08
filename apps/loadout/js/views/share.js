@@ -1,9 +1,10 @@
 import qrcode from '../../vendor/qrcode.mjs';
 import { app } from '../app.js';
 import { shareLink } from '../links.js';
-import { $, icon, modal, copyText } from '../ui.js';
+import { $, icon, modal, copyText, toast } from '../ui.js';
+import { pickPeople } from '../../../shared/people-ui.js';
 import { h } from '../util.js';
-import { t } from '../../../shared/i18n.js';
+import { t, tErr } from '../../../shared/i18n.js';
 
 /** QR code as an SVG path (no inline styles, so it passes the CSP). */
 export function qrSvg(text) {
@@ -41,6 +42,7 @@ export function shareDialog(board) {
       <div class="share-row">
         ${navigator.share ? `<button type="button" class="btn" data-act="native">${icon('share-2')}<span>${h(t('share.native'))}</span></button>` : ''}
         <button type="button" class="btn" data-act="qr">${icon('qr-code')}<span>${h(t('share.qr'))}</span></button>
+        ${app.people ? `<button type="button" class="btn" data-act="friends">${icon('users')}<span>${h(t('share.friends'))}</span></button>` : ''}
       </div>
       <div class="qr-box" id="qrBox" hidden></div>
       <p class="hint">${icon('key-round')} ${t('share.hint')}</p>`,
@@ -66,6 +68,19 @@ export function shareDialog(board) {
         if (act === 'qr') {
           qrBox.hidden = !qrBox.hidden;
           if (!qrBox.hidden) qrBox.innerHTML = qrSvg(url.value);
+        }
+        if (act === 'friends') {
+          // The link and the board's keys for this role, wrapped for each friend; their Loadout adds the board.
+          pickPeople(app.people, { base: '../' }).then(async (pks) => {
+            if (!pks.length) return;
+            const keys = role === 'edit' ? { w: board.w } : { k: board.k };
+            try {
+              const n = await app.people.share('loadout', { type: 'board', url: url.value, board: { pub: board.pub, kind: board.info.type, mode: board.info.mode, title: board.info.title, ...keys } }, pks);
+              toast(t('people.sent', { n }), 'success');
+            } catch (err) {
+              toast(tErr(err), 'error');
+            }
+          });
         }
       });
     },

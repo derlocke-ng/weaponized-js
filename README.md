@@ -69,7 +69,7 @@ GitHub Pages, built by `.github/workflows/deploy.yml` on every push to `main` (p
 npm run new-app -- outpost "Outpost" sprout     # id, name, a lucide symbol id from hub/icons.svg
 ```
 
-That scaffolds `apps/outpost/` (page, script on the shared core and app shell, settings view, strings in every language), registers the app in `apps/shared/apps.js`, adds its hub card text, draws its favicon and updates the service worker list. The start page, the switcher, the Apps toggles and the top bar then know it. What remains is the app itself, its translations and a browser test; `npm run icons` and `npm run sw` redraw and relist after changes, and `npm test` tells you when they are stale.
+That scaffolds `apps/outpost/` (page, script on the shared core and app shell, settings view, strings in every language), registers the app in `apps/shared/apps.js`, adds its hub card text, draws its favicon and updates the service worker list. The start page, the switcher, the Apps toggles and the top bar then know it, and the app gets the account's friends, circles and sharing (`shell.people`) and block list (`shell.blocks`) from the shell. What remains is the app itself, its translations and a browser test; `npm run icons` and `npm run sw` redraw and relist after changes, and `npm test` tells you when they are stale.
 
 ## License
 

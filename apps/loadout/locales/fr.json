@@ -180,5 +180,7 @@
   "settings.starterTitle": "Titre",
   "settings.starterText": "Contenu",
   "settings.reset": "Valeurs par défaut",
-  "settings.saved": "Paramètres enregistrés"
+  "settings.saved": "Paramètres enregistrés",
+  "share.friends": "Envoyer à des amis…",
+  "share.received": "{name} a partagé « {title} » avec vous."
 }

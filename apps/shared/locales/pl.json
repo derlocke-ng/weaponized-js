@@ -158,5 +158,23 @@
   "app.settings.signedIn": "Zalogowano jako <b>{alias}</b>. Wszystko tutaj jest podpisywane kluczem twojego konta i podąża za tobą na każde urządzenie.",
   "app.settings.deviceKey": "Wszystko tutaj jest podpisywane kluczem tego urządzenia. Z kontem podąża za tobą na każde urządzenie.",
   "app.settings.siteHint": "Konto, przekaźniki, język, wygląd, kopia zapasowa i zablokowane osoby są w ustawieniach strony i obowiązują we wszystkich narzędziach.",
-  "app.settings.openSite": "Otwórz ustawienia strony"
+  "app.settings.openSite": "Otwórz ustawienia strony",
+  "people.requestNotice": "{name} chce zostać twoim znajomym.",
+  "people.shareNotice": "{name} udostępnił(a) ci coś w {app}.",
+  "people.open": "Otwórz",
+  "people.pick.title": "Wyślij do znajomych",
+  "people.pick.send": "Wyślij",
+  "people.pick.circles": "Kręgi",
+  "people.pick.friends": "Znajomi",
+  "people.pick.none": "Jeszcze nie masz znajomych. Dodaj osoby w ustawieniach strony.",
+  "people.sent": {
+    "one": "Wysłano do {n} osoby",
+    "few": "Wysłano do {n} osób",
+    "many": "Wysłano do {n} osób",
+    "other": "Wysłano do {n} osoby"
+  },
+  "people.friend": "Znajomy",
+  "people.add": "Dodaj do znajomych",
+  "people.requested": "Wysłano zaproszenie do znajomych.",
+  "people.error.key": "To nie jest klucz publiczny innej osoby."
 }

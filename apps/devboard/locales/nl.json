@@ -8,6 +8,7 @@
   "db.filter.hiring": "Zoekt mensen",
   "db.filter.available": "Beschikbaar",
   "db.filter.saved": "Bewaard",
+  "db.filter.friends": "Vrienden",
   "db.stats": {
     "one": "{n} actief briefje",
     "other": "{n} actieve briefjes"

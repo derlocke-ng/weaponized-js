@@ -8,6 +8,7 @@
   "db.filter.hiring": "Contrata",
   "db.filter.available": "Disponível",
   "db.filter.saved": "Guardadas",
+  "db.filter.friends": "Amigos",
   "db.stats": {
     "one": "{n} nota ativa",
     "many": "{n} notas ativas",

@@ -152,5 +152,21 @@
   "app.settings.signedIn": "Signed in as <b>{alias}</b>. Everything here is signed with your account’s key and follows you to every device.",
   "app.settings.deviceKey": "Everything here is signed with this device’s key. With an account it follows you to every device.",
   "app.settings.siteHint": "Account, relays, language, appearance, backup and blocked people are in the site settings and apply to every tool.",
-  "app.settings.openSite": "Open the site settings"
+  "app.settings.openSite": "Open the site settings",
+  "people.requestNotice": "{name} wants to be friends.",
+  "people.shareNotice": "{name} shared something with you in {app}.",
+  "people.open": "Open",
+  "people.pick.title": "Send to friends",
+  "people.pick.send": "Send",
+  "people.pick.circles": "Circles",
+  "people.pick.friends": "Friends",
+  "people.pick.none": "No friends yet. Add people in the site settings.",
+  "people.sent": {
+    "one": "Sent to {n} person",
+    "other": "Sent to {n} people"
+  },
+  "people.friend": "Friend",
+  "people.add": "Add as friend",
+  "people.requested": "Friend request sent.",
+  "people.error.key": "That is not someone else’s public key."
 }

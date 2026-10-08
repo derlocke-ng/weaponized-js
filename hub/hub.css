@@ -447,3 +447,56 @@ select:focus-visible {
 .foot {
   text-align: left;
 }
+
+/* People: requests, friends and circles in the settings */
+.people-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.people-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.people-list .who {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.people-list .actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.3rem;
+}
+
+.my-key code {
+  overflow-wrap: anywhere;
+}
+
+.circle-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.circle {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.circle-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

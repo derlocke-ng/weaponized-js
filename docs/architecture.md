@@ -116,6 +116,17 @@ nostr has no central moderation; it has three layers, and the suite uses all thr
 
 `apps/shared/moderation.js` holds the list and the report builder.
 
+## People: friends, circles, sharing
+
+One library for every app, `apps/shared/people.js`, with its UI in `people-ui.js` and its cards in the site settings:
+
+- **Friends are mutual.** A request and an accept travel as NIP-59 gift wraps (kind 1059) carrying rumors of our own kinds (7801 request, 7802 accept, 7803 remove, 7804 share), so relays see only that some key received a wrapped note: not who asked, not who answered, not a name. nostr's public follow list is never used. Removing a friend tells the other side, which drops you too. A request from someone you blocked is dropped unread; an accept you never asked for counts as a request.
+- **The lists are the account's.** Friends (with the name they gave themselves), circles, pending requests, received shares and the ids already handled are one encrypted settings event (kind 30791, `d` = `people`), so every device signed in as you agrees and nothing is public.
+- **Circles** are groups of friends, local to you, for sending to several people at once.
+- **Sharing** is `people.share(app, payload, pks)`: one wrap per recipient. The recipient's People keeps the share until that app takes it (`people.onShare(app, fn)` replays what waited, then `consume(id)`); any page shows a notice with an "Open" action (`payload.url`) for shares to apps that are not open. Loadout sends a board (link plus keys for the chosen role; the friend's Loadout adds it to the wallet), Payload a transfer link; Outpost's friends-only posts and the marketplace's invite listings will read the same list.
+- **Where it shows.** The site settings hold your key to hand out, requests, friends and circles. Apps get `shell.people` and `shell.blocks` from the app shell, `pickPeople()` to choose recipients, and `people.isFriend()` / `nameOf()` to mark friends (DevBoard tags friends' notes, filters by friends, and adds a friend from a note's menu).
+- Still open: a friends key for friends-only content (rotated when someone is removed) once Outpost needs it, and NIP-17 inbox relays (kind 10050) so friends on different relay sets still reach each other; today both sides are assumed to share a relay.
+
 ## Languages
 
 Every app ships its strings as one JSON catalog per language (`apps/<app>/locales/<lang>.json`) plus a shared catalog for common words and the core's error messages (`apps/shared/locales/`). `apps/shared/i18n.js` loads the active language and English as the fallback, nothing else, so a device downloads one small file per app (10–20 KB) and caches it offline.
@@ -181,7 +192,7 @@ The freelancer noticeboard is public by nature, so its defence is not encryption
 2. **Payload and pongjs on nostr**: presence and signaling as ephemeral events 21700–21702 (encrypted to the room secret), data frames over 21702 when WebRTC fails, TURN servers from the picker; Payload gets a **drop** mode — encrypted chunks on a Blossom server with an expiry — for receivers who are not online right now. Then gun, `apps/shared/gun.js` and `scripts/relay.cjs` go.
 3. **Uplink** (chat): NIP-17 private messages between accounts, ephemeral encrypted rooms (what EnigmaJS did), groups later.
 4. **Outpost** (grow reports): entries and photos encrypted before upload to Blossom, friends list, visibility layers (private / friends / "public" = readable by anyone signed into the app), feed and explore; marketplace for seeds, cuttings and gear behind an 18+ / legal-region declaration and a no-liability agreement. Cuttings are an ordinary category everywhere: whether a listing is legal where the user lives is the user's call under that agreement, not the software's. Backups include blobs.
-5. **Suite shell**: one account for every app, app switcher, hidden apps and language in settings (kind 30791), People and Circles.
+5. ~~Suite shell~~ (done): one account for every app, app switcher, hidden apps and language in settings (kind 30791), People and Circles (see *People* above).
 6. **kiwi `weaponized` module**; replace the first default relays with kiwi ones.
 7. ~~DevBoard on nostr~~ (done — see *DevBoard* above; `test/e2e/devboard.mjs` covers notes, votes, reports, blocking and the cap on two devices). Still to come for it: a relay policy that enforces the same proof of work and caps server-side, and trust-weighted report counts once People and Circles exist.
 

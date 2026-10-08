@@ -155,5 +155,22 @@
   "app.settings.signedIn": "Accesso come <b>{alias}</b>. Tutto qui è firmato con la chiave del tuo account e ti segue su ogni dispositivo.",
   "app.settings.deviceKey": "Tutto qui è firmato con la chiave di questo dispositivo. Con un account ti segue su ogni dispositivo.",
   "app.settings.siteHint": "Account, relay, lingua, aspetto, backup e persone bloccate sono nelle impostazioni del sito e valgono per ogni strumento.",
-  "app.settings.openSite": "Apri le impostazioni del sito"
+  "app.settings.openSite": "Apri le impostazioni del sito",
+  "people.requestNotice": "{name} vuole diventare tuo amico.",
+  "people.shareNotice": "{name} ha condiviso qualcosa con te in {app}.",
+  "people.open": "Apri",
+  "people.pick.title": "Invia ad amici",
+  "people.pick.send": "Invia",
+  "people.pick.circles": "Cerchie",
+  "people.pick.friends": "Amici",
+  "people.pick.none": "Ancora nessun amico. Aggiungi persone nelle impostazioni del sito.",
+  "people.sent": {
+    "one": "Inviato a {n} persona",
+    "many": "Inviato a {n} persone",
+    "other": "Inviato a {n} persone"
+  },
+  "people.friend": "Amico",
+  "people.add": "Aggiungi come amico",
+  "people.requested": "Richiesta di amicizia inviata.",
+  "people.error.key": "Questa non è la chiave pubblica di un’altra persona."
 }

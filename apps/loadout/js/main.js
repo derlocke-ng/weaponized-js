@@ -4,7 +4,7 @@ import { Wallet } from './wallet.js';
 import { Settings } from './settings.js';
 import { carryOver } from './session.js';
 import { watchAll } from './heal.js';
-import { parseRoute } from './links.js';
+import { parseRoute, isPub, isSecret } from './links.js';
 import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
@@ -102,8 +102,18 @@ async function boot() {
     account: { href: '#/account' },
   });
   shell.onLanguage(rerender);
+  app.people = shell.people;
+  app.blocks = shell.blocks;
   await Promise.all([app.wallet.start(), app.settings.start()]);
   await carryOver(); // boards from a key this device used before signing in elsewhere in the suite
+  // Boards friends sent us (share dialog → "Send to friends…") go straight into the wallet.
+  app.people?.onShare('loadout', async (share) => {
+    const b = share.payload?.board;
+    if (share.payload?.type !== 'board' || !b || !isPub(b.pub)) return;
+    if (!app.wallet.get(b.pub)) await app.wallet.upsert({ pub: b.pub, w: isSecret(b.w) ? b.w : null, k: isSecret(b.k) ? b.k : null, type: b.kind, mode: b.mode, title: String(b.title || '').slice(0, 120) });
+    await app.people.consume(share.id);
+    toast(t('share.received', { name: share.name, title: b.title || t('common.untitled') }), 'success', 6000);
+  });
   // Relays that (re)connect get this device's copy of everything that is ours.
   const rewatch = () => watchAll(app.identity, app.wallet);
   rewatch();

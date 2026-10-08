@@ -155,5 +155,22 @@
   "app.settings.signedIn": "Connecté en tant que <b>{alias}</b>. Tout ici est signé avec la clé de votre compte et vous suit sur chaque appareil.",
   "app.settings.deviceKey": "Tout ici est signé avec la clé de cet appareil. Avec un compte, cela vous suit sur chaque appareil.",
   "app.settings.siteHint": "Compte, relais, langue, apparence, sauvegarde et personnes bloquées se trouvent dans les réglages du site et valent pour tous les outils.",
-  "app.settings.openSite": "Ouvrir les réglages du site"
+  "app.settings.openSite": "Ouvrir les réglages du site",
+  "people.requestNotice": "{name} veut devenir votre ami.",
+  "people.shareNotice": "{name} a partagé quelque chose avec vous dans {app}.",
+  "people.open": "Ouvrir",
+  "people.pick.title": "Envoyer à des amis",
+  "people.pick.send": "Envoyer",
+  "people.pick.circles": "Cercles",
+  "people.pick.friends": "Amis",
+  "people.pick.none": "Pas encore d’amis. Ajoutez des personnes dans les réglages du site.",
+  "people.sent": {
+    "one": "Envoyé à {n} personne",
+    "many": "Envoyé à {n} personnes",
+    "other": "Envoyé à {n} personnes"
+  },
+  "people.friend": "Ami",
+  "people.add": "Ajouter comme ami",
+  "people.requested": "Demande d’ami envoyée.",
+  "people.error.key": "Ce n’est pas la clé publique de quelqu’un d’autre."
 }

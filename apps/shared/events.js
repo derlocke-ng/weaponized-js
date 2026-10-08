@@ -22,6 +22,13 @@ export const KINDS = {
   REACTION: 7, // NIP-25: votes on DevBoard posts
   DELETION: 5, // NIP-09
   DEVBOARD_POST: 30810, // public noticeboard post, proof of work required
+  GIFT_WRAP: 1059, // NIP-59: a sealed rumor for one recipient (friend requests, shares)
+  SEAL: 13,
+  // Rumor kinds inside a gift wrap; relays never see them as such.
+  FRIEND_REQUEST: 7801,
+  FRIEND_ACCEPT: 7802,
+  FRIEND_REMOVE: 7803,
+  SHARE: 7804,
 };
 
 export const now = () => Math.floor(Date.now() / 1000);

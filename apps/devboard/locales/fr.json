@@ -8,6 +8,7 @@
   "db.filter.hiring": "Recrute",
   "db.filter.available": "Disponible",
   "db.filter.saved": "Enregistrées",
+  "db.filter.friends": "Amis",
   "db.stats": {
     "one": "{n} note en ligne",
     "many": "{n} notes en ligne",

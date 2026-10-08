@@ -140,6 +140,36 @@ await run(
     await A.click('#blockedList [data-unblock]');
     await until(async () => !(await texts(A, '#blockedList li')).some((x) => /ffff/.test(x)), 'entry removed');
 
+    step('friends are mutual: E asks, A accepts, both hold each other; circles group friends; removing drops both');
+    const E = await dev('E');
+    await A.goto(SETTINGS);
+    await A.waitForSelector('#myNpub');
+    const aKey = await A.textContent('#myNpub');
+    assert.match(aKey, /^npub1/);
+    await E.goto(SETTINGS);
+    await E.waitForSelector('#friendForm');
+    await E.fill('#friendForm [name=who]', aKey);
+    await E.click('#friendForm .btn');
+    await until(async () => (await texts(E, '#requestList li')).some((x) => /request sent/.test(x)), 'E shows the request as sent', 20000);
+    await until(async () => (await texts(A, '#requestList li')).some((x) => /wants to be friends/.test(x)), 'A gets the request', 30000);
+    await A.click('#requestList [data-accept]');
+    await until(async () => (await texts(A, '#friendList li')).some((x) => /Remove/.test(x)), 'A lists E as a friend', 20000);
+    await until(async () => (await texts(E, '#friendList li')).some((x) => x.includes(alias)), 'E lists A by name', 30000);
+    assert.equal(await E.$('#requestList:not([hidden])'), null, 'nothing pending on E');
+    const wraps = await env.relayEvents([{ kinds: [1059] }]);
+    assert.ok(wraps.length >= 2, 'request and accept travelled as gift wraps');
+    assert.ok(!JSON.stringify(wraps).includes(alias), 'the relay never sees who is involved');
+    await A.fill('#circleForm [name=name]', 'Crew');
+    await A.click('#circleForm .btn');
+    await A.waitForSelector('.circle [data-circle-member]');
+    await A.check('.circle [data-circle-member]', { force: true });
+    await A.reload();
+    await A.waitForSelector('.circle [data-circle-member]');
+    assert.ok(await A.isChecked('.circle [data-circle-member]'), 'circle membership is kept in the account');
+    await A.click('#friendList [data-remove]');
+    await until(async () => (await texts(A, '#friendList li')).some((x) => x.startsWith('No friends yet')), 'A removed E');
+    await until(async () => (await texts(E, '#friendList li')).some((x) => x.startsWith('No friends yet')), 'E lost A too: friends are mutual', 30000);
+
     step('wiping a device forgets the key and the cached data');
     await B.goto(SETTINGS);
     await B.waitForSelector('[data-act=wipe]');

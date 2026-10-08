@@ -23,7 +23,7 @@ await run('loadout', async (env) => {
 
   async function open(page, url = APP) {
     await page.goto(url);
-    await page.waitForSelector('.home, .board, .account', { timeout: 20000 });
+    await page.waitForSelector('.home, .board, .wjs-settings', { timeout: 20000 });
   }
 
   async function newBoard(page, kind, title) {
@@ -357,6 +357,35 @@ await run('loadout', async (env) => {
   await K.click('[data-act=sync-now]');
   await K.waitForSelector('.toast-success', { timeout: 20000 });
   await K.ctx.close();
+
+  step('a board sent to a friend lands in their wallet');
+  const txt = (page, sel) => page.$$eval(sel, (els) => els.map((e) => e.textContent.trim()));
+  const SH = await dev('SH');
+  const SR = await dev('SR');
+  await SH.goto(SETTINGS);
+  await SH.waitForSelector('#myNpub');
+  const shKey = await SH.textContent('#myNpub');
+  await SR.goto(SETTINGS);
+  await SR.waitForSelector('#friendForm');
+  await SR.fill('#friendForm [name=who]', shKey);
+  await SR.click('#friendForm .btn');
+  await until(async () => (await txt(SH, '#requestList li')).some((x) => /wants to be friends/.test(x)), 'SH gets the request', 30000);
+  await SH.click('#requestList [data-accept]');
+  await until(async () => (await txt(SR, '#friendList li')).some((x) => /Remove/.test(x)), 'SR has SH as a friend', 30000);
+  await open(SH);
+  await newBoard(SH, 'check', 'Camping list');
+  await addItems(SH, ['Tent']);
+  await SH.click('[data-act=share]');
+  await SH.waitForSelector('#shareUrl');
+  await SH.click('[data-act=friends]');
+  await SH.waitForSelector('#pickPeople input[name=pk]');
+  await SH.check('#pickPeople input[name=pk]', { force: true });
+  await SH.click('#pickPeople .btn-primary');
+  await SH.waitForSelector('.toast-success');
+  await open(SR);
+  await until(async () => (await txt(SR, '.board-title')).includes('Camping list'), 'the shared board is in SR’s wallet', 40000);
+  const shareWraps = await env.relayEvents([{ kinds: [1059] }]);
+  assert.ok(!JSON.stringify(shareWraps).includes('Camping'), 'the relay sees only wrapped notes');
 
   step('a German browser is asked in German and gets a German app; English stays English');
   const DE = await dev('DE', { locale: 'de-DE' });

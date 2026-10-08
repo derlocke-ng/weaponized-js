@@ -188,6 +188,22 @@ await run(
     await B.click('#compose .modal-actions [data-close]');
     await until(async () => !(await B.$('#compose')), 'compose closed');
 
+    step('a note’s author can be added as a friend; friends get a tag and their own filter');
+    const F = await dev('F');
+    await open(F);
+    await until(async () => (await titles(F)).length === 3, 'F sees A’s notes', 20000);
+    await menu(F, 'Second note', 'Add as friend');
+    await F.waitForSelector('.toast-success');
+    await A.goto(`${env.base}settings.html`);
+    await A.waitForSelector('#requestList [data-accept]', { timeout: 30000 });
+    await A.click('#requestList [data-accept]');
+    await until(async () => (await F.$$('.note .friend-tag')).length === 3, 'A’s notes carry the friend tag on F', 30000);
+    await F.check('input[name=filter][value=friends]', { force: true });
+    await until(async () => (await titles(F)).length === 3, 'the friends filter shows A’s notes');
+    await menu(F, 'Second note', 'Report…'); // the menu no longer offers to add a friend
+    assert.equal(await F.$('.menu'), null);
+    await F.click('dialog.modal .modal-actions [data-close]');
+
     step('a German browser gets the board in German');
     const D = await dev('D', { locale: 'de-DE' });
     await D.goto(BOARD);

@@ -180,5 +180,7 @@
   "settings.starterTitle": "Título",
   "settings.starterText": "Conteúdo",
   "settings.reset": "Repor predefinição",
-  "settings.saved": "Definições guardadas"
+  "settings.saved": "Definições guardadas",
+  "share.friends": "Enviar a amigos…",
+  "share.received": "{name} partilhou “{title}” consigo."
 }

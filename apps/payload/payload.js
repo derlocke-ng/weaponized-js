@@ -2,11 +2,27 @@ import { Room, createGun, randomSecret, relaysUp, b64url, sha256, DEFAULT_RELAYS
 import { qrSvg } from '../shared/qr.js';
 import { CHUNK, chunkLength, hashBlob, rootOf, fingerprint, formatBytes, Meter } from './transfer.js';
 import { initAppShell } from '../shared/appshell.js';
+import { LocalStore } from '../shared/store.js';
+import { RelayPool, savedRelays } from '../shared/relays.js';
+import { Sync } from '../shared/sync.js';
+import { pickPeople } from '../shared/people-ui.js';
+import { toast } from '../shared/ui.js';
 
-// The suite's top bar (switcher, theme, language) before anything else draws.
-await initAppShell({
+// The suite's top bar (switcher, theme, language, account) before anything else draws; the nostr
+// connection carries the suite's settings and People (friends to send a link to) until Payload moves over.
+const net = { db: await LocalStore.open('wjs'), pool: null, sync: null };
+net.pool = new RelayPool(savedRelays());
+net.sync = new Sync(net.pool, net.db);
+const shell = await initAppShell({
   app: 'payload',
+  net,
   right: '<span class="relays" id="relays" title="Relays used to find each other"><span class="dot"></span><span id="relayText">…</span></span>',
+});
+
+// A link a friend sent from their Payload: one tap opens it here.
+shell.people?.onShare('payload', (share) => {
+  if (typeof share.payload?.url !== 'string') return;
+  toast(`${share.name} sent you files.`, 'info', 15000, { label: 'Open', href: share.payload.url, onClick: () => shell.people.consume(share.id) });
 });
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -125,6 +141,7 @@ async function startSending(fileList) {
       <div class="row">
         ${navigator.share ? '<button type="button" class="btn" id="share">Share…</button>' : ''}
         <button type="button" class="btn" id="showQr">QR code</button>
+        ${shell.people ? '<button type="button" class="btn" id="toFriends">Send to friends…</button>' : ''}
       </div>
       <div class="qr-box" id="qrBox" hidden>${qrSvg(link)}</div>
       <p class="fp">Fingerprint <code>${h(fp)}</code> — the receiver sees the same code.</p>
@@ -143,6 +160,16 @@ async function startSending(fileList) {
   });
   $('#share')?.addEventListener('click', () => navigator.share({ title: 'Payload', url: link }).catch(() => {}));
   $('#showQr').addEventListener('click', () => ($('#qrBox').hidden = !$('#qrBox').hidden));
+  $('#toFriends')?.addEventListener('click', async () => {
+    const pks = await pickPeople(shell.people, { base: '../' });
+    if (!pks.length) return;
+    try {
+      const n = await shell.people.share('payload', { type: 'link', url: link }, pks);
+      toast(`Sent to ${n} ${n === 1 ? 'person' : 'people'}.`, 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
   $('#stop').addEventListener('click', () => {
     room.leave();
     wake?.release().catch(() => {});
