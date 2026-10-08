@@ -63,6 +63,14 @@ In Loadout, add `ws://localhost:7777` under *Account → Relays* to work against
 
 GitHub Pages, built by `.github/workflows/deploy.yml` on every push to `main` (pull requests only run the tests and the build). In the repository settings set **Pages → Source** to **GitHub Actions**.
 
+## Adding an app
+
+```sh
+npm run new-app -- outpost "Outpost" sprout     # id, name, a lucide symbol id from hub/icons.svg
+```
+
+That scaffolds `apps/outpost/` (page, script on the shared core and app shell, settings view, strings in every language), registers the app in `apps/shared/apps.js`, adds its hub card text, draws its favicon and updates the service worker list. The start page, the switcher, the Apps toggles and the top bar then know it. What remains is the app itself, its translations and a browser test; `npm run icons` and `npm run sw` redraw and relist after changes, and `npm test` tells you when they are stale.
+
 ## License
 
 [GPL-3.0-or-later](LICENSE). EnigmaJS, the one legacy app, keeps its own license: PolyForm Noncommercial 1.0.0 (see its folder). Third-party code is listed in `apps/shared/LICENSES.md` and `apps/loadout/vendor/LICENSES.md`.

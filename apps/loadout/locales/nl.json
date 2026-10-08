@@ -174,9 +174,5 @@
   "settings.starterTitle": "Titel",
   "settings.starterText": "Inhoud",
   "settings.reset": "Standaard herstellen",
-  "settings.saved": "Instellingen opgeslagen",
-  "settings.title": "Loadout-instellingen",
-  "settings.siteHint": "Account, relays, back-up, taal en weergave staan in de instellingen van de site en gelden voor alle tools.",
-  "settings.openSite": "Site-instellingen openen",
-  "settings.signInHint": "Log in op de startpagina om je borden op elk apparaat te gebruiken."
+  "settings.saved": "Instellingen opgeslagen"
 }

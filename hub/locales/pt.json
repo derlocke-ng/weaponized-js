@@ -42,5 +42,8 @@
   "settings.unblock": "Desbloquear",
   "settings.blockedEmpty": "Ninguém está bloqueado.",
   "settings.blockInvalid": "Isso não é uma chave pública (npub1… ou 64 caracteres hexadecimais).",
-  "hub.cta": "Tudo o que crias aqui depende de uma chave que existe <b>apenas neste navegador</b>. <a href=\"settings.html#account\">Cria uma conta ou inicia sessão</a> para usares os teus quadros, ficheiros e conversas em todos os dispositivos."
+  "hub.cta": "Tudo o que crias aqui depende de uma chave que existe <b>apenas neste navegador</b>. <a href=\"settings.html#account\">Cria uma conta ou inicia sessão</a> para usares os teus quadros, ficheiros e conversas em todos os dispositivos.",
+  "settings.pow": "Prova de trabalho",
+  "settings.powText": "Algumas ferramentas pedem a este dispositivo um momento de cálculo antes de publicar, para manter o spam fora. Mais núcleos terminam mais depressa; este dispositivo tem {n}.",
+  "settings.cores": "Núcleos a usar"
 }

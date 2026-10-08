@@ -656,6 +656,37 @@ select:focus {
   background: #f59e0b;
 }
 
+/* ---------- the settings view every app has (shared/settingsview.js) ---------- */
+
+.wjs-settings {
+  display: grid;
+  gap: 1rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.wjs-settings .page-head {
+  margin-bottom: 0.25rem;
+}
+
+.wjs-settings .page-head h1 {
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.wjs-settings .card > .btn {
+  justify-self: start;
+}
+
+.wjs-settings .how summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.wjs-settings .how summary h2 {
+  margin: 0;
+}
+
 /* ---------- layout helpers ---------- */
 
 .page-head {

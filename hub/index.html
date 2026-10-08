@@ -30,51 +30,7 @@
       <p data-i18n-html="hub.cta">Everything you make here lives under a key that exists <b>only in this browser</b>. <a href="settings.html#account">Create an account or sign in</a> to use your boards, files and chats on every device.</p>
     </div>
 
-    <a class="feature" href="loadout/" data-app="loadout">
-      <div class="feature-icon"><svg class="icon"><use href="icons.svg#list-checks"/></svg></div>
-      <div class="feature-body">
-        <span class="badge" data-i18n="hub.new">New</span>
-        <h2>Loadout</h2>
-        <p data-i18n="hub.loadout.text">Grocery lists, to-dos, household inventory and markdown notes that sync between all your devices and whoever you share them with — rentry-style links, end-to-end encrypted. Works offline, and your devices put back whatever the relays forget.</p>
-        <ul class="tags"><li>nostr</li><li>E2EE</li><li>offline-first</li><li>markdown</li></ul>
-      </div>
-      <span class="go"><svg class="icon"><use href="icons.svg#arrow-up-right"/></svg></span>
-    </a>
-
-    <ul class="tools">
-      <li data-app="payload">
-        <a class="tool" href="payload/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#send"/></svg></span>
-          <h3>Payload</h3>
-          <p data-i18n="hub.payload.text">Send files straight to another browser while you’re both online. Direct WebRTC when possible, encrypted through a relay otherwise, every 64 KB piece checked with SHA-256.</p>
-          <ul class="tags"><li>gun</li><li>WebRTC</li><li>SHA-256</li></ul>
-        </a>
-      </li>
-      <li data-app="pongjs">
-        <a class="tool" href="pongjs/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#gamepad-2"/></svg></span>
-          <h3>pongjs</h3>
-          <p data-i18n="hub.pongjs.text">Retro two-player Pong between two browsers. Share a link or QR code or pick an open game, then play over a direct connection.</p>
-          <ul class="tags"><li>gun</li><li>WebRTC</li><li>canvas</li></ul>
-        </a>
-      </li>
-      <li data-app="enigmajs">
-        <a class="tool" href="enigmajs/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#message-square-lock"/></svg></span>
-          <h3>EnigmaJS <small class="legacy" data-i18n="hub.legacy">Legacy</small></h3>
-          <p data-i18n="hub.enigmajs.text">Encrypted group chat rooms that vanish when the room closes. Share a code or QR and talk.</p>
-          <ul class="tags"><li>gun</li><li>SEA</li><li>Vue</li></ul>
-        </a>
-      </li>
-      <li data-app="devboard">
-        <a class="tool" href="devboard/">
-          <span class="tool-icon"><svg class="icon"><use href="icons.svg#sticky-note"/></svg></span>
-          <h3>DevBoard <span class="badge" data-i18n="hub.new">New</span></h3>
-          <p data-i18n="hub.devboard.text">A freelancer noticeboard: post availability or hiring notes signed with your own key, voted on by peers, gone when they expire.</p>
-          <ul class="tags"><li>nostr</li><li>proof of work</li><li>signed notes</li></ul>
-        </a>
-      </li>
-    </ul>
+    <div id="apps" class="apps"></div>
 
     <section class="relays" aria-labelledby="relaysTitle">
       <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg><span data-i18n="hub.relays">Relays right now</span></h2>

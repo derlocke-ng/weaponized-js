@@ -150,5 +150,10 @@
   "switcher.home": "Pagina iniziale",
   "switcher.open": "Apri il selettore di app",
   "hub.settings": "Impostazioni",
-  "hub.legacy": "Vecchio"
+  "hub.legacy": "Vecchio",
+  "app.settings.title": "Impostazioni di {app}",
+  "app.settings.signedIn": "Accesso come <b>{alias}</b>. Tutto qui è firmato con la chiave del tuo account e ti segue su ogni dispositivo.",
+  "app.settings.deviceKey": "Tutto qui è firmato con la chiave di questo dispositivo. Con un account ti segue su ogni dispositivo.",
+  "app.settings.siteHint": "Account, relay, lingua, aspetto, backup e persone bloccate sono nelle impostazioni del sito e valgono per ogni strumento.",
+  "app.settings.openSite": "Apri le impostazioni del sito"
 }

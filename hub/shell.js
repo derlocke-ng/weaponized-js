@@ -13,7 +13,9 @@ import { AccountSettings } from './shared/settings.js';
 export { $, $$, h, icon, toast } from './shared/ui.js';
 import { $, $$ } from './shared/ui.js';
 
-export const APPS = ['loadout', 'payload', 'pongjs', 'enigmajs', 'devboard'];
+import { APP_IDS } from './shared/apps.js';
+
+export const APPS = APP_IDS;
 
 export const net = { db: null, pool: null, sync: null };
 /** @type {AccountSettings|null} */

@@ -180,9 +180,5 @@
   "settings.starterTitle": "Titre",
   "settings.starterText": "Contenu",
   "settings.reset": "Valeurs par défaut",
-  "settings.saved": "Paramètres enregistrés",
-  "settings.title": "Paramètres de Loadout",
-  "settings.siteHint": "Compte, relais, sauvegarde, langue et apparence se trouvent dans les paramètres du site et s’appliquent à tous les outils.",
-  "settings.openSite": "Ouvrir les paramètres du site",
-  "settings.signInHint": "Connectez-vous sur la page d’accueil pour utiliser vos tableaux sur tous vos appareils."
+  "settings.saved": "Paramètres enregistrés"
 }

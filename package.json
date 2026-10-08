@@ -6,6 +6,9 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "vendor": "node scripts/vendor.mjs",
+    "icons": "node scripts/app-icons.mjs",
+    "sw": "node scripts/sw-shell.mjs",
+    "new-app": "node scripts/new-app.mjs",
     "build": "sh scripts/build-site.sh",
     "serve": "node scripts/serve.mjs",
     "relay": "node scripts/relay.cjs",

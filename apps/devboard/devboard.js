@@ -10,7 +10,8 @@ import { KINDS, now, sign, stamp, addressOf, fingerprint } from '../shared/event
 import { loadIdentity, npub } from '../shared/account.js';
 import { AccountSettings } from '../shared/settings.js';
 import { BlockList, REPORT_TYPES } from '../shared/moderation.js';
-import { minePow, hasPow, cores, hardwareCores, CORES_KEY } from '../shared/pow.js';
+import { minePow, hasPow } from '../shared/pow.js';
+import { settingsView } from '../shared/settingsview.js';
 import { initAppShell } from '../shared/appshell.js';
 import { statusPill } from '../shared/status.js';
 import { t, tErr, relTime } from '../shared/i18n.js';
@@ -205,24 +206,15 @@ function render() {
   board.innerHTML = items.length ? items.map(card).join('') : `<p class="empty">${h(all.length ? t('db.emptyFilter') : t('db.empty'))}</p>`;
 }
 
-/** DevBoard's own settings; account, relays, language and blocks are the site's. */
+/** DevBoard's own settings, on the settings view every app shares. */
 function renderSettings(main) {
-  const { alias } = identity;
   const d = defaults();
-  const max = Math.max(hardwareCores(), cores());
-  main.innerHTML = `
-    <section class="settings">
-      <div class="page-head">
-        <a class="icon-btn back" href="#/" aria-label="${h(t('db.settings.back'))}">${icon('chevron-left')}</a>
-        <h1>${h(t('db.settings.title'))}</h1>
-      </div>
-      <div class="card">
-        <h2>${icon('key-round')}${h(t('db.settings.account'))}</h2>
-        <p>${h(alias ? t('db.settings.accountSigned', { alias }) : t('db.settings.accountDevice'))} <code title="${h(npub(identity.pk))}">${h(fingerprint(identity.pk))}</code></p>
-        <p class="muted small">${h(t('db.settings.siteHint'))}</p>
-        <a class="btn btn-primary" href="../settings.html#account">${icon('settings')}<span>${h(t('db.settings.openSite'))}</span></a>
-      </div>
-      <div class="card">
+  main.innerHTML = settingsView({
+    identity,
+    title: t('app.settings.title', { app: 'DevBoard' }),
+    backLabel: t('db.settings.back'),
+    cards: [
+      `<div class="card">
         <h2>${icon('pencil')}${h(t('db.settings.defaults'))}</h2>
         <p class="muted small">${h(t('db.settings.defaultsText'))}</p>
         <form class="form" id="defaultsForm">
@@ -233,21 +225,14 @@ function renderSettings(main) {
           <label class="field">${h(t('db.compose.contact'))}<input name="contact" maxlength="${LIMITS.contact}" value="${h(d.contact)}" placeholder="${h(t('db.compose.contactPlaceholder'))}"></label>
           <label class="field">${h(t('db.compose.duration'))}<select name="days">${DURATIONS.map((n) => `<option value="${n}" ${n === d.days ? 'selected' : ''}>${h(t(`db.duration.${n}`))}</option>`).join('')}</select></label>
         </form>
-      </div>
-      <div class="card">
+      </div>`,
+      `<div class="card">
         <h2>${icon('eye')}${h(t('db.settings.board'))}</h2>
         <label class="check-row"><input type="checkbox" id="showCollapsed" ${d.showCollapsed ? 'checked' : ''}><span>${h(t('db.settings.showCollapsed'))}</span></label>
-      </div>
-      <div class="card">
-        <h2>${icon('shield')}${h(t('db.settings.pow'))}</h2>
-        <p class="muted small">${h(t('db.settings.powText', { n: hardwareCores() }))}</p>
-        <label class="field">${h(t('db.settings.cores'))}<select id="coresSelect">${Array.from({ length: max }, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === cores() ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-      </div>
-      <details class="card how" id="how">
-        <summary><h2>${icon('shield')}${h(t('db.how'))}</h2></summary>
-        <ul>${[1, 2, 3, 4, 5].map((i) => `<li>${h(t(`db.how.${i}`))}</li>`).join('')}</ul>
-      </details>
-    </section>`;
+      </div>`,
+    ],
+    how: [1, 2, 3, 4, 5].map((i) => t(`db.how.${i}`)),
+  });
 }
 
 function card(p) {
@@ -512,12 +497,11 @@ async function boot() {
   net.sync = new Sync(net.pool, net.db);
   identity = loadIdentity();
   shell = await initAppShell({
-    current: 'devboard',
+    app: 'devboard',
     net,
-    brand: { href: '#/', name: 'DevBoard', mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path d="M18 20h28v26l-8-6-8 6V20z"/></svg>' },
+    brand: { href: '#/' },
     right: () => statusPill({ href: '../settings.html#relays' }),
     account: { href: '#/settings' },
-    sprite: '../icons.svg',
   });
   shell.onLanguage(() => {
     delete $('#main').dataset.ready;
@@ -553,9 +537,6 @@ async function boot() {
         .catch((err) => toast(tErr(err), 'error'));
     } else if (e.target.id === 'showCollapsed') {
       prefs.set({ showCollapsed: e.target.checked }).catch((err) => toast(tErr(err), 'error'));
-    } else if (e.target.id === 'coresSelect') {
-      store.set(CORES_KEY, Number(e.target.value));
-      toast(t('db.settings.saved'), 'success');
     }
   });
   window.addEventListener('hashchange', render);

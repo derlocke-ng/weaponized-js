@@ -180,9 +180,5 @@
   "settings.starterTitle": "Título",
   "settings.starterText": "Conteúdo",
   "settings.reset": "Repor predefinição",
-  "settings.saved": "Definições guardadas",
-  "settings.title": "Definições do Loadout",
-  "settings.siteHint": "Conta, relays, backup, idioma e aspeto estão nas definições do site e aplicam-se a todas as ferramentas.",
-  "settings.openSite": "Abrir as definições do site",
-  "settings.signInHint": "Inicia sessão na página inicial para usar os teus quadros em todos os dispositivos."
+  "settings.saved": "Definições guardadas"
 }

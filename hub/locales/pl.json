@@ -43,5 +43,8 @@
   "settings.unblock": "Odblokuj",
   "settings.blockedEmpty": "Nikt nie jest zablokowany.",
   "settings.blockInvalid": "To nie jest klucz publiczny (npub1… lub 64 znaki szesnastkowe).",
-  "hub.cta": "Wszystko, co tu tworzysz, zależy od klucza, który istnieje <b>tylko w tej przeglądarce</b>. <a href=\"settings.html#account\">Załóż konto lub zaloguj się</a>, aby używać swoich tablic, plików i czatów na każdym urządzeniu."
+  "hub.cta": "Wszystko, co tu tworzysz, zależy od klucza, który istnieje <b>tylko w tej przeglądarce</b>. <a href=\"settings.html#account\">Załóż konto lub zaloguj się</a>, aby używać swoich tablic, plików i czatów na każdym urządzeniu.",
+  "settings.pow": "Proof of work",
+  "settings.powText": "Niektóre narzędzia wymagają od tego urządzenia chwili obliczeń przed publikacją, żeby trzymać spam z daleka. Więcej rdzeni kończy szybciej; to urządzenie ma {n}.",
+  "settings.cores": "Używane rdzenie"
 }

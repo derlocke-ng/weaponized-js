@@ -6,13 +6,7 @@
 
 import { t } from './i18n.js';
 
-export const APPS = [
-  { id: 'loadout', name: 'Loadout', icon: 'list-checks', path: 'loadout/' },
-  { id: 'payload', name: 'Payload', icon: 'send', path: 'payload/' },
-  { id: 'pongjs', name: 'pongjs', icon: 'gamepad-2', path: 'pongjs/' },
-  { id: 'enigmajs', name: 'EnigmaJS', icon: 'message-square-lock', path: 'enigmajs/', legacy: true },
-  { id: 'devboard', name: 'DevBoard', icon: 'sticky-note', path: 'devboard/' },
-];
+import { APPS } from './apps.js';
 
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -38,7 +32,7 @@ function render() {
       <div class="switcher-head"><h2>${h(t('switcher.title'))}</h2><button type="button" class="switcher-close" data-close aria-label="${h(t('common.close'))}">${icon('x')}</button></div>
       <ul class="switcher-apps">
         <li><a href="${base}" class="${current === 'hub' ? 'current' : ''}">${icon('radio-tower')}<span>${h(t('switcher.home'))}</span></a></li>
-        ${apps.map((a) => `<li><a href="${base}${a.path}" class="${current === a.id ? 'current' : ''}" ${current === a.id ? 'aria-current="page"' : ''}>${icon(a.icon)}<span>${h(a.name)}${a.legacy ? ` <small>${h(t('hub.legacy'))}</small>` : ''}</span></a></li>`).join('')}
+        ${apps.map((a) => `<li><a href="${base}${a.id}/" class="${current === a.id ? 'current' : ''}" ${current === a.id ? 'aria-current="page"' : ''}>${icon(a.icon)}<span>${h(a.name)}${a.legacy ? ` <small>${h(t('hub.legacy'))}</small>` : ''}</span></a></li>`).join('')}
         <li><a href="${base}settings.html" class="${current === 'settings' ? 'current' : ''}">${icon('settings')}<span>${h(t('hub.settings'))}</span></a></li>
       </ul>
     </nav>`;

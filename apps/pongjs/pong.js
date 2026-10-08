@@ -9,7 +9,7 @@ import { W, H, PW, PH, PX, BALL, WIN, PADDLE_SPEED, clampPaddle, newGame, step, 
 import { initAppShell } from '../shared/appshell.js';
 
 // The suite's top bar (switcher, theme, language) before the CRT lights up.
-await initAppShell({ current: 'pongjs', sprite: '../icons.svg', brand: { href: './', name: 'pongjs', mark: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="2" height="10"/><rect x="19" y="7" width="2" height="10"/><circle cx="12" cy="12" r="1.5"/></svg>' } });
+await initAppShell({ app: 'pongjs' });
 
 const $ = (id) => document.getElementById(id);
 const LOBBY = 'wjs-pong-lobby-1';

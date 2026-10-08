@@ -20,18 +20,6 @@ body {
   padding-right: max(var(--gutter), calc((100% - 1040px) / 2));
 }
 
-.brand-mark rect {
-  fill: var(--text);
-}
-
-.brand-mark path {
-  fill: none;
-  stroke: var(--bg);
-  stroke-width: 4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -292,28 +280,4 @@ body {
 
 .foot a {
   color: var(--muted);
-}
-
-/* ---- settings view ---- */
-.settings {
-  display: grid;
-  gap: 1rem;
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-.settings .page-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.settings .page-head h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: -0.02em;
-}
-
-.settings .card .btn {
-  justify-self: start;
 }

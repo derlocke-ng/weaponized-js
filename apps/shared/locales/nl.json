@@ -147,5 +147,10 @@
   "switcher.home": "Startpagina",
   "switcher.open": "App-kiezer openen",
   "hub.settings": "Instellingen",
-  "hub.legacy": "Oud"
+  "hub.legacy": "Oud",
+  "app.settings.title": "{app}-instellingen",
+  "app.settings.signedIn": "Ingelogd als <b>{alias}</b>. Alles hier wordt ondertekend met de sleutel van je account en volgt je naar elk apparaat.",
+  "app.settings.deviceKey": "Alles hier wordt ondertekend met de sleutel van dit apparaat. Met een account volgt het je naar elk apparaat.",
+  "app.settings.siteHint": "Account, relays, taal, uiterlijk, back-up en geblokkeerde mensen staan in de instellingen van de site en gelden voor elke tool.",
+  "app.settings.openSite": "Instellingen van de site openen"
 }

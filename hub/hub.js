@@ -3,9 +3,10 @@
 import { t, LANGUAGES, currentLanguage, shouldAskLanguage } from './shared/i18n.js';
 import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
-import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
+import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, h, icon } from './shell.js';
 import { mountTopbar, accountLink } from './shared/topbar.js';
 import { statusPill, mountStatus } from './shared/status.js';
+import { APPS } from './shared/apps.js';
 
 const infos = new Map();
 
@@ -32,9 +33,28 @@ function drawHeader() {
   mountStatus($('#sync'), net);
 }
 
+/** The cards come from the registry (shared/apps.js): one place for every app's name, icon, tags and flags. */
 function drawApps() {
   const hidden = hiddenApps();
-  for (const el of $$('[data-app]')) el.hidden = hidden.includes(el.dataset.app);
+  const feature = APPS.find((a) => a.featured);
+  const tools = APPS.filter((a) => a !== feature);
+  const tags = (a) => `<ul class="tags">${a.tags.map((x) => `<li>${h(x)}</li>`).join('')}</ul>`;
+  const badge = (a) => (a.isNew ? ` <span class="badge">${h(t('hub.new'))}</span>` : '') + (a.legacy ? ` <small class="legacy">${h(t('hub.legacy'))}</small>` : '');
+  $('#apps').innerHTML = `
+    ${
+      feature
+        ? `<a class="feature" href="${feature.id}/" data-app="${feature.id}" ${hidden.includes(feature.id) ? 'hidden' : ''}>
+      <div class="feature-icon">${icon(feature.icon)}</div>
+      <div class="feature-body">${feature.isNew ? `<span class="badge">${h(t('hub.new'))}</span>` : ''}<h2>${h(feature.name)}</h2><p>${h(t(`hub.${feature.id}.text`))}</p>${tags(feature)}</div>
+      <span class="go">${icon('arrow-up-right')}</span>
+    </a>`
+        : ''
+    }
+    <ul class="tools">${tools
+      .map(
+        (a) => `<li data-app="${a.id}" ${hidden.includes(a.id) ? 'hidden' : ''}><a class="tool" href="${a.id}/"><span class="tool-icon">${icon(a.icon)}</span><h3>${h(a.name)}${badge(a)}</h3><p>${h(t(`hub.${a.id}.text`))}</p>${tags(a)}</a></li>`,
+      )
+      .join('')}</ul>`;
 }
 
 function drawRelays() {
@@ -68,6 +88,7 @@ async function boot() {
   onLanguage(() => {
     languageBanner();
     drawHeader();
+    drawApps();
     drawRelays();
   });
   onSuite(drawApps);

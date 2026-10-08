@@ -147,5 +147,10 @@
   "switcher.home": "Start page",
   "switcher.open": "Open app switcher",
   "hub.settings": "Settings",
-  "hub.legacy": "Legacy"
+  "hub.legacy": "Legacy",
+  "app.settings.title": "{app} settings",
+  "app.settings.signedIn": "Signed in as <b>{alias}</b>. Everything here is signed with your account’s key and follows you to every device.",
+  "app.settings.deviceKey": "Everything here is signed with this device’s key. With an account it follows you to every device.",
+  "app.settings.siteHint": "Account, relays, language, appearance, backup and blocked people are in the site settings and apply to every tool.",
+  "app.settings.openSite": "Open the site settings"
 }

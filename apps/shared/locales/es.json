@@ -150,5 +150,10 @@
   "switcher.home": "Página de inicio",
   "switcher.open": "Abrir el selector de apps",
   "hub.settings": "Ajustes",
-  "hub.legacy": "Antiguo"
+  "hub.legacy": "Antiguo",
+  "app.settings.title": "Ajustes de {app}",
+  "app.settings.signedIn": "Sesión iniciada como <b>{alias}</b>. Todo lo de aquí se firma con la clave de tu cuenta y te sigue a todos tus dispositivos.",
+  "app.settings.deviceKey": "Todo lo de aquí se firma con la clave de este dispositivo. Con una cuenta te sigue a todos tus dispositivos.",
+  "app.settings.siteHint": "Cuenta, relés, idioma, apariencia, copia de seguridad y personas bloqueadas están en los ajustes del sitio y valen para todas las herramientas.",
+  "app.settings.openSite": "Abrir los ajustes del sitio"
 }

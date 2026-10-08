@@ -180,9 +180,5 @@
   "settings.starterTitle": "Título",
   "settings.starterText": "Contenido",
   "settings.reset": "Restablecer",
-  "settings.saved": "Ajustes guardados",
-  "settings.title": "Ajustes de Loadout",
-  "settings.siteHint": "Cuenta, relays, copia de seguridad, idioma y apariencia están en los ajustes del sitio y valen para todas las herramientas.",
-  "settings.openSite": "Abrir los ajustes del sitio",
-  "settings.signInHint": "Inicia sesión en la página de inicio para usar tus tableros en todos tus dispositivos."
+  "settings.saved": "Ajustes guardados"
 }

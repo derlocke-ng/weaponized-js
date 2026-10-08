@@ -41,5 +41,8 @@
   "settings.unblock": "Unblock",
   "settings.blockedEmpty": "Nobody is blocked.",
   "settings.blockInvalid": "That is not a public key (npub1… or 64 hex characters).",
-  "hub.cta": "Everything you make here lives under a key that exists <b>only in this browser</b>. <a href=\"settings.html#account\">Create an account or sign in</a> to use your boards, files and chats on every device."
+  "hub.cta": "Everything you make here lives under a key that exists <b>only in this browser</b>. <a href=\"settings.html#account\">Create an account or sign in</a> to use your boards, files and chats on every device.",
+  "settings.pow": "Proof of work",
+  "settings.powText": "Some tools ask this device for a moment of computing before publishing, to keep spam out. More cores finish faster; this device has {n}.",
+  "settings.cores": "Cores to use"
 }

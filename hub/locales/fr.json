@@ -42,5 +42,8 @@
   "settings.unblock": "Débloquer",
   "settings.blockedEmpty": "Personne n’est bloqué.",
   "settings.blockInvalid": "Ce n’est pas une clé publique (npub1… ou 64 caractères hexadécimaux).",
-  "hub.cta": "Tout ce que vous créez ici dépend d’une clé qui n’existe <b>que dans ce navigateur</b>. <a href=\"settings.html#account\">Créez un compte ou connectez-vous</a> pour retrouver vos tableaux, fichiers et discussions sur tous vos appareils."
+  "hub.cta": "Tout ce que vous créez ici dépend d’une clé qui n’existe <b>que dans ce navigateur</b>. <a href=\"settings.html#account\">Créez un compte ou connectez-vous</a> pour retrouver vos tableaux, fichiers et discussions sur tous vos appareils.",
+  "settings.pow": "Preuve de travail",
+  "settings.powText": "Certains outils demandent à cet appareil un instant de calcul avant de publier, pour tenir le spam à l’écart. Plus de cœurs finissent plus vite ; cet appareil en a {n}.",
+  "settings.cores": "Cœurs à utiliser"
 }

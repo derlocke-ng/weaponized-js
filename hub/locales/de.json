@@ -41,5 +41,8 @@
   "settings.unblock": "Freigeben",
   "settings.blockedEmpty": "Niemand ist blockiert.",
   "settings.blockInvalid": "Das ist kein öffentlicher Schlüssel (npub1… oder 64 Hex-Zeichen).",
-  "hub.cta": "Alles, was du hier anlegst, hängt an einem Schlüssel, den es <b>nur in diesem Browser</b> gibt. <a href=\"settings.html#account\">Erstelle einen Account oder melde dich an</a>, um deine Boards, Dateien und Chats auf jedem Gerät zu nutzen."
+  "hub.cta": "Alles, was du hier anlegst, hängt an einem Schlüssel, den es <b>nur in diesem Browser</b> gibt. <a href=\"settings.html#account\">Erstelle einen Account oder melde dich an</a>, um deine Boards, Dateien und Chats auf jedem Gerät zu nutzen.",
+  "settings.pow": "Proof of Work",
+  "settings.powText": "Manche Tools verlangen von diesem Gerät vor dem Veröffentlichen einen Moment Rechenzeit, damit Spam draußen bleibt. Mehr Kerne sind schneller fertig; dieses Gerät hat {n}.",
+  "settings.cores": "Zu nutzende Kerne"
 }

@@ -174,9 +174,5 @@
   "settings.starterTitle": "Title",
   "settings.starterText": "Content",
   "settings.reset": "Reset to default",
-  "settings.saved": "Settings saved",
-  "settings.title": "Loadout settings",
-  "settings.siteHint": "Account, relays, backup, language and appearance are in the site settings and apply to every tool.",
-  "settings.openSite": "Open site settings",
-  "settings.signInHint": "Sign in on the start page to use your boards on every device."
+  "settings.saved": "Settings saved"
 }

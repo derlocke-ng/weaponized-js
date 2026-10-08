@@ -147,5 +147,10 @@
   "switcher.home": "Startseite",
   "switcher.open": "App-Wechsler öffnen",
   "hub.settings": "Einstellungen",
-  "hub.legacy": "Alt"
+  "hub.legacy": "Alt",
+  "app.settings.title": "{app}-Einstellungen",
+  "app.settings.signedIn": "Angemeldet als <b>{alias}</b>. Alles hier wird mit dem Schlüssel deines Kontos signiert und folgt dir auf jedes Gerät.",
+  "app.settings.deviceKey": "Alles hier wird mit dem Schlüssel dieses Geräts signiert. Mit einem Konto folgt es dir auf jedes Gerät.",
+  "app.settings.siteHint": "Konto, Relays, Sprache, Darstellung, Backup und blockierte Personen sind in den Einstellungen der Seite und gelten für jedes Tool.",
+  "app.settings.openSite": "Einstellungen der Seite öffnen"
 }

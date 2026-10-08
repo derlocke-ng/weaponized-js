@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { LANGUAGES, pickLanguage, useCatalogs, t, tErr, relTime } from '../../apps/shared/i18n.js';
+import { APPS } from '../../apps/shared/apps.js';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
-const DIRS = ['apps/shared/locales', 'apps/loadout/locales', 'apps/devboard/locales', 'hub/locales'];
+// Every catalog: the shared one, the hub's, and each registered app that has strings.
+const DIRS = ['apps/shared/locales', 'hub/locales', ...APPS.map((a) => `apps/${a.id}/locales`).filter((d) => fs.existsSync(path.join(root, d)))];
 const read = (dir, lang) => JSON.parse(fs.readFileSync(path.join(root, dir, `${lang}.json`), 'utf8'));
 const placeholders = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
 const tags = (s) => [...String(s).matchAll(/<\/?[a-z]+/g)].map((m) => m[0]).sort().join(',');

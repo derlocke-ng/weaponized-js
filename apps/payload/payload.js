@@ -5,9 +5,7 @@ import { initAppShell } from '../shared/appshell.js';
 
 // The suite's top bar (switcher, theme, language) before anything else draws.
 await initAppShell({
-  current: 'payload',
-  sprite: '../icons.svg',
-  brand: { href: './', name: 'Payload', mark: '<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><path d="M9 16h12m-5-5 5 5-5 5"/></svg>' },
+  app: 'payload',
   right: '<span class="relays" id="relays" title="Relays used to find each other"><span class="dot"></span><span id="relayText">…</span></span>',
 });
 

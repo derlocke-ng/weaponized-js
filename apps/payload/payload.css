@@ -383,15 +383,3 @@ input:focus {
   padding-left: max(var(--gutter), calc((100% - 680px) / 2));
   padding-right: max(var(--gutter), calc((100% - 680px) / 2));
 }
-
-.brand-mark rect {
-  fill: var(--text);
-}
-
-.brand-mark path {
-  fill: none;
-  stroke: var(--bg);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}

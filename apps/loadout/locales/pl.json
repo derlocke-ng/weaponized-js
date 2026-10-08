@@ -186,9 +186,5 @@
   "settings.starterTitle": "Tytuł",
   "settings.starterText": "Treść",
   "settings.reset": "Przywróć domyślne",
-  "settings.saved": "Zapisano ustawienia",
-  "settings.title": "Ustawienia Loadout",
-  "settings.siteHint": "Konto, przekaźniki, kopia zapasowa, język i wygląd są w ustawieniach strony i obowiązują we wszystkich narzędziach.",
-  "settings.openSite": "Otwórz ustawienia strony",
-  "settings.signInHint": "Zaloguj się na stronie startowej, aby używać swoich tablic na każdym urządzeniu."
+  "settings.saved": "Zapisano ustawienia"
 }

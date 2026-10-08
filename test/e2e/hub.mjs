@@ -82,6 +82,8 @@ await run(
     await A.selectOption('#langSelect', 'fr');
     await until(async () => (await A.getAttribute('html', 'lang')) === 'fr', 'settings page in French');
     await A.uncheck('#appToggles input[data-app=pongjs]', { force: true });
+    await A.selectOption('#coresSelect', '1');
+    assert.equal(await A.evaluate(() => localStorage.getItem('wjs.pow.cores')), '1', 'proof-of-work cores are a site setting for this device');
     await A.goto(env.base);
     await A.waitForSelector('#accountLink');
     assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'the start page follows the theme');

@@ -150,5 +150,10 @@
   "switcher.home": "Página inicial",
   "switcher.open": "Abrir o seletor de apps",
   "hub.settings": "Definições",
-  "hub.legacy": "Antigo"
+  "hub.legacy": "Antigo",
+  "app.settings.title": "Definições de {app}",
+  "app.settings.signedIn": "Sessão iniciada como <b>{alias}</b>. Tudo aqui é assinado com a chave da sua conta e segue-o para todos os dispositivos.",
+  "app.settings.deviceKey": "Tudo aqui é assinado com a chave deste dispositivo. Com uma conta, segue-o para todos os dispositivos.",
+  "app.settings.siteHint": "Conta, relays, idioma, aparência, cópia de segurança e pessoas bloqueadas estão nas definições do site e aplicam-se a todas as ferramentas.",
+  "app.settings.openSite": "Abrir as definições do site"
 }

@@ -150,5 +150,10 @@
   "switcher.home": "Page d’accueil",
   "switcher.open": "Ouvrir le sélecteur d’applications",
   "hub.settings": "Paramètres",
-  "hub.legacy": "Ancien"
+  "hub.legacy": "Ancien",
+  "app.settings.title": "Réglages de {app}",
+  "app.settings.signedIn": "Connecté en tant que <b>{alias}</b>. Tout ici est signé avec la clé de votre compte et vous suit sur chaque appareil.",
+  "app.settings.deviceKey": "Tout ici est signé avec la clé de cet appareil. Avec un compte, cela vous suit sur chaque appareil.",
+  "app.settings.siteHint": "Compte, relais, langue, apparence, sauvegarde et personnes bloquées se trouvent dans les réglages du site et valent pour tous les outils.",
+  "app.settings.openSite": "Ouvrir les réglages du site"
 }

@@ -94,14 +94,10 @@ async function boot() {
   app.settings = new Settings(app.identity);
   renderShell();
   shell = await initAppShell({
-    current: 'loadout',
+    app: 'loadout',
     net: { pool, db, sync },
-    brand: {
-      href: '#/',
-      name: 'Loadout',
-      label: t('app.home'),
-      mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
-    },
+    sprite: 'icons.svg',
+    brand: { href: '#/', label: t('app.home') },
     right: () => statusPill({ href: '../settings.html#relays' }),
     account: { href: '#/account' },
   });

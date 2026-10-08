@@ -42,5 +42,8 @@
   "settings.unblock": "Sblocca",
   "settings.blockedEmpty": "Nessuno è bloccato.",
   "settings.blockInvalid": "Non è una chiave pubblica (npub1… o 64 caratteri esadecimali).",
-  "hub.cta": "Tutto ciò che crei qui dipende da una chiave che esiste <b>solo in questo browser</b>. <a href=\"settings.html#account\">Crea un account o accedi</a> per usare bacheche, file e chat su ogni dispositivo."
+  "hub.cta": "Tutto ciò che crei qui dipende da una chiave che esiste <b>solo in questo browser</b>. <a href=\"settings.html#account\">Crea un account o accedi</a> per usare bacheche, file e chat su ogni dispositivo.",
+  "settings.pow": "Proof of work",
+  "settings.powText": "Alcuni strumenti chiedono a questo dispositivo un attimo di calcolo prima di pubblicare, per tenere fuori lo spam. Più core finiscono prima; questo dispositivo ne ha {n}.",
+  "settings.cores": "Core da usare"
 }

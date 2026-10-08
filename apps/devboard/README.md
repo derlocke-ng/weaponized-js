@@ -18,7 +18,7 @@ Three live notes per person; the newest count and the rest collapse. Notes voted
 ## Files
 
 - `index.html`, `devboard.js`, `devboard.css` — the app, built on `apps/shared/` (design library, app shell, relays, sync, i18n, moderation).
-- The settings view (`#/settings`, behind the account button) — defaults for new notes (type, contact, duration; saved in the account), collapsed notes shown opened, and the cores to mine with.
+- The settings view (`#/settings`, behind the account button; the shared `settingsView`) — defaults for new notes (type, contact, duration; saved in the account) and collapsed notes shown opened. The cores to mine with are a site setting.
 - `locales/` — strings in the suite's eight languages.
 
 ## Testing

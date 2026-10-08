@@ -13,27 +13,6 @@
   color: var(--muted);
 }/* ---------- top bar ---------- */
 
-.brand-mark {
-  width: 26px;
-  height: 26px;
-}
-
-.brand-mark rect {
-  fill: var(--text);
-}
-
-.brand-mark path {
-  fill: none;
-  stroke: var(--bg);
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.brand-mark .tick {
-  stroke: var(--accent);
-}
-
 .view {
   width: 100%;
   max-width: 760px;
@@ -960,14 +939,7 @@ body[data-route='board'] .view {
 
 /* ---------- account ---------- */
 
-.account {
-  display: grid;
-  gap: 1rem;
-}
-
-.account .page-head {
-  margin-bottom: 0.25rem;
-}.how summary {
+.how summary {
   cursor: pointer;
   list-style: none;
 }

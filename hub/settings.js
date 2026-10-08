@@ -12,7 +12,9 @@ import { BlockList } from './shared/moderation.js';
 import { npub, decodeKey } from './shared/account.js';
 import { fingerprint } from './shared/events.js';
 import { store } from './shared/util.js';
-import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, APPS, $, $$, h, icon, toast } from './shell.js';
+import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, $, $$, h, icon, toast } from './shell.js';
+import { APPS } from './shared/apps.js';
+import { cores, hardwareCores, CORES_KEY } from './shared/pow.js';
 import { mountAccount, onAccountChange } from './account.js';
 import { mountTopbar } from './shared/topbar.js';
 import { statusPill, mountStatus } from './shared/status.js';
@@ -33,8 +35,17 @@ function drawLanguage() {
 function drawApps() {
   const hidden = hiddenApps();
   $('#appToggles').innerHTML = APPS.map(
-    (app) => `<li><label class="check-row"><input type="checkbox" data-app="${app}" ${hidden.includes(app) ? '' : 'checked'}><span>${h({ loadout: 'Loadout', payload: 'Payload', pongjs: 'pongjs', enigmajs: 'EnigmaJS', devboard: 'DevBoard' }[app])}</span></label></li>`,
+    (app) => `<li><label class="check-row"><input type="checkbox" data-app="${app.id}" ${hidden.includes(app.id) ? '' : 'checked'}><span>${h(app.name)}</span></label></li>`,
   ).join('');
+}
+
+/** Proof of work is a device matter: how many cores the shared miner (shared/pow.js) may use. */
+function drawPow() {
+  $('#powText').textContent = t('settings.powText', { n: hardwareCores() });
+  const max = Math.max(hardwareCores(), cores());
+  $('#coresSelect').innerHTML = Array.from({ length: max }, (_, i) => i + 1)
+    .map((n) => `<option value="${n}" ${n === cores() ? 'selected' : ''}>${n}</option>`)
+    .join('');
 }
 
 async function drawRelays() {
@@ -156,6 +167,7 @@ async function boot() {
   await startBlocks();
   drawLanguage();
   drawApps();
+  drawPow();
   drawHow();
   drawBackupNote();
   await drawRelays();
@@ -174,6 +186,7 @@ async function boot() {
     drawBlocked();
     drawLanguage();
     drawApps();
+    drawPow();
     drawHow();
     drawBackupNote();
     drawRelays();
@@ -211,6 +224,7 @@ async function boot() {
   });
 
   $('#langSelect').addEventListener('change', (e) => chooseLanguage(e.target.value));
+  $('#coresSelect').addEventListener('change', (e) => store.set(CORES_KEY, Number(e.target.value)));
   $('#themeSeg').addEventListener('change', (e) => {
     if (e.target.name === 'theme') chooseTheme(e.target.value);
   });

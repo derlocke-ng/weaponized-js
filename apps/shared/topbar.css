@@ -60,6 +60,23 @@
   stroke-linecap: round;
 }
 
+/* An app's mark: its registry icon on a rounded square (shared/apps.js appMark). */
+.wjs-app-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--text, #111);
+  color: var(--bg, #fff);
+  flex: none;
+}
+
+.wjs-app-mark .icon {
+  width: 18px;
+  height: 18px;
+}
+
 .wjs-mark-dot {
   fill: var(--accent, #4d7c0f);
   stroke: none;

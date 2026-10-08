@@ -180,9 +180,5 @@
   "settings.starterTitle": "Titolo",
   "settings.starterText": "Contenuto",
   "settings.reset": "Ripristina predefinito",
-  "settings.saved": "Impostazioni salvate",
-  "settings.title": "Impostazioni di Loadout",
-  "settings.siteHint": "Account, relay, backup, lingua e aspetto sono nelle impostazioni del sito e valgono per tutti gli strumenti.",
-  "settings.openSite": "Apri le impostazioni del sito",
-  "settings.signInHint": "Accedi dalla pagina iniziale per usare le tue bacheche su ogni dispositivo."
+  "settings.saved": "Impostazioni salvate"
 }

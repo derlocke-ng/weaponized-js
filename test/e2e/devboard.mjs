@@ -163,7 +163,7 @@ await run(
     await until(async () => (await titles(A)).length === 3, 'three notes after a reload', 15000);
     assert.ok(!(await titles(A)).includes('Senior React dev wanted'), 'the tombstone holds after a reload');
 
-    step('DevBoard’s own settings: defaults for new notes, collapsed notes, cores for mining');
+    step('DevBoard’s own settings: defaults for new notes and collapsed notes');
     await B.click('#accountLink');
     await B.waitForSelector('#defaultsForm');
     assert.ok(B.url().includes('#/settings'), 'the account button opens DevBoard’s settings');
@@ -175,8 +175,6 @@ await run(
     await B.fill('#defaultsForm [name=contact]', 'hello@example.com');
     await B.press('#defaultsForm [name=contact]', 'Tab');
     await B.selectOption('#defaultsForm [name=days]', '3');
-    await B.selectOption('#coresSelect', '1');
-    assert.equal(await B.evaluate(() => localStorage.getItem('wjs.pow.cores')), '1', 'cores are a device setting');
     await B.reload();
     await B.waitForSelector('#defaultsForm');
     assert.equal(await B.inputValue('#defaultsForm [name=contact]'), 'hello@example.com', 'defaults survive a reload');
