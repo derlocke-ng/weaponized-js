@@ -103,6 +103,11 @@ export class LocalStore {
     return () => this.listeners.delete(fn);
   }
 
+  /** Every event this device holds (backups). */
+  async all() {
+    return (await req(this.tx('events').getAll())).map((r) => r.event);
+  }
+
   // ---- outbox: which relays still need an event ----
 
   async setPending(id, urls) {

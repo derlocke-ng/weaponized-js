@@ -18,5 +18,20 @@
   "hub.relaysText": "Loadout syncs over these nostr relays; pick your own in its settings. Payload and pongjs still signal through public gun relays until they move to nostr too. Relays pass data along; they can’t read anything that was encrypted first.",
   "hub.footer": "Free software under the GPL — see the <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repository</a>.",
   "hub.signedOut": "Signed out on this device.",
-  "hub.welcome": "Signed in as {alias}."
+  "hub.welcome": "Signed in as {alias}.",
+  "hub.settings": "Settings",
+  "settings.title": "Settings",
+  "settings.back": "Back to start",
+  "settings.deviceSettings": "Language &amp; appearance",
+  "settings.deviceText": "Chosen here, used by every tool. With an account they follow you to your other devices.",
+  "settings.apps": "Apps",
+  "settings.appsText": "Hide the tools you don’t use; they disappear from the start page on every device signed in as you.",
+  "settings.backupText": "One file with your key and everything your devices know: boards, settings, your account. Encrypted with a passphrase, it restores everything even if every relay forgot you.",
+  "settings.deviceCardText": "Wiping removes your key and all cached data from this browser. Without an account, an exported key or a backup, whatever only this device had is lost.",
+  "settings.wipe": "Wipe this device",
+  "settings.wipeConfirm": "Delete this device’s key and all cached data?",
+  "settings.backedUp": {
+    "one": "Backup with {n} entry downloaded",
+    "other": "Backup with {n} entries downloaded"
+  }
 }

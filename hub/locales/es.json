@@ -18,5 +18,21 @@
   "hub.relaysText": "Loadout se sincroniza a través de estos relays nostr; elige los tuyos en sus ajustes. Payload y pongjs todavía señalizan por relays gun públicos hasta que también pasen a nostr. Los relays transmiten datos; no pueden leer nada que se cifrara antes.",
   "hub.footer": "Software libre bajo la GPL: consulta el <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repositorio</a>.",
   "hub.signedOut": "Sesión cerrada en este dispositivo.",
-  "hub.welcome": "Sesión iniciada como {alias}."
+  "hub.welcome": "Sesión iniciada como {alias}.",
+  "hub.settings": "Ajustes",
+  "settings.title": "Ajustes",
+  "settings.back": "Volver al inicio",
+  "settings.deviceSettings": "Idioma &amp; apariencia",
+  "settings.deviceText": "Se eligen aquí y los usa cada herramienta. Con una cuenta te siguen a tus otros dispositivos.",
+  "settings.apps": "Apps",
+  "settings.appsText": "Oculta las herramientas que no uses; desaparecen de la página de inicio en todos los dispositivos con tu cuenta.",
+  "settings.backupText": "Un archivo con tu clave y todo lo que saben tus dispositivos: tableros, ajustes, tu cuenta. Cifrado con una frase de contraseña, lo restaura todo aunque todos los relays te hayan olvidado.",
+  "settings.deviceCardText": "Borrar elimina tu clave y todos los datos en caché de este navegador. Sin cuenta, clave exportada o copia de seguridad, se pierde lo que solo tenía este dispositivo.",
+  "settings.wipe": "Borrar este dispositivo",
+  "settings.wipeConfirm": "¿Eliminar la clave de este dispositivo y todos los datos en caché?",
+  "settings.backedUp": {
+    "one": "Copia con {n} entrada descargada",
+    "many": "Copia con {n} entradas descargada",
+    "other": "Copia con {n} entradas descargada"
+  }
 }

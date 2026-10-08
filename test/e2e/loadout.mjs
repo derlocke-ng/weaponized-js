@@ -4,13 +4,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { finalizeEvent, generateSecretKey } from 'nostr-tools/pure';
-import { run, device, until, sleep } from './env.mjs';
+import os from 'node:os';
+import { run, device, until, sleep, root } from './env.mjs';
 
 const step = (s) => console.log(`• ${s}`);
 const texts = (page, sel) => page.$$eval(sel, (els) => els.map((e) => e.textContent.trim()));
 
+// The site as GitHub Pages serves it: the hub (with the settings page) at the root, apps below.
+const site = fs.mkdtempSync(path.join(os.tmpdir(), 'wjs-site-'));
+fs.cpSync(path.join(root, 'hub'), site, { recursive: true });
+for (const app of ['loadout', 'shared']) fs.cpSync(path.join(root, 'apps', app), path.join(site, app), { recursive: true });
+
 await run('loadout', async (env) => {
   const APP = `${env.base}loadout/`;
+  const SETTINGS = `${env.base}settings.html`;
   const init = (relay) => localStorage.setItem('wjs.relays', JSON.stringify([relay]));
   const dev = (name, options) => device(env, name, init, env.nostrUrl, options);
 
@@ -181,21 +188,30 @@ await run('loadout', async (env) => {
   step('A creates an account; E signs in and gets every board');
   const alias = `e2e${Date.now().toString(36)}`;
   const pass = 'correct horse battery staple';
-  await A.goto(`${APP}#/account`);
+  const signIn = async (page, expectOk = true) => {
+    await page.goto(SETTINGS);
+    await page.waitForSelector('#authForm');
+    await page.fill('#authForm [name=alias]', alias);
+    await page.fill('#authForm [name=pass]', pass);
+    await page.click('#authBtn');
+    if (!expectOk) return page.waitForSelector('#authError:not([hidden])', { timeout: 60000 }).then((el) => el.textContent());
+    await until(async () => (await page.textContent('#accountBody')).includes(alias), 'signed in on the settings page', 60000);
+    await page.goto(APP);
+    await page.waitForSelector('.home');
+  };
+  await A.goto(SETTINGS);
   await A.waitForSelector('#authForm');
   await A.check('input[name=authTab][value=create]', { force: true });
   await A.fill('#authForm [name=alias]', alias);
   await A.fill('#authForm [name=pass]', pass);
   await A.fill('#authForm [name=pass2]', pass);
-  await Promise.all([A.waitForEvent('load', { timeout: 40000 }), A.click('#authBtn')]);
+  await A.click('#authBtn');
+  await until(async () => (await A.textContent('#accountBody')).includes(alias), 'account created', 60000);
+  await A.goto(APP);
   await A.waitForSelector('.home');
   await until(async () => (await texts(A, '.board-title')).length === 3, 'A keeps its boards after creating the account');
   const E = await dev('E');
-  await open(E, `${APP}#/account`);
-  await E.fill('#authForm [name=alias]', alias);
-  await E.fill('#authForm [name=pass]', pass);
-  await Promise.all([E.waitForEvent('load', { timeout: 40000 }), E.click('#authBtn')]);
-  await E.waitForSelector('.home');
+  await signIn(E);
   await until(async () => (await texts(E, '.board-title')).sort().join('|') === 'Groceries this week|Pantry|Readme', 'boards on E', 15000);
   await E.click('.board-card:has-text("Groceries")');
   await until(async () => (await texts(E, '#active .text')).includes('coffee'), 'board content on E');
@@ -203,11 +219,12 @@ await run('loadout', async (env) => {
 
   step('a wrong password finds no account');
   const W = await dev('W');
-  await open(W, `${APP}#/account`);
+  await W.goto(SETTINGS);
+  await W.waitForSelector('#authForm');
   await W.fill('#authForm [name=alias]', alias);
   await W.fill('#authForm [name=pass]', 'correct horse battery stapler');
   await W.click('#authBtn');
-  assert.match(await W.waitForSelector('.toast-error', { timeout: 30000 }).then((t) => t.textContent()), /wrong username or password/i);
+  assert.match(await W.waitForSelector('#authError:not([hidden])', { timeout: 60000 }).then((el) => el.textContent()), /wrong username or password/i);
   await W.ctx.close();
 
   step('removing a board on E removes it on A');
@@ -230,39 +247,33 @@ await run('loadout', async (env) => {
   await until(async () => (await texts(A, '#done .text')).includes('milk'), 'offline check reached A', 10000);
 
   step('backup → restore on a fresh device');
-  await E.goto(`${APP}#/account`);
+  await E.goto(SETTINGS);
+  await E.waitForSelector('[data-act=backup]');
   await E.click('[data-act=backup]');
-  await E.fill('dialog [name=pass]', 'backup passphrase 1');
-  await E.fill('dialog [name=pass2]', 'backup passphrase 1');
-  const [dl] = await Promise.all([E.waitForEvent('download', { timeout: 30000 }), E.click('dialog .btn-primary')]);
+  await E.fill('#backupForm [name=pass]', 'backup passphrase 1');
+  await E.fill('#backupForm [name=pass2]', 'backup passphrase 1');
+  const [dl] = await Promise.all([E.waitForEvent('download', { timeout: 30000 }), E.click('#backupForm .btn-primary')]);
   const file = path.join(env.tmp, 'backup.json');
   await dl.saveAs(file);
   const backup = JSON.parse(fs.readFileSync(file, 'utf8'));
-  assert.equal(backup.kind, 'loadout-backup');
+  assert.equal(backup.kind, 'wjs-backup');
   assert.ok(!fs.readFileSync(file, 'utf8').includes('coffee'), 'backup is encrypted');
+  const restore = async (page, passphrase) => {
+    await page.goto(SETTINGS);
+    await page.waitForSelector('#restoreFile', { state: 'attached' });
+    await page.setInputFiles('#restoreFile', file);
+    await page.fill('#restoreForm [name=pass]', passphrase);
+    await page.click('#restoreForm .btn-primary');
+  };
   const F = await dev('F');
-  await open(F, `${APP}#/account`);
-  await F.setInputFiles('#restoreFile', file);
-  await F.fill('dialog [name=pass]', 'wrong passphrase');
-  await F.click('dialog .btn-primary');
-  await F.waitForSelector('.toast-error');
-  await F.fill('dialog [name=pass]', 'backup passphrase 1');
-  await Promise.all([F.waitForEvent('load', { timeout: 40000 }), F.click('dialog .btn-primary')]);
+  await restore(F, 'wrong passphrase');
+  await F.waitForSelector('#rsError:not([hidden])');
+  await F.fill('#restoreForm [name=pass]', 'backup passphrase 1');
+  await Promise.all([F.waitForEvent('load', { timeout: 40000 }), F.click('#restoreForm .btn-primary')]);
+  await F.goto(APP);
   await F.waitForSelector('.home');
   await until(async () => (await texts(F, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards restored on F');
   assert.equal(await F.evaluate(() => JSON.parse(localStorage.getItem('wjs.identity')).alias), alias);
-
-  const signIn = async (page, expectOk = true) => {
-    await open(page, `${APP}#/account`);
-    await page.fill('#authForm [name=alias]', alias);
-    await page.fill('#authForm [name=pass]', pass);
-    if (!expectOk) {
-      await page.click('#authBtn');
-      return page.waitForSelector('.toast-error', { timeout: 30000 }).then((t) => t.textContent());
-    }
-    await Promise.all([page.waitForEvent('load', { timeout: 40000 }), page.click('#authBtn')]);
-    await page.waitForSelector('.home');
-  };
 
   step('the relay loses everything: the backup file brings it all back');
   for (const p of [A, B, C, D, F]) await p.ctx.close();
@@ -272,10 +283,12 @@ await run('loadout', async (env) => {
   assert.match(await signIn(G, false), /wrong username or password|no relay/i, 'the account is gone from the relay');
   await G.ctx.close();
   const H = await dev('H');
-  await open(H, `${APP}#/account`);
+  await H.goto(SETTINGS);
+  await H.waitForSelector('#restoreFile', { state: 'attached' });
   await H.setInputFiles('#restoreFile', file);
-  await H.fill('dialog [name=pass]', 'backup passphrase 1');
-  await Promise.all([H.waitForEvent('load', { timeout: 40000 }), H.click('dialog .btn-primary')]);
+  await H.fill('#restoreForm [name=pass]', 'backup passphrase 1');
+  await Promise.all([H.waitForEvent('load', { timeout: 40000 }), H.click('#restoreForm .btn-primary')]);
+  await H.goto(APP);
   await H.waitForSelector('.home');
   await until(async () => (await texts(H, '.board-title')).sort().join('|') === 'Groceries this week|Pantry', 'boards from the backup');
   await H.click('.board-card:has-text("Groceries")');
@@ -293,7 +306,10 @@ await run('loadout', async (env) => {
   await E2.goto(APP);
   await E2.waitForSelector('.home');
   await until(async () => (await env.relayEvents([{ kinds: [30790] }])).length === 1, 'account event re-published by E', 20000);
-  await sleep(1500);
+  // Healing is paced to stay under relay rate limits: wait until the boards' content is back, not a fixed time.
+  await until(async () => (await env.relayEvents([{ kinds: [30702] }])).length >= 6, 'board items re-published by E', 30000);
+  await until(async () => (await env.relayEvents([{ kinds: [30700] }])).length >= 2, 'wallet re-published by E', 30000);
+  await sleep(1000);
   await E2.close();
   const G2 = await dev('G2');
   await signIn(G2);
@@ -334,7 +350,8 @@ await run('loadout', async (env) => {
   await until(async () => (await texts(K, '#active .text')).includes('bread'), 'item added');
   await sleep(1200);
   assert.equal(await K.textContent('#sync .sync-text'), '1/2', 'nothing counts as unsynced while one relay has it');
-  await K.goto(`${APP}#/account`);
+  await K.goto(SETTINGS);
+  await K.waitForSelector('#relayList li');
   await until(async () => (await texts(K, '#relayList li')).some((x) => /waiting/.test(x)), 'the dead relay shows what it is missing');
   await K.click('[data-act=sync-now]');
   await K.waitForSelector('.toast-success', { timeout: 20000 });
@@ -355,15 +372,15 @@ await run('loadout', async (env) => {
   await DE.waitForSelector('#newBoard');
   assert.notEqual(await DE.textContent('#newBoard [type=submit]'), 'Create');
   await DE.press('#newBoard input[name=title]', 'Escape');
-  // Switching back from the settings screen works without a reload.
-  await DE.goto(`${APP}#/account`);
+  // Switching back happens on the site's settings page and reaches Loadout.
+  await DE.goto(SETTINGS);
+  await DE.waitForSelector('#langSelect');
   await DE.selectOption('#langSelect', 'en');
-  await until(async () => (await DE.textContent('.account h1')) === 'Account & settings', 'English after switching');
-  assert.equal(await DE.getAttribute('html', 'lang'), 'en');
+  await until(async () => (await DE.getAttribute('html', 'lang')) === 'en', 'English after switching');
   await DE.goto(APP);
   await until(async () => (await DE.textContent('.home h1')) === 'Your boards', 'home in English');
   const US = await dev('US', { locale: 'en-US' });
   await open(US);
   assert.equal(await US.$('#langBanner'), null, 'English browsers are not asked');
   assert.equal(await US.textContent('.home h1'), 'Your boards');
-});
+}, { webRoot: site });

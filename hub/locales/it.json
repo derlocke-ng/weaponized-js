@@ -18,5 +18,21 @@
   "hub.relaysText": "Loadout si sincronizza attraverso questi relay nostr; scegli i tuoi nelle sue impostazioni. Payload e pongjs usano ancora relay gun pubblici finché non passano anch’essi a nostr. I relay inoltrano i dati; non possono leggere ciò che è stato cifrato prima.",
   "hub.footer": "Software libero con licenza GPL: vedi il <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repository</a>.",
   "hub.signedOut": "Disconnesso su questo dispositivo.",
-  "hub.welcome": "Hai effettuato l’accesso come {alias}."
+  "hub.welcome": "Hai effettuato l’accesso come {alias}.",
+  "hub.settings": "Impostazioni",
+  "settings.title": "Impostazioni",
+  "settings.back": "Torna all’inizio",
+  "settings.deviceSettings": "Lingua &amp; aspetto",
+  "settings.deviceText": "Scelti qui, usati da ogni strumento. Con un account ti seguono sugli altri dispositivi.",
+  "settings.apps": "App",
+  "settings.appsText": "Nascondi gli strumenti che non usi; spariscono dalla pagina iniziale su ogni dispositivo con il tuo account.",
+  "settings.backupText": "Un file con la tua chiave e tutto ciò che i tuoi dispositivi sanno: bacheche, impostazioni, il tuo account. Cifrato con una frase segreta, ripristina tutto anche se ogni relay ti ha dimenticato.",
+  "settings.deviceCardText": "Azzerare rimuove la tua chiave e tutti i dati in cache da questo browser. Senza account, chiave esportata o backup, ciò che aveva solo questo dispositivo va perso.",
+  "settings.wipe": "Azzera questo dispositivo",
+  "settings.wipeConfirm": "Eliminare la chiave di questo dispositivo e tutti i dati in cache?",
+  "settings.backedUp": {
+    "one": "Backup con {n} voce scaricato",
+    "many": "Backup con {n} voci scaricato",
+    "other": "Backup con {n} voci scaricato"
+  }
 }

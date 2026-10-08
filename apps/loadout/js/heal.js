@@ -3,7 +3,8 @@
 // (re)connects (shared/sync.js does that for watched authors). Opening a
 // board also pushes its events out again, at most once a minute.
 
-import { sync } from './net.js';
+import { sync, pool, db } from './net.js';
+import { KINDS } from '../../shared/events.js';
 
 const MIN_GAP = 60_000;
 const lastHeal = new Map();
@@ -16,6 +17,20 @@ export async function healBoard(pub) {
 }
 
 /** Everything of yours that relays should keep: your key, your account event, your boards. */
+let boardsSub = null;
+let subscribed = '';
+
+/**
+ * Everything that is ours is watched: it is healed onto relays that come
+ * back, and every board in the wallet is kept on this device in full (not
+ * only the ones opened here), so backups and healing carry all of it.
+ */
 export function watchAll(identity, wallet) {
-  sync.watch([identity.pk, ...(identity.accountPk ? [identity.accountPk] : []), ...wallet.pubs()]);
+  const pubs = wallet.pubs();
+  sync.watch([identity.pk, ...(identity.accountPk ? [identity.accountPk] : []), ...pubs]);
+  const key = [...pubs].sort().join(',');
+  if (key === subscribed) return;
+  subscribed = key;
+  boardsSub?.close();
+  boardsSub = pubs.length ? pool.subscribe([{ kinds: [KINDS.LOADOUT_INFO, KINDS.LOADOUT_ITEM, KINDS.LOADOUT_DOC], authors: pubs }], { onevent: (ev) => db.put(ev) }) : null;
 }

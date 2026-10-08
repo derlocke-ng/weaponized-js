@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https: wss: http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0f0d" media="(prefers-color-scheme: dark)">
+  <title>Settings · weaponized.js</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="hub.css">
+  <script type="module" src="settings.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="./">
+      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/><path d="M16 2v8M16 22v8M2 16h8M22 16h8"/><circle class="logo-dot" cx="16" cy="16" r="2.5"/></svg>
+      <span>weaponized<span class="logo-ext">.js</span></span>
+    </a>
+    <span class="spacer"></span>
+    <a class="top-link" href="./"><span data-i18n="settings.back">Back to start</span></a>
+  </header>
+
+  <main class="settings">
+    <h1 data-i18n="settings.title">Settings</h1>
+
+    <section class="card" id="account" aria-labelledby="accountTitle">
+      <h2 id="accountTitle"><svg class="icon"><use href="icons.svg#key-round"/></svg><span data-i18n="hub.account">Your account</span></h2>
+      <div id="accountBody"></div>
+    </section>
+
+    <section class="card" id="device" aria-labelledby="deviceTitle">
+      <h2 id="deviceTitle"><svg class="icon"><use href="icons.svg#languages"/></svg><span data-i18n="settings.deviceSettings">Language &amp; appearance</span></h2>
+      <p class="muted" data-i18n="settings.deviceText">Chosen here, used by every tool. With an account they follow you to your other devices.</p>
+      <div class="device-settings">
+        <label class="lang-foot"><svg class="icon"><use href="icons.svg#languages"/></svg><select id="langSelect"></select></label>
+        <div class="seg" id="themeSeg" role="radiogroup">
+          <label><input type="radio" name="theme" value="system"><span data-i18n="account.theme.system">System</span></label>
+          <label><input type="radio" name="theme" value="light"><span data-i18n="account.theme.light">Light</span></label>
+          <label><input type="radio" name="theme" value="dark"><span data-i18n="account.theme.dark">Dark</span></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="apps" aria-labelledby="appsTitle">
+      <h2 id="appsTitle"><svg class="icon"><use href="icons.svg#list-checks"/></svg><span data-i18n="settings.apps">Apps</span></h2>
+      <p class="muted" data-i18n="settings.appsText">Hide the tools you don’t use; they disappear from the start page on every device signed in as you.</p>
+      <ul class="app-toggles" id="appToggles"></ul>
+    </section>
+
+    <section class="card" id="relays" aria-labelledby="relaysTitle">
+      <h2 id="relaysTitle"><svg class="icon"><use href="icons.svg#radio-tower"/></svg><span data-i18n="account.relays">Relays</span></h2>
+      <p class="muted" data-i18n="account.relaysText">Relays pass signed, encrypted events between your devices.</p>
+      <ul id="relayList" class="relay-list"></ul>
+      <div class="form-actions">
+        <button type="button" class="btn btn-sm" data-act="sync-now"><span data-i18n="account.syncNow">Sync now</span></button>
+        <button type="button" class="btn btn-sm btn-ghost" data-act="diagnostics"><span data-i18n="account.diagnostics">Copy diagnostics</span></button>
+      </div>
+      <details class="relay-edit">
+        <summary data-i18n="account.editRelays">Edit relays</summary>
+        <form class="form" id="relayForm">
+          <label class="field"><span data-i18n="account.oneUrlPerLine">One URL per line</span><textarea name="relays" rows="5" spellcheck="false"></textarea></label>
+          <div class="form-actions"><button class="btn btn-sm" data-i18n-html="account.saveReconnect">Save &amp; reconnect</button><button type="button" class="btn btn-sm btn-ghost" data-act="relay-reset" data-i18n="account.resetRelays">Reset to defaults</button></div>
+        </form>
+      </details>
+    </section>
+
+    <section class="card" id="backup" aria-labelledby="backupTitle">
+      <h2 id="backupTitle"><svg class="icon"><use href="icons.svg#shield"/></svg><span data-i18n="account.backup">Backup</span></h2>
+      <p class="muted" data-i18n="settings.backupText">One file with your key and everything your devices know.</p>
+      <div class="form-actions">
+        <button type="button" class="btn" data-act="backup"><span data-i18n="account.downloadBackup">Download backup</span></button>
+        <label class="btn btn-ghost file-btn"><span data-i18n="account.restoreBackup">Restore backup…</span><input type="file" accept=".json,application/json" id="restoreFile" hidden></label>
+      </div>
+      <p class="muted small" id="lastBackup"></p>
+      <form class="form passphrase" id="backupForm" hidden>
+        <p class="small" data-i18n="account.backupDialog.text">Choose a passphrase for the file.</p>
+        <label class="field"><span data-i18n="account.backupDialog.passphrase">Passphrase</span><input name="pass" type="password" autocomplete="new-password" required minlength="10"></label>
+        <label class="field"><span data-i18n="account.backupDialog.repeat">Repeat passphrase</span><input name="pass2" type="password" autocomplete="new-password" required></label>
+        <div class="form-actions"><button class="btn btn-primary btn-sm" data-i18n="account.backupDialog.download">Download</button><button type="button" class="btn btn-sm btn-ghost" data-act="cancel-backup" data-i18n="common.cancel">Cancel</button><span class="progress-text" id="bkProgress"></span></div>
+      </form>
+      <form class="form passphrase" id="restoreForm" hidden>
+        <p class="small" data-i18n="account.restoreDialog.text">Restoring switches this device to the key in the backup.</p>
+        <label class="field"><span data-i18n="account.backupDialog.passphrase">Passphrase</span><input name="pass" type="password" autocomplete="off" required></label>
+        <div class="form-actions"><button class="btn btn-primary btn-sm" data-i18n="account.restoreDialog.restore">Restore</button><button type="button" class="btn btn-sm btn-ghost" data-act="cancel-restore" data-i18n="common.cancel">Cancel</button><span class="progress-text" id="rsProgress"></span></div>
+        <p class="form-error" id="rsError" hidden></p>
+      </form>
+    </section>
+
+    <section class="card card-danger" id="thisDevice" aria-labelledby="thisDeviceTitle">
+      <h2 id="thisDeviceTitle"><svg class="icon"><use href="icons.svg#log-out"/></svg><span data-i18n="account.device">This device</span></h2>
+      <p class="muted" data-i18n="settings.deviceCardText">Wiping removes your key and all cached data from this browser.</p>
+      <button type="button" class="btn btn-danger" data-act="wipe" data-i18n="settings.wipe">Wipe this device</button>
+    </section>
+
+    <details class="card how">
+      <summary><h2><svg class="icon"><use href="icons.svg#shield"/></svg><span data-i18n="account.how">How it works</span></h2></summary>
+      <ul id="howList"></ul>
+    </details>
+  </main>
+
+  <footer class="foot">
+    <p data-i18n-html="hub.footer">Free software under the GPL.</p>
+  </footer>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+</body>
+</html>

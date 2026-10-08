@@ -18,5 +18,22 @@
   "hub.relaysText": "Loadout synchronizuje się przez te przekaźniki nostr; własne wybierzesz w jego ustawieniach. Payload i pongjs nadal sygnalizują przez publiczne przekaźniki gun, dopóki też nie przejdą na nostr. Przekaźniki tylko przekazują dane; nie odczytają niczego, co wcześniej zaszyfrowano.",
   "hub.footer": "Wolne oprogramowanie na licencji GPL – zobacz <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repozytorium</a>.",
   "hub.signedOut": "Wylogowano na tym urządzeniu.",
-  "hub.welcome": "Zalogowano jako {alias}."
+  "hub.welcome": "Zalogowano jako {alias}.",
+  "hub.settings": "Ustawienia",
+  "settings.title": "Ustawienia",
+  "settings.back": "Wróć na start",
+  "settings.deviceSettings": "Język &amp; wygląd",
+  "settings.deviceText": "Wybrane tutaj, używane przez każde narzędzie. Z kontem podążają za Tobą na inne urządzenia.",
+  "settings.apps": "Aplikacje",
+  "settings.appsText": "Ukryj narzędzia, których nie używasz; znikną ze strony startowej na każdym urządzeniu zalogowanym na Twoje konto.",
+  "settings.backupText": "Jeden plik z Twoim kluczem i wszystkim, co wiedzą Twoje urządzenia: tablice, ustawienia, konto. Zaszyfrowany hasłem przywraca wszystko, nawet gdy każdy przekaźnik o Tobie zapomni.",
+  "settings.deviceCardText": "Wymazanie usuwa Twój klucz i wszystkie dane z pamięci podręcznej tej przeglądarki. Bez konta, wyeksportowanego klucza lub kopii zapasowej to, co miało tylko to urządzenie, przepada.",
+  "settings.wipe": "Wymaż to urządzenie",
+  "settings.wipeConfirm": "Usunąć klucz tego urządzenia i wszystkie dane z pamięci podręcznej?",
+  "settings.backedUp": {
+    "one": "Pobrano kopię z {n} wpisem",
+    "few": "Pobrano kopię z {n} wpisami",
+    "many": "Pobrano kopię z {n} wpisami",
+    "other": "Pobrano kopię z {n} wpisami"
+  }
 }

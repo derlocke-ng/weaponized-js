@@ -23,6 +23,7 @@
     <span class="spacer"></span>
     <a class="top-link" href="https://github.com/derlocke-ng/weaponized-js" rel="noopener"><svg class="icon"><use href="icons.svg#git-branch"/></svg><span data-i18n="hub.source">Source</span></a>
     <a class="top-link account-link" href="#account" id="accountLink"><svg class="icon"><use href="icons.svg#user"/></svg><span id="accountName" data-i18n="hub.signIn">Sign in</span></a>
+    <a class="top-link" href="settings.html" id="settingsLink" aria-label="Settings"><svg class="icon"><use href="icons.svg#settings"/></svg><span data-i18n="hub.settings">Settings</span></a>
   </header>
 
   <div id="langBanner"></div>
@@ -38,7 +39,7 @@
       <div id="accountBody"><p class="muted" data-i18n="hub.accountText">One account for every tool here.</p></div>
     </section>
 
-    <a class="feature" href="loadout/">
+    <a class="feature" href="loadout/" data-app="loadout">
       <div class="feature-icon"><svg class="icon"><use href="icons.svg#list-checks"/></svg></div>
       <div class="feature-body">
         <span class="badge" data-i18n="hub.new">New</span>
@@ -50,7 +51,7 @@
     </a>
 
     <ul class="tools">
-      <li>
+      <li data-app="payload">
         <a class="tool" href="payload/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#send"/></svg></span>
           <h3>Payload</h3>
@@ -58,7 +59,7 @@
           <ul class="tags"><li>gun</li><li>WebRTC</li><li>SHA-256</li></ul>
         </a>
       </li>
-      <li>
+      <li data-app="pongjs">
         <a class="tool" href="pongjs/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#gamepad-2"/></svg></span>
           <h3>pongjs</h3>
@@ -66,7 +67,7 @@
           <ul class="tags"><li>gun</li><li>WebRTC</li><li>canvas</li></ul>
         </a>
       </li>
-      <li>
+      <li data-app="enigmajs">
         <a class="tool" href="enigmajs/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#message-square-lock"/></svg></span>
           <h3>EnigmaJS <small class="legacy" data-i18n="hub.legacy">Legacy</small></h3>
@@ -74,7 +75,7 @@
           <ul class="tags"><li>gun</li><li>SEA</li><li>Vue</li></ul>
         </a>
       </li>
-      <li>
+      <li data-app="devboard">
         <a class="tool" href="devboard/">
           <span class="tool-icon"><svg class="icon"><use href="icons.svg#sticky-note"/></svg></span>
           <h3>DevBoard <small class="legacy" data-i18n="hub.legacy">Legacy</small></h3>
@@ -93,14 +94,7 @@
 
   <footer class="foot">
     <p data-i18n-html="hub.footer">Free software under the GPL — see the <a href="https://github.com/derlocke-ng/weaponized-js" rel="noopener">repository</a>.</p>
-    <div class="device-settings">
-      <label class="lang-foot"><svg class="icon"><use href="icons.svg#languages"/></svg><select id="langSelect" aria-label="Language"></select></label>
-      <div class="seg" id="themeSeg" role="radiogroup" aria-label="Appearance">
-        <label><input type="radio" name="theme" value="system"><span data-i18n="account.theme.system">System</span></label>
-        <label><input type="radio" name="theme" value="light"><span data-i18n="account.theme.light">Light</span></label>
-        <label><input type="radio" name="theme" value="dark"><span data-i18n="account.theme.dark">Dark</span></label>
-      </div>
-    </div>
+    <p><a href="settings.html" data-i18n="hub.settings">Settings</a></p>
   </footer>
   <div id="toasts" class="toasts" aria-live="polite"></div>
 </body>

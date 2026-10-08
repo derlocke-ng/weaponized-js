@@ -14,7 +14,7 @@ Peer-to-peer webtools over [nostr](https://nostr.com). Every tool runs entirely 
 
 Coming: **Uplink** (chat between accounts and ephemeral rooms) and **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds). EnigmaJS and DevBoard are legacy and will go once Uplink exists.
 
-**One account for everything.** Sign in or create an account on the landing page (username + password, or a nostr key) and every tool uses it; boards made on a device before signing in are carried over. Without an account each device simply uses its own key.
+**One account, one settings page.** Sign in or create an account on the landing page (username + password, or a nostr key) and every tool uses it; boards made on a device before signing in are carried over. Without an account each device simply uses its own key. The site's settings page holds everything that is not specific to one tool: account and key export, relays with live status, backup and restore of everything your devices know, language and appearance (which follow your account), hidden apps, and wiping the device. Each tool keeps only its own settings.
 
 Every page is translated: English, German, French, Spanish, Italian, Dutch, Polish and Portuguese, picked from the browser's language with a one-time prompt. Adding a language is one JSON file per app (see `apps/shared/i18n.js`).
 
@@ -23,7 +23,7 @@ The suite started on gun.js and is moving to nostr app by app. [`docs/architectu
 ## Layout
 
 ```
-hub/                 the landing page: account, language, relay status, app cards (served at /)
+hub/                 the landing page and the settings page (served at /)
 apps/<name>/         one folder per tool (served at /<name>/)
 apps/shared/         the shared core: nostr bundle, relay pool, local event store,
                      accounts, sync/heal; plus gun and the WebRTC room code still

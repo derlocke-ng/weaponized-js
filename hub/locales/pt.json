@@ -18,5 +18,21 @@
   "hub.relaysText": "O Loadout sincroniza através destes relays nostr; escolhe os teus nas definições. O Payload e o pongjs ainda sinalizam por relays gun públicos até também passarem para o nostr. Os relays encaminham dados; não conseguem ler nada que tenha sido cifrado antes.",
   "hub.footer": "Software livre sob a GPL – ver o <a href=\"https://github.com/derlocke-ng/weaponized-js\" rel=\"noopener\">repositório</a>.",
   "hub.signedOut": "Sessão terminada neste dispositivo.",
-  "hub.welcome": "Sessão iniciada como {alias}."
+  "hub.welcome": "Sessão iniciada como {alias}.",
+  "hub.settings": "Definições",
+  "settings.title": "Definições",
+  "settings.back": "Voltar ao início",
+  "settings.deviceSettings": "Idioma &amp; aspeto",
+  "settings.deviceText": "Escolhidos aqui, usados por todas as ferramentas. Com uma conta, seguem-te para os teus outros dispositivos.",
+  "settings.apps": "Apps",
+  "settings.appsText": "Esconde as ferramentas que não usas; desaparecem da página inicial em todos os dispositivos com a tua conta.",
+  "settings.backupText": "Um ficheiro com a tua chave e tudo o que os teus dispositivos sabem: quadros, definições, a tua conta. Cifrado com uma frase secreta, repõe tudo mesmo que todos os relays te tenham esquecido.",
+  "settings.deviceCardText": "Apagar remove a tua chave e todos os dados em cache deste navegador. Sem conta, chave exportada ou backup, o que só este dispositivo tinha perde-se.",
+  "settings.wipe": "Apagar este dispositivo",
+  "settings.wipeConfirm": "Eliminar a chave deste dispositivo e todos os dados em cache?",
+  "settings.backedUp": {
+    "one": "Backup com {n} entrada descarregado",
+    "many": "Backup com {n} entradas descarregado",
+    "other": "Backup com {n} entradas descarregado"
+  }
 }

@@ -8,7 +8,7 @@ Shared lists, inventories and markdown notes that sync across your devices and w
 - **Inventory** lists with counts (`AA batteries: 12`) and ± buttons; empty items are flagged.
 - **Notes** in Markdown, rentry style, with the toolbar from the derlocke-blog / apex-genetics admin editor (Ctrl+B / I / K / S), a live preview, and clickable task boxes.
 - **Everything is end-to-end encrypted.** Share an *edit* or *view-only* link — by copy, the system share sheet or a QR code. A link is a key: whoever has it can pass it on.
-- **Every device gets a key** automatically. Create an **account** (username + password) to get the same boards on all your devices, or sign in with an existing nostr key (`nsec`, `ncryptsec`). Download an encrypted **backup** of everything.
+- **Every device gets a key** automatically. Create an **account** on the site's start page (username + password, or an existing nostr key) to get the same boards on all your devices; backups, relays, language and appearance live in the site's settings and apply to every tool.
 - **Works offline**: the app is cached, data lives in IndexedDB, and changes made without a connection are sent when a relay is reachable again.
 - **Survives relays forgetting**: devices put their copy back on the relays (see *Where your data lives*).
 - **You choose the relays**: the settings show latency and country (from each relay's NIP-11 document); add your own, including a local one.
@@ -88,12 +88,12 @@ When you add a file under `js/`, list it in `SHELL` in `sw.js` (a unit test chec
 | Folder | What |
 |---|---|
 | `js/net.js` | wires the shared relay pool, event store and sync for this app |
-| `js/identity.js` | device key, account sign-in / creation, key import |
+| `js/identity.js` | the device's key as the site keeps it (sign-in happens on the site's settings page) |
 | `js/wallet.js` | your encrypted list of boards (`30700`) |
 | `js/settings.js` | synced account settings (`30791`): starters and templates |
 | `js/boards.js` | board model: keys, encryption, reads and writes (`30701`–`30703`) |
 | `js/heal.js` | which authors this device puts back on the relays |
-| `js/session.js` | switching identity, building and restoring backups, wiping the device |
+| `js/session.js` | carrying boards over when the site's identity changed |
 | `js/links.js`, `js/items.js`, `js/mdtasks.js`, `js/backup.js` | pure logic, unit tested |
 | `js/views/` | home, board, list, note, share and account screens |
 | `locales/` | one JSON catalog per language (keys shared with `../shared/locales/`); `npm test` checks they match English |

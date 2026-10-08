@@ -68,23 +68,41 @@ await run(
     await A.waitForSelector('.home');
     await until(async () => (await texts(A, '.board-title')).sort().join('|') === 'Device board|Hub board', 'the carried board reaches A', 20000);
 
-    step('theme and language chosen anywhere apply to the whole site');
-    await A.goto(`${env.base}loadout/#/account`);
+    step('theme, language and hidden apps are set once in the settings and apply everywhere');
+    const SETTINGS = `${env.base}settings.html`;
+    await A.goto(SETTINGS);
     await A.waitForSelector('#themeSeg');
     await A.check('#themeSeg input[value=dark]', { force: true });
-    await A.goto(env.base);
-    await A.waitForSelector('#authForm, #accountBody');
-    assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'the hub follows the theme set in Loadout');
-    await A.check('#themeSeg input[value=light]', { force: true });
     await A.selectOption('#langSelect', 'fr');
-    await until(async () => (await A.getAttribute('html', 'lang')) === 'fr', 'hub in French');
+    await until(async () => (await A.getAttribute('html', 'lang')) === 'fr', 'settings page in French');
+    await A.uncheck('#appToggles input[data-app=pongjs]', { force: true });
+    await A.goto(env.base);
+    await A.waitForSelector('#accountBody');
+    assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'the start page follows the theme');
+    assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'the start page follows the language');
+    await until(async () => await A.$eval('li[data-app=pongjs]', (el) => el.hidden), 'hidden app gone from the start page');
     await A.goto(`${env.base}loadout/`);
     await A.waitForSelector('.home');
-    assert.equal(await A.getAttribute('html', 'data-theme'), 'light', 'Loadout follows the theme set on the hub');
-    assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'Loadout follows the language set on the hub');
-    await A.goto(`${env.base}loadout/#/account`);
+    assert.equal(await A.getAttribute('html', 'data-theme'), 'dark', 'Loadout follows the theme');
+    assert.equal(await A.getAttribute('html', 'lang'), 'fr', 'Loadout follows the language');
+    // Another device of the same account gets the same language and theme from the account.
+    await until(async () => (await B.getAttribute('html', 'lang')) === 'fr', 'B follows the account language', 20000);
+    await until(async () => (await B.getAttribute('html', 'data-theme')) === 'dark', 'B follows the account theme', 20000);
+    await A.goto(SETTINGS);
+    await A.waitForSelector('#langSelect');
     await A.selectOption('#langSelect', 'en');
     await A.check('#themeSeg input[value=system]', { force: true });
+    await A.check('#appToggles input[data-app=pongjs]', { force: true });
+    await until(async () => (await B.getAttribute('html', 'lang')) === 'en', 'B back to English', 20000);
+
+    step('wiping a device forgets the key and the cached data');
+    await B.goto(SETTINGS);
+    await B.waitForSelector('[data-act=wipe]');
+    B.removeAllListeners('dialog');
+    B.on('dialog', (d) => d.accept());
+    await Promise.all([B.waitForEvent('load', { timeout: 30000 }), B.click('[data-act=wipe]')]);
+    await B.waitForSelector('#authForm', { timeout: 30000 });
+    assert.equal(await B.textContent('#accountName'), 'Sign in');
 
     step('a wrong password shows the error inline');
     const C = await dev('C');

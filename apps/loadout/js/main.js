@@ -9,7 +9,9 @@ import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
 import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t } from '../../shared/i18n.js';
-import { watchDeviceSettings } from '../../shared/theme.js';
+import { theme, setTheme, watchDeviceSettings } from '../../shared/theme.js';
+import { AccountSettings } from '../../shared/settings.js';
+import { db } from './net.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
 import { renderAccount } from './views/account.js';
@@ -115,6 +117,19 @@ async function boot() {
   app.settings = new Settings(app.identity);
   await Promise.all([app.wallet.start(), app.settings.start()]);
   await carryOver(); // boards from a key this device used before signing in elsewhere in the suite
+  // The account's language and theme (set on any device) apply here too.
+  const suite = await new AccountSettings(app.identity, { pool, db, sync }, 'suite').start();
+  const applySuite = async () => {
+    const lang = suite.get('lang');
+    if (lang && LANGUAGES[lang] && lang !== currentLanguage()) {
+      await setLanguage(lang);
+      rerender();
+    }
+    const th = suite.get('theme');
+    if (th && th !== theme()) setTheme(th);
+  };
+  suite.onChange(applySuite);
+  await applySuite();
   // Relays that (re)connect get this device's copy of everything that is ours.
   const rewatch = () => watchAll(app.identity, app.wallet);
   rewatch();

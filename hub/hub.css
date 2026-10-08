@@ -692,3 +692,119 @@ select:focus-visible {
 .device-settings .seg {
   margin: 0;
 }
+
+/* ---- settings page ---- */
+.settings h1 {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  letter-spacing: -0.02em;
+  margin: 1.5rem 0 1rem;
+}
+
+.card-danger {
+  border-color: color-mix(in srgb, #b91c1c 35%, var(--border));
+}
+
+.btn-danger {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.app-toggles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.check-row input {
+  width: auto;
+}
+
+.passphrase {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.export {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.copy-field {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.copy-field input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font: inherit;
+  font-family: var(--mono);
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.file-btn {
+  cursor: pointer;
+}
+
+.relay-edit {
+  margin-top: 0.75rem;
+}
+
+.relay-edit summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.relay-edit .form {
+  margin-top: 0.75rem;
+}
+
+.relay-problem {
+  flex-basis: 100%;
+  color: #b45309;
+}
+
+.how summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.how summary h2 {
+  margin: 0;
+}
+
+.how ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}

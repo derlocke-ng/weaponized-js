@@ -1,10 +1,11 @@
 // Passphrase-encrypted backup files: PBKDF2-SHA-256 → AES-256-GCM, plain
 // WebCrypto so the format is easy to audit and to open elsewhere.
 
-import { bytesToB64url, b64urlToBytes, enc } from './util.js';
-import { fail } from '../../shared/util.js';
+import { bytesToB64url, b64urlToBytes, fail } from './util.js';
 
-export const BACKUP_KIND = 'loadout-backup';
+const enc = new TextEncoder();
+export const BACKUP_KIND = 'wjs-backup';
+const KINDS_ACCEPTED = [BACKUP_KIND, 'loadout-backup'];
 const ITERATIONS = 600_000;
 
 async function deriveKey(passphrase, salt, iterations) {
@@ -29,8 +30,8 @@ export async function encryptBackup(payload, passphrase, { iterations = ITERATIO
 
 /** @throws {Error} with a user-facing message on a bad file or passphrase. */
 export async function decryptBackup(file, passphrase) {
-  if (!file || file.kind !== BACKUP_KIND || file.v !== 1 || !file.kdf || !file.cipher || !file.data) {
-    throw fail('backup.error.notBackup', 'This is not a Loadout backup file.');
+  if (!file || !KINDS_ACCEPTED.includes(file.kind) || file.v !== 1 || !file.kdf || !file.cipher || !file.data) {
+    throw fail('backup.error.notBackup', 'This is not a weaponized.js backup file.');
   }
   const iterations = Number(file.kdf.iterations);
   if (!(iterations >= 100_000 && iterations <= 10_000_000)) throw fail('backup.error.unsupported', 'Unsupported backup settings.');

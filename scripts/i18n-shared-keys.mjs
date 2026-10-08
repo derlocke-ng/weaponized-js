@@ -54,7 +54,40 @@ const SHARED_KEYS = [
   'account.theme.system',
   'account.theme.light',
   'account.theme.dark',
+  'account.backup',
+  'account.downloadBackup',
+  'account.restoreBackup',
+  'account.lastBackup',
+  'account.backupDialog.title',
+  'account.backupDialog.text',
+  'account.backupDialog.passphrase',
+  'account.backupDialog.repeat',
+  'account.backupDialog.download',
+  'account.backupDialog.mismatch',
+  'account.backupDialog.encrypting',
+  'account.restoreDialog.title',
+  'account.restoreDialog.text',
+  'account.restoreDialog.restore',
+  'account.restoreDialog.decrypting',
+  'account.restoreDialog.noKey',
+  'account.restoreDialog.notJson',
+  'backup.error.notBackup',
+  'backup.error.unsupported',
+  'backup.error.wrongPassphrase',
+  'account.device',
+  'account.how',
+  'account.how.1',
+  'account.how.2',
+  'account.how.3',
+  'account.how.4',
+  'account.how.5',
+  'account.how.6',
+  'account.how.7',
+  'account.how.8',
+  'session.restoring',
+  'session.syncing',
 ];
+const DROPPED = ['account.title', 'account.backupText', 'account.backupDialog.done', 'account.deviceTextSignedIn', 'account.deviceTextKey', 'account.wipe', 'account.wipeDialog.title', 'account.wipeDialog.text', 'account.wipeDialog.action', 'session.loadingBoards', 'session.checking', 'session.restored', 'session.offlineLater', 'session.collected'];
 
 const read = (f) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null);
 const write = (f, obj) => fs.writeFileSync(f, JSON.stringify(obj, null, 2) + '\n');
@@ -68,6 +101,12 @@ for (const app of ['loadout']) {
     const sharedFile = path.join(root, 'apps/shared/locales', file);
     const shared = read(sharedFile) || {};
     let changed = false;
+    for (const key of DROPPED) {
+      if (key in appCat) {
+        delete appCat[key];
+        changed = true;
+      }
+    }
     for (const key of SHARED_KEYS) {
       if (key in appCat) {
         if (!(key in shared)) shared[key] = appCat[key];
