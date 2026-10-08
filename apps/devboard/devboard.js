@@ -196,7 +196,7 @@ function render() {
       <div class="tagbar" id="tagbar"></div>
       <p class="stats" id="stats"></p>
       <div class="board" id="board"></div>
-      <details class="card how" id="how"><summary><h2>${icon('shield')}${h(t('db.how'))}</h2></summary><ul>${[1, 2, 3, 4, 5].map((i) => `<li>${h(t(`db.how.${i}`))}</li>`).join('')}</ul></details>`;
+`;
     $('#footNote').textContent = t('db.footer');
   }
   $('#tagbar').innerHTML = topTags.map(([tag, n]) => `<button type="button" class="chip ${tagFilters.has(tag) ? 'on' : ''}" data-tag="${h(tag)}">${h(tag)} <span class="muted">${n}</span></button>`).join('');
@@ -243,6 +243,10 @@ function renderSettings(main) {
         <p class="muted small">${h(t('db.settings.powText', { n: hardwareCores() }))}</p>
         <label class="field">${h(t('db.settings.cores'))}<select id="coresSelect">${Array.from({ length: max }, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === cores() ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>
+      <details class="card how" id="how">
+        <summary><h2>${icon('shield')}${h(t('db.how'))}</h2></summary>
+        <ul>${[1, 2, 3, 4, 5].map((i) => `<li>${h(t(`db.how.${i}`))}</li>`).join('')}</ul>
+      </details>
     </section>`;
 }
 
