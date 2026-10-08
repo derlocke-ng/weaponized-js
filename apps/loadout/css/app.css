@@ -34,20 +34,6 @@
   stroke: var(--accent);
 }
 
-.sync {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--muted) !important;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 .dot {
   width: 8px;
   height: 8px;
@@ -57,15 +43,6 @@
 }
 
 .dot.on,
-.sync[data-state='on'] .dot {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgb(34 197 94 / 0.18);
-}
-
-.sync[data-state='off'] .dot {
-  background: #f59e0b;
-}
-
 .avatar {
   width: 28px;
   height: 28px;

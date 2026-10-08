@@ -259,7 +259,9 @@ main,
 html:not(.i18n) [data-i18n],
 html:not(.i18n) [data-i18n-html] {
   visibility: hidden;
-}.field input,
+}
+
+.field input,
 .field textarea,
 select {
   width: 100%;
@@ -276,7 +278,9 @@ select {
 select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
-}.lang-pick {
+}
+
+.lang-pick {
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -313,7 +317,9 @@ select:focus-visible {
 .relay-detail {
   color: var(--muted);
   font-size: 0.85em;
-}.device-settings {
+}
+
+.device-settings {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -326,17 +332,27 @@ select:focus-visible {
 }
 
 /* ---- settings page ---- */
+.settings {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
 .settings h1 {
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   letter-spacing: -0.02em;
-  margin: 1.5rem 0 1rem;
-}.app-toggles {
+  margin: 1.5rem 0 0;
+}
+
+.app-toggles {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: 0.4rem;
-}.passphrase {
+}
+
+.passphrase {
   margin-top: 0.9rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--border);
@@ -346,7 +362,9 @@ select:focus-visible {
   margin-top: 0.75rem;
   display: grid;
   gap: 0.6rem;
-}.relay-edit {
+}
+
+.relay-edit {
   margin-top: 0.75rem;
 }
 
@@ -385,8 +403,6 @@ select:focus-visible {
 .foot-links a {
   color: var(--muted);
 }
-
-
 
 /* the shared top bar lines up with the page content */
 .wjs-top {

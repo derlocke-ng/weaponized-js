@@ -12,7 +12,7 @@ Peer-to-peer webtools over [nostr](https://nostr.com). Every tool runs entirely 
 | [EnigmaJS](apps/enigmajs) · [open](https://derlocke-ng.github.io/weaponized-js/enigmajs/) | Encrypted, ephemeral group chat rooms | gun, SEA, Vue + Vite |
 | [DevBoard](apps/devboard) · [open](https://derlocke-ng.github.io/weaponized-js/devboard/) | Freelancer noticeboard with signed posts and votes | gun, SEA, single HTML file |
 
-Coming: **Uplink** (chat between accounts and ephemeral rooms) and **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds). EnigmaJS and DevBoard are legacy and will go once Uplink exists.
+Coming: **Uplink** (chat between accounts and ephemeral rooms), **Outpost** (grow reports with an Instagram-style feed, and a marketplace for seeds), and **DevBoard on nostr** with the suite's account, block list and proof-of-work anti-spam. EnigmaJS is legacy and goes once Uplink exists.
 
 **One account, one settings page.** Sign in or create an account on the landing page (username + password, or a nostr key) and every tool uses it; boards made on a device before signing in are carried over. Without an account each device simply uses its own key. The site's settings page holds everything that is not specific to one tool: account and key export, relays with live status, backup and restore of everything your devices know, language and appearance (which follow your account), hidden apps, and wiping the device. Each tool keeps only its own settings.
 

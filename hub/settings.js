@@ -15,6 +15,7 @@ import { store } from './shared/util.js';
 import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, APPS, $, $$, h, icon, toast } from './shell.js';
 import { mountAccount, onAccountChange } from './account.js';
 import { mountTopbar } from './shared/topbar.js';
+import { statusPill, mountStatus } from './shared/status.js';
 
 const LAST_BACKUP = 'wjs.lastBackup';
 const infos = new Map();
@@ -140,14 +141,16 @@ function wipeDevice() {
 
 async function boot() {
   await bootShell();
-  const drawTop = () =>
+  const drawTop = () => {
     mountTopbar($('#top'), {
       base: './',
       current: 'settings',
       hidden: hiddenApps,
       brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
-      right: `<a class="wjs-pill" href="./">${icon('chevron-left')}<span>${h(t('settings.back'))}</span></a>`,
+      right: `${statusPill({ href: '#relays' })}<a class="wjs-pill" href="./">${icon('chevron-left')}<span>${h(t('settings.back'))}</span></a>`,
     });
+    mountStatus($('#sync'), net);
+  };
   drawTop();
   const redrawAccount = mountAccount($('#accountBody'), { full: true });
   await startBlocks();

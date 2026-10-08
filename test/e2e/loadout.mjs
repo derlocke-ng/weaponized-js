@@ -345,12 +345,12 @@ await run('loadout', async (env) => {
   step('a dead relay in the list does not make changes look unsynced');
   const K = await device(env, 'K', (relays) => localStorage.setItem('wjs.relays', JSON.stringify(relays)), [env.nostrUrl, 'ws://127.0.0.1:9/']);
   await open(K);
-  await until(async () => (await K.textContent('#sync .sync-text')) === '1/2', 'one of two relays connected', 15000);
+  await until(async () => (await K.textContent('#sync .wjs-status-text')) === '1/2', 'one of two relays connected', 15000);
   await newBoard(K, 'check', 'Half online');
   await addItems(K, ['bread']);
   await until(async () => (await texts(K, '#active .text')).includes('bread'), 'item added');
   await sleep(1200);
-  assert.equal(await K.textContent('#sync .sync-text'), '1/2', 'nothing counts as unsynced while one relay has it');
+  assert.equal(await K.textContent('#sync .wjs-status-text'), '1/2', 'nothing counts as unsynced while one relay has it');
   await K.goto(SETTINGS);
   await K.waitForSelector('#relayList li');
   await until(async () => (await texts(K, '#relayList li')).some((x) => /waiting/.test(x)), 'the dead relay shows what it is missing');

@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached on install. Requests go to the
 // network first so updates show up right away, and fall back to the cache
 // when offline (e.g. in a supermarket basement). Bump VERSION on release.
-const VERSION = 'loadout-v9';
+const VERSION = 'loadout-v10';
 const SHELL = [
   './',
   'index.html',
@@ -51,6 +51,7 @@ const SHELL = [
   '../shared/ui.css',
   '../shared/ui.js',
   '../shared/appshell.js',
+  '../shared/status.js',
   '../shared/locales/en.json',
   'vendor/marked.esm.js',
   'vendor/purify.es.mjs',

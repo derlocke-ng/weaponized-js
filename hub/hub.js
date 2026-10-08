@@ -5,6 +5,7 @@ import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
 import { mountTopbar } from './shared/topbar.js';
+import { statusPill, mountStatus } from './shared/status.js';
 
 const infos = new Map();
 
@@ -25,11 +26,12 @@ function drawHeader() {
     current: 'hub',
     hidden: hiddenApps,
     brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
-    right: `<a class="wjs-pill ${id.alias ? 'signed' : ''}" href="settings.html#account" id="accountLink" title="${h(id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn'))}">${
+    right: `${statusPill()}<a class="wjs-pill ${id.alias ? 'signed' : ''}" href="settings.html#account" id="accountLink" title="${h(id.alias ? t('app.signedInAs', { alias: id.alias }) : t('hub.signIn'))}">${
       id.alias ? `<span class="wjs-avatar" aria-hidden="true">${h(id.alias[0].toUpperCase())}</span><span class="sr-only">${h(id.alias)}</span>` : `${icon('user')}<span id="accountName">${h(t('hub.signIn'))}</span>`
     }</a>`,
   });
   $('#accountCta').hidden = Boolean(id.alias);
+  mountStatus($('#sync'), net);
 }
 
 function drawApps() {

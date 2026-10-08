@@ -1,4 +1,4 @@
-import { initNet, onStatus, onSyncError, pool, sync } from './net.js';
+import { initNet, onSyncError, pool, sync } from './net.js';
 import { loadIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
 import { Settings } from './settings.js';
@@ -10,6 +10,7 @@ import { h } from './util.js';
 import { app } from './app.js';
 import { setLanguage, shouldAskLanguage, currentLanguage, LANGUAGES, t } from '../../shared/i18n.js';
 import { initAppShell } from '../../shared/appshell.js';
+import { statusPill, mountStatus } from '../../shared/status.js';
 import { db } from './net.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
@@ -69,17 +70,7 @@ function renderShell() {
     shell?.suite.set({ lang }).catch(() => {});
     rerender();
   });
-  offStatus = onStatus(({ relays, connected, pending }) => {
-    const el = $('#sync');
-    if (!el) return;
-    el.dataset.state = connected ? 'on' : 'off';
-    el.querySelector('.sync-text').textContent = connected
-      ? `${connected}/${relays}${pending ? ` · ${t('sync.toSync', { n: pending })}` : ''}`
-      : pending
-        ? `${t('sync.offline')} · ${t('sync.toSync', { n: pending })}`
-        : t('sync.offline');
-    el.title = connected ? t('sync.titleOn', { connected, relays }) : t('sync.titleOff');
-  });
+  offStatus = mountStatus($('#sync'), { pool, sync });
 }
 
 function updateAccountBadge() {
@@ -115,8 +106,7 @@ async function boot() {
       label: t('app.home'),
       mark: '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>',
     },
-    right: () => `<a class="sync" id="sync" href="../settings.html#relays" title="${h(t('app.relayStatus'))}"><span class="dot"></span><span class="sync-text">…</span></a>
-      <a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
+    right: () => `${statusPill({ href: '../settings.html#relays' })}<a class="icon-btn" href="#/account" id="accountLink" aria-label="${h(t('app.account'))}">${icon('user')}</a>`,
   });
   shell.onLanguage(rerender);
   await Promise.all([app.wallet.start(), app.settings.start()]);

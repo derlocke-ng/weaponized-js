@@ -613,6 +613,40 @@ select:focus {
   }
 }
 
+/* ---------- connection pill ---------- */
+
+.wjs-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted) !important;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wjs-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  flex: none;
+}
+
+.wjs-status[data-state='on'] .wjs-status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgb(34 197 94 / 0.18);
+}
+
+.wjs-status[data-state='off'] .wjs-status-dot {
+  background: #f59e0b;
+}
+
 /* ---------- layout helpers ---------- */
 
 .page-head {
