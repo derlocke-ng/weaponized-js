@@ -29,6 +29,12 @@
   "relay.connected": "connecté",
   "relay.notConnected": "non connecté",
   "relay.latency": "{n} ms",
+  "relay.waiting": {
+    "one": "{n} en attente",
+    "many": "{n} en attente",
+    "other": "{n} en attente"
+  },
+  "relay.rejected": "dernière réponse : {error} {when}",
   "sync.offline": "hors ligne",
   "sync.toSync": {
     "one": "{n} à synchroniser",
@@ -37,6 +43,7 @@
   },
   "sync.titleOn": "Connecté à {connected} relais sur {relays}",
   "sync.titleOff": "Aucun relais connecté — les modifications sont conservées sur cet appareil et envoyées plus tard",
+  "sync.rejected": "Les relais ont refusé cette modification : {reason}",
   "account.progress.derive": "Dérivation des clés…",
   "account.progress.check": "Vérification des relais…",
   "account.progress.publish": "Publication…",
@@ -94,5 +101,8 @@
   "account.export.downloadLabel": "Ou téléchargez-la chiffrée avec un mot de passe",
   "account.export.placeholder": "au moins 10 caractères",
   "account.export.download": "Télécharger en ncryptsec",
-  "account.export.min10": "Utilisez au moins 10 caractères."
+  "account.export.min10": "Utilisez au moins 10 caractères.",
+  "account.syncNow": "Synchroniser maintenant",
+  "account.synced": "Tout ce que contient cet appareil a été envoyé aux relais connectés",
+  "account.diagnostics": "Copier le diagnostic"
 }

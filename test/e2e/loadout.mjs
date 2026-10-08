@@ -325,6 +325,21 @@ await run('loadout', async (env) => {
   await G3.click('[data-act=show-starters]');
   await until(async () => (await G2.$('.starters-row')) !== null, 'G2 sees them again', 15000);
 
+  step('a dead relay in the list does not make changes look unsynced');
+  const K = await device(env, 'K', (relays) => localStorage.setItem('wjs.relays', JSON.stringify(relays)), [env.nostrUrl, 'ws://127.0.0.1:9/']);
+  await open(K);
+  await until(async () => (await K.textContent('#sync .sync-text')) === '1/2', 'one of two relays connected', 15000);
+  await newBoard(K, 'check', 'Half online');
+  await addItems(K, ['bread']);
+  await until(async () => (await texts(K, '#active .text')).includes('bread'), 'item added');
+  await sleep(1200);
+  assert.equal(await K.textContent('#sync .sync-text'), '1/2', 'nothing counts as unsynced while one relay has it');
+  await K.goto(`${APP}#/account`);
+  await until(async () => (await texts(K, '#relayList li')).some((x) => /waiting/.test(x)), 'the dead relay shows what it is missing');
+  await K.click('[data-act=sync-now]');
+  await K.waitForSelector('.toast-success', { timeout: 20000 });
+  await K.ctx.close();
+
   step('a German browser is asked in German and gets a German app; English stays English');
   const DE = await dev('DE', { locale: 'de-DE' });
   await open(DE);

@@ -29,6 +29,11 @@
   "relay.connected": "connected",
   "relay.notConnected": "not connected",
   "relay.latency": "{n} ms",
+  "relay.waiting": {
+    "one": "{n} waiting",
+    "other": "{n} waiting"
+  },
+  "relay.rejected": "last answer: {error} {when}",
   "sync.offline": "offline",
   "sync.toSync": {
     "one": "{n} to sync",
@@ -36,6 +41,7 @@
   },
   "sync.titleOn": "Connected to {connected} of {relays} relays",
   "sync.titleOff": "No relay connected — changes are kept on this device and sent later",
+  "sync.rejected": "The relays refused this change: {reason}",
   "account.progress.derive": "Deriving keys…",
   "account.progress.check": "Checking relays…",
   "account.progress.publish": "Publishing…",
@@ -93,5 +99,8 @@
   "account.export.downloadLabel": "Or download it encrypted with a password",
   "account.export.placeholder": "at least 10 characters",
   "account.export.download": "Download ncryptsec",
-  "account.export.min10": "Use at least 10 characters."
+  "account.export.min10": "Use at least 10 characters.",
+  "account.syncNow": "Sync now",
+  "account.synced": "Everything this device has was sent to the connected relays",
+  "account.diagnostics": "Copy diagnostics"
 }

@@ -2,11 +2,11 @@ import { app } from '../app.js';
 import { signIn, createAccount, identityFromKey, fingerprint, checkPassword, npub, nsec, exportEncrypted } from '../identity.js';
 import { switchIdentity, buildBackup, wipeDevice } from '../session.js';
 import { encryptBackup, decryptBackup } from '../backup.js';
-import { relays, saveRelays, onStatus, peers, relayInfo, normalizeRelayUrl } from '../net.js';
+import { relays, saveRelays, onStatus, peers, relayInfo, normalizeRelayUrl, outbox, syncNow, db } from '../net.js';
 import { DEFAULT_RELAYS } from '../config.js';
 import { isHex64 } from '../../../shared/events.js';
 import { pubkeyOf } from '../../../shared/account.js';
-import { t, tErr, has, fmtDateTime, LANGUAGES, currentLanguage, setLanguage } from '../../../shared/i18n.js';
+import { t, tErr, has, fmtDateTime, relTime, LANGUAGES, currentLanguage, setLanguage } from '../../../shared/i18n.js';
 import { $, $$, icon, toast, modal, confirmDialog, download, copyText } from '../ui.js';
 import { h, store } from '../util.js';
 import { STARTER_KEYS, starters } from './home.js';
@@ -63,6 +63,10 @@ export function renderAccount(view) {
         <h2>${icon('cloud')}${h(t('account.relays'))}</h2>
         <p>${h(t('account.relaysText'))}</p>
         <ul class="relays" id="relayList"></ul>
+        <div class="form-actions">
+          <button type="button" class="btn btn-sm" data-act="sync-now">${icon('refresh-cw')}<span>${h(t('account.syncNow'))}</span></button>
+          <button type="button" class="btn btn-sm btn-ghost" data-act="diagnostics">${icon('copy')}<span>${h(t('account.diagnostics'))}</span></button>
+        </div>
         <details class="relay-edit">
           <summary>${h(t('account.editRelays'))}</summary>
           <form class="form" id="relayForm">
@@ -126,19 +130,47 @@ export function renderAccount(view) {
 
   // ---- relays ----
   const infos = new Map();
+  let waiting = {};
   const offStatus = onStatus(() => drawRelays());
-  function drawRelays() {
+  async function drawRelays() {
     const list = $('#relayList', view);
     if (!list) return;
+    waiting = (await outbox()).waiting;
     const all = peers();
     list.innerHTML = relays()
       .map((url) => {
         const r = all.find((x) => x.url === url);
         const info = infos.get(url);
         const detail = [r?.open ? (r.latency != null ? t('relay.latency', { n: r.latency }) : t('relay.connected')) : t('relay.notConnected'), info?.countries?.join(', '), info?.name].filter(Boolean).join(' · ');
-        return `<li><span class="dot ${r?.open ? 'on' : ''}"></span><span class="relay-url">${h(url.replace(/^wss?:\/\//, ''))}</span><span class="muted small">${h(detail)}</span></li>`;
+        const problems = [waiting[url] ? t('relay.waiting', { n: waiting[url] }) : '', r?.publishError ? t('relay.rejected', { error: r.publishError, when: relTime(r.publishErrorAt) }) : ''].filter(Boolean).join(' · ');
+        return `<li><span class="dot ${r?.open ? 'on' : ''}"></span><span class="relay-url">${h(url.replace(/^wss?:\/\//, ''))}</span><span class="muted small">${h(detail)}</span>${problems ? `<span class="relay-problem small">${h(problems)}</span>` : ''}</li>`;
       })
       .join('');
+  }
+
+  /** A plain-text summary of what this device knows, for bug reports. */
+  async function diagnostics() {
+    const all = peers();
+    const box = await outbox();
+    const mine = await db.byAuthor(pk);
+    const kinds = {};
+    for (const ev of mine) kinds[ev.kind] = (kinds[ev.kind] || 0) + 1;
+    return JSON.stringify(
+      {
+        app: 'loadout',
+        at: new Date().toISOString(),
+        lang: currentLanguage(),
+        account: Boolean(alias),
+        pubkey: pk,
+        boards: app.wallet.list().length,
+        ownEventsByKind: kinds,
+        outbox: box,
+        relays: all.map((r) => ({ url: r.url, open: r.open, latency: r.latency, lastOk: r.lastOkAt ? new Date(r.lastOkAt).toISOString() : null, publishError: r.publishError, connectError: r.error || null, info: infos.get(r.url)?.name || null })),
+        userAgent: navigator.userAgent,
+      },
+      null,
+      2,
+    );
   }
   for (const url of relays()) {
     relayInfo(url).then((info) => {
@@ -165,6 +197,20 @@ export function renderAccount(view) {
     }
     if (act === 'export-key') exportDialog();
     if (act === 'backup') backupDialog();
+    if (act === 'sync-now') {
+      const btn = e.target.closest('[data-act]');
+      btn.disabled = true;
+      try {
+        await syncNow();
+        toast(t('account.synced'), 'success');
+      } catch (err) {
+        toast(tErr(err), 'error');
+      } finally {
+        btn.disabled = false;
+        drawRelays();
+      }
+    }
+    if (act === 'diagnostics') copyText(await diagnostics(), t('account.diagnostics'));
     if (act === 'relay-reset') {
       saveRelays(DEFAULT_RELAYS);
       location.reload();

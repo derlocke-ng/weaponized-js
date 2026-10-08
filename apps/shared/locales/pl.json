@@ -29,6 +29,13 @@
   "relay.connected": "połączono",
   "relay.notConnected": "brak połączenia",
   "relay.latency": "{n} ms",
+  "relay.waiting": {
+    "one": "{n} czeka",
+    "few": "{n} czekają",
+    "many": "{n} czeka",
+    "other": "{n} czeka"
+  },
+  "relay.rejected": "ostatnia odpowiedź: {error} {when}",
   "sync.offline": "offline",
   "sync.toSync": {
     "one": "{n} do synchronizacji",
@@ -38,6 +45,7 @@
   },
   "sync.titleOn": "Połączone przekaźniki: {connected} z {relays}",
   "sync.titleOff": "Brak połączenia z przekaźnikami – zmiany czekają na tym urządzeniu i zostaną wysłane później",
+  "sync.rejected": "Przekaźniki odrzuciły tę zmianę: {reason}",
   "account.progress.derive": "Wyprowadzanie kluczy…",
   "account.progress.check": "Sprawdzanie przekaźników…",
   "account.progress.publish": "Publikowanie…",
@@ -95,5 +103,8 @@
   "account.export.downloadLabel": "Albo pobierz go zaszyfrowanego hasłem",
   "account.export.placeholder": "co najmniej 10 znaków",
   "account.export.download": "Pobierz ncryptsec",
-  "account.export.min10": "Użyj co najmniej 10 znaków."
+  "account.export.min10": "Użyj co najmniej 10 znaków.",
+  "account.syncNow": "Synchronizuj teraz",
+  "account.synced": "Wszystko z tego urządzenia wysłano do połączonych przekaźników",
+  "account.diagnostics": "Kopiuj diagnostykę"
 }

@@ -1766,3 +1766,8 @@ textarea:focus {
   font-family: var(--mono);
   font-size: 0.85rem;
 }
+
+.relay-problem {
+  flex-basis: 100%;
+  color: #b45309;
+}

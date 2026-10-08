@@ -1,11 +1,11 @@
-import { initNet, onStatus, pool, sync } from './net.js';
+import { initNet, onStatus, onSyncError, pool, sync } from './net.js';
 import { loadIdentity } from './identity.js';
 import { Wallet } from './wallet.js';
 import { Settings } from './settings.js';
 import { carryOver } from './session.js';
 import { watchAll } from './heal.js';
 import { parseRoute } from './links.js';
-import { $, icon, closeMenus } from './ui.js';
+import { $, icon, closeMenus, toast } from './ui.js';
 import { h } from './util.js';
 import { app } from './app.js';
 import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, LANGUAGES, t } from '../../shared/i18n.js';
@@ -119,6 +119,7 @@ async function boot() {
   rewatch();
   app.wallet.onChange(rewatch);
   for (const r of pool.status().relays) if (r.open) sync.healRelay(r.url).catch(() => {});
+  onSyncError(({ reason }) => toast(t('sync.rejected', { reason }), 'error', 8000));
   updateAccountBadge();
   window.addEventListener('hashchange', render);
   render();

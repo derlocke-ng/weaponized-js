@@ -29,6 +29,12 @@
   "relay.connected": "ligado",
   "relay.notConnected": "sem ligação",
   "relay.latency": "{n} ms",
+  "relay.waiting": {
+    "one": "{n} à espera",
+    "many": "{n} à espera",
+    "other": "{n} à espera"
+  },
+  "relay.rejected": "última resposta: {error} {when}",
   "sync.offline": "offline",
   "sync.toSync": {
     "one": "{n} por sincronizar",
@@ -37,6 +43,7 @@
   },
   "sync.titleOn": "Ligado a {connected} de {relays} relays",
   "sync.titleOff": "Nenhum relay ligado — as alterações ficam neste dispositivo e são enviadas mais tarde",
+  "sync.rejected": "Os relays recusaram esta alteração: {reason}",
   "account.progress.derive": "A derivar chaves…",
   "account.progress.check": "A verificar relays…",
   "account.progress.publish": "A publicar…",
@@ -94,5 +101,8 @@
   "account.export.downloadLabel": "Ou descarrega-a encriptada com uma palavra-passe",
   "account.export.placeholder": "pelo menos 10 caracteres",
   "account.export.download": "Descarregar ncryptsec",
-  "account.export.min10": "Usa pelo menos 10 caracteres."
+  "account.export.min10": "Usa pelo menos 10 caracteres.",
+  "account.syncNow": "Sincronizar agora",
+  "account.synced": "Tudo o que está neste dispositivo foi enviado aos relays ligados",
+  "account.diagnostics": "Copiar diagnóstico"
 }

@@ -109,16 +109,19 @@ export class LocalStore {
     if (!urls.length) return;
     const os = this.tx('outbox', 'readwrite');
     const cur = await req(os.get(id));
-    const pending = [...new Set([...(cur?.pending || []), ...urls])];
-    await req(os.put({ id, pending, since: cur?.since || Date.now() }));
+    const acked = cur?.acked || [];
+    const pending = [...new Set([...(cur?.pending || []), ...urls])].filter((u) => !acked.includes(u));
+    await req(os.put({ id, pending, acked, since: cur?.since || Date.now() }));
   }
 
-  async ack(id, url) {
+  /** A relay accepted the event (or refused it for good): it no longer waits for that relay. */
+  async ack(id, url, { accepted = true } = {}) {
     const os = this.tx('outbox', 'readwrite');
     const cur = await req(os.get(id));
     if (!cur) return;
     const pending = cur.pending.filter((u) => u !== url);
-    if (pending.length) await req(os.put({ ...cur, pending }));
+    const acked = accepted && !(cur.acked || []).includes(url) ? [...(cur.acked || []), url] : cur.acked || [];
+    if (pending.length) await req(os.put({ ...cur, pending, acked }));
     else await req(os.delete(id));
   }
 
@@ -126,8 +129,17 @@ export class LocalStore {
     return (await req(this.tx('outbox').getAll())).filter((o) => o.pending.includes(url)).map((o) => o.id);
   }
 
+  /** Events no relay has accepted yet: what "to sync" means to a person. */
   async pendingCount() {
-    return req(this.tx('outbox').count());
+    return (await req(this.tx('outbox').getAll())).filter((o) => !(o.acked || []).length).length;
+  }
+
+  /** { unsynced, waiting: { url: count } } for the settings screen. */
+  async outboxSummary() {
+    const all = await req(this.tx('outbox').getAll());
+    const waiting = {};
+    for (const o of all) for (const u of o.pending) waiting[u] = (waiting[u] || 0) + 1;
+    return { unsynced: all.filter((o) => !(o.acked || []).length).length, total: all.length, waiting };
   }
 
   async clearOutbox() {

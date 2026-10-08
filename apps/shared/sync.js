@@ -11,6 +11,9 @@
 
 import { isPermanent } from './relays.js';
 
+const FLUSH_EVERY = 15_000;
+const HEAL_PACE = 60; // ms between re-published events, so relays don't rate-limit us
+
 export class Sync {
   constructor(pool, store) {
     this.pool = pool;
@@ -18,10 +21,15 @@ export class Sync {
     this.healed = new Map(); // `${url}|${pubkey}` -> time
     this.authors = new Set(); // whose events to heal
     this.listeners = new Set();
+    this.errorListeners = new Set();
+    this.backoff = new Map(); // url -> time before which we don't retry the outbox
+    this.flushing = new Set();
     pool.onConnect((url) => {
       this.flush(url).catch((err) => console.warn('outbox:', err));
       this.healRelay(url).catch((err) => console.warn('heal:', err));
     });
+    // Relays that said "rate-limited" or timed out get the outbox again later, not only on reconnect.
+    this.timer = setInterval(() => this.flushAll().catch(() => {}), FLUSH_EVERY);
   }
 
   /**
@@ -41,10 +49,20 @@ export class Sync {
     const all = this.pool.publish(event, {
       onResult: (url, r) => {
         if (r.ok) first({ ok: [url], failed: [] });
-        if (r.ok || r.permanent) this.store.ack(event.id, url).then(() => this.emit());
+        if (r.ok || r.permanent) this.store.ack(event.id, url, { accepted: r.ok }).then(() => this.emit());
+        else if (r.error !== 'offline') this.backoff.set(url, Date.now() + (/^rate-limited/.test(r.error) ? 20_000 : 10_000));
       },
     });
-    all.catch(() => {});
+    all
+      .then((res) => {
+        // Every connected relay said no for good: the change stays on this device, and the person should know.
+        const answered = res.failed.filter((f) => f.error !== 'offline');
+        const rejected = answered.filter((f) => f.permanent);
+        if (!res.ok.length && rejected.length && rejected.length === answered.length) {
+          for (const fn of this.errorListeners) fn({ event, reason: rejected[0].error, relays: rejected.map((f) => f.url) });
+        }
+      })
+      .catch(() => {});
     if (wait === 'all') return all;
     if (wait === 'one') {
       const result = await Promise.race([gotOne, all]);
@@ -56,22 +74,52 @@ export class Sync {
 
   /** Send everything this relay still misses from the outbox. */
   async flush(url) {
-    const ids = await this.store.pendingFor(url);
-    for (const id of ids) {
-      const event = await this.store.get(id);
-      if (!event) {
-        await this.store.ack(id, url);
-        continue;
+    if (this.flushing.has(url)) return;
+    this.flushing.add(url);
+    try {
+      const ids = await this.store.pendingFor(url);
+      for (const id of ids) {
+        const event = await this.store.get(id);
+        if (!event) {
+          await this.store.ack(id, url, { accepted: false });
+          continue;
+        }
+        try {
+          await this.pool.publishTo(url, event);
+          this.pool.notePublish(url, null);
+          await this.store.ack(id, url);
+        } catch (err) {
+          const error = String(err?.message || err);
+          if (isPermanent(error)) {
+            this.pool.notePublish(url, error);
+            await this.store.ack(id, url, { accepted: false });
+          } else {
+            if (error !== 'offline') this.pool.notePublish(url, error);
+            this.backoff.set(url, Date.now() + (/^rate-limited/.test(error) ? 20_000 : 10_000));
+            break; // relay is away or busy; keep the rest for next time
+          }
+        }
       }
-      try {
-        await this.pool.publishTo(url, event);
-        await this.store.ack(id, url);
-      } catch (err) {
-        if (isPermanent(err?.message || err)) await this.store.ack(id, url);
-        else break; // relay went away again; keep the rest for next time
-      }
+    } finally {
+      this.flushing.delete(url);
     }
     this.emit();
+  }
+
+  /** Flush the outbox to every connected relay that isn't backing off. */
+  async flushAll({ force = false } = {}) {
+    for (const url of this.pool.urls) {
+      if (!this.pool.relays.get(url)?.open) continue;
+      if (!force && (this.backoff.get(url) || 0) > Date.now()) continue;
+      if (!force && !(await this.store.pendingFor(url)).length) continue;
+      await this.flush(url);
+    }
+  }
+
+  /** Re-publish everything to every connected relay now (the "Sync now" button). */
+  async healAll() {
+    await this.flushAll({ force: true });
+    for (const url of this.pool.urls) if (this.pool.relays.get(url)?.open) await this.healRelay(url, { force: true });
   }
 
   /** Keep re-publishing these authors' events to relays that (re)connect. */
@@ -94,8 +142,13 @@ export class Sync {
         try {
           await this.pool.publishTo(url, event);
           sent++;
+          await new Promise((r) => setTimeout(r, HEAL_PACE));
         } catch (err) {
-          if (/offline|timed out/.test(String(err?.message || err))) return sent; // relay gone; try next time
+          const error = String(err?.message || err);
+          if (/offline|timed out|^rate-limited/.test(error)) {
+            this.healed.delete(key); // relay gone or busy; try again on the next occasion
+            return sent;
+          }
         }
       }
     }
@@ -121,6 +174,16 @@ export class Sync {
   onChange(fn) {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** fn({ event, reason, relays }) when every connected relay refused an event for good. */
+  onError(fn) {
+    this.errorListeners.add(fn);
+    return () => this.errorListeners.delete(fn);
+  }
+
+  close() {
+    clearInterval(this.timer);
   }
 
   emit() {

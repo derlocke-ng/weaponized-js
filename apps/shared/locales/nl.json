@@ -29,6 +29,11 @@
   "relay.connected": "verbonden",
   "relay.notConnected": "niet verbonden",
   "relay.latency": "{n} ms",
+  "relay.waiting": {
+    "one": "{n} wacht",
+    "other": "{n} wachten"
+  },
+  "relay.rejected": "laatste antwoord: {error} {when}",
   "sync.offline": "offline",
   "sync.toSync": {
     "one": "{n} te syncen",
@@ -36,6 +41,7 @@
   },
   "sync.titleOn": "Verbonden met {connected} van {relays} relays",
   "sync.titleOff": "Geen relay verbonden — wijzigingen blijven op dit apparaat en worden later verzonden",
+  "sync.rejected": "De relays hebben deze wijziging geweigerd: {reason}",
   "account.progress.derive": "Sleutels afleiden…",
   "account.progress.check": "Relays controleren…",
   "account.progress.publish": "Publiceren…",
@@ -93,5 +99,8 @@
   "account.export.downloadLabel": "Of download hem versleuteld met een wachtwoord",
   "account.export.placeholder": "minstens 10 tekens",
   "account.export.download": "ncryptsec downloaden",
-  "account.export.min10": "Gebruik minstens 10 tekens."
+  "account.export.min10": "Gebruik minstens 10 tekens.",
+  "account.syncNow": "Nu synchroniseren",
+  "account.synced": "Alles op dit apparaat is naar de verbonden relays gestuurd",
+  "account.diagnostics": "Diagnose kopiëren"
 }

@@ -175,7 +175,7 @@ function renderRelays() {
       const r = status.find((x) => x.url === url);
       const info = infos.get(url);
       const state = r?.open ? (r.latency != null ? t('relay.latency', { n: r.latency }) : t('relay.connected')) : t('relay.notConnected');
-      const detail = [info?.countries?.join(', '), info?.name].filter(Boolean).join(' · ');
+      const detail = [info?.countries?.join(', '), info?.name, r?.publishError ? t('relay.rejected', { error: r.publishError, when: '' }).trim() : ''].filter(Boolean).join(' · ');
       return `<li class="${r?.open ? 'up' : 'down'}"><span class="dot"></span><span class="relay-name">${h(url.replace(/^wss?:\/\//, ''))}${detail ? ` <span class="relay-detail">${h(detail)}</span>` : ''}</span><span class="relay-state">${h(state)}</span></li>`;
     })
     .join('');

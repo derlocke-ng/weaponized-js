@@ -64,7 +64,7 @@ export class RelayPool {
     if (this.relays.has(url)) return;
     const relay = new Relay(url, { enablePing: true, enableReconnect: true });
     relay.onnotice = (msg) => console.info(`${url}: ${msg}`);
-    const entry = { relay, open: false, latency: null, connecting: false, lastError: null };
+    const entry = { relay, open: false, latency: null, connecting: false, lastError: null, publishError: null, publishErrorAt: 0, lastOkAt: 0 };
     this.relays.set(url, entry);
     for (const sub of this.subs) this.attach(sub, entry);
     this.connect(entry);
@@ -111,14 +111,17 @@ export class RelayPool {
       if (open !== entry.open) {
         entry.open = open;
         changed = true;
-        if (open) for (const fn of this.connectListeners) fn(url);
+        if (open) {
+          for (const sub of this.subs) this.attach(sub, entry); // subscriptions the relay missed while it was down
+          for (const fn of this.connectListeners) fn(url);
+        }
       }
     }
     if (changed) this.emitStatus();
   }
 
   status() {
-    const list = [...this.relays].map(([url, e]) => ({ url, open: e.open, latency: e.latency, error: e.lastError }));
+    const list = [...this.relays].map(([url, e]) => ({ url, open: e.open, latency: e.latency, error: e.lastError, publishError: e.publishError, publishErrorAt: e.publishErrorAt, lastOkAt: e.lastOkAt }));
     return { relays: list, total: list.length, connected: list.filter((r) => r.open).length };
   }
 
@@ -161,17 +164,23 @@ export class RelayPool {
   }
 
   attach(sub, entry) {
-    if (sub.closed || sub.handles.has(entry.relay.url)) return;
-    const handle = entry.relay.subscribe(sub.filters, {
-      onevent: (event) => {
-        if (sub.seen.has(event.id)) return;
-        sub.seen.add(event.id);
-        if (sub.seen.size > SEEN_MAX) sub.seen.delete(sub.seen.values().next().value);
-        sub.onevent?.(event);
-      },
-      oneose: () => sub.oneose?.(entry.relay.url),
-      onclose: () => sub.handles.delete(entry.relay.url),
-    });
+    // Only live connections take a REQ; tick() attaches the rest as relays come up.
+    if (sub.closed || sub.handles.has(entry.relay.url) || !entry.relay.connected) return;
+    let handle;
+    try {
+      handle = entry.relay.subscribe(sub.filters, {
+        onevent: (event) => {
+          if (sub.seen.has(event.id)) return;
+          sub.seen.add(event.id);
+          if (sub.seen.size > SEEN_MAX) sub.seen.delete(sub.seen.values().next().value);
+          sub.onevent?.(event);
+        },
+        oneose: () => sub.oneose?.(entry.relay.url),
+        onclose: () => sub.handles.delete(entry.relay.url),
+      });
+    } catch {
+      return; // the connection dropped between the check and the send; tick() tries again when it is back
+    }
     sub.handles.set(entry.relay.url, handle);
   }
 
@@ -199,6 +208,20 @@ export class RelayPool {
     return [...events.values()];
   }
 
+  /** Remember the last answer a relay gave to a publish, for the settings screen. */
+  notePublish(url, error) {
+    const entry = this.relays.get(url);
+    if (!entry) return;
+    if (error) {
+      entry.publishError = error;
+      entry.publishErrorAt = Date.now();
+    } else {
+      entry.publishError = null;
+      entry.lastOkAt = Date.now();
+    }
+    this.emitStatus();
+  }
+
   /** Publish to one relay. Resolves on OK; rejects with the relay's reason or a network error. */
   publishTo(url, event) {
     const entry = this.relays.get(url);
@@ -221,6 +244,7 @@ export class RelayPool {
         this.publishTo(url, event).then(
           () => {
             ok.push(url);
+            this.notePublish(url, null);
             onResult?.(url, { ok: true });
           },
           (reason) => {
@@ -228,6 +252,7 @@ export class RelayPool {
             // "blocked:" / "invalid:" / "restricted:" are the relay's final answer; everything else is worth retrying.
             const permanent = isPermanent(error);
             failed.push({ url, error, permanent });
+            if (error !== 'offline') this.notePublish(url, error);
             onResult?.(url, { ok: false, error, permanent });
           },
         ),
