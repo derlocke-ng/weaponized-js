@@ -3,7 +3,7 @@
 // same-site responses are cached as they are fetched. Network first, so an
 // update shows up on the next load. Loadout has its own worker with a narrower
 // scope, which takes precedence for its pages. Bump VERSION on release.
-const VERSION = 'wjs-v11';
+const VERSION = 'wjs-v12';
 const SHELL = [
   './',
   'index.html',

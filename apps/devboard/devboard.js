@@ -19,8 +19,8 @@ import { store, randomId } from '../shared/util.js';
 
 // ---- rules ----
 const LIMITS = { title: 80, text: 300, tags: 10, tag: 24, rate: 60, contact: 200, perKey: 3, maxDays: 31 };
-const POW_POST = Number(store.get('devboard.pow')) || 18; // leading zero bits a note needs (~0.3 s on a laptop with the shared miner)
-const POW_VOTE = Math.min(10, POW_POST);
+const POW_POST = Number(store.get('devboard.pow')) || 16; // leading zero bits a note needs: a moment on a phone, hours for a flood
+const POW_VOTE = Math.min(8, POW_POST);
 const COLLAPSE_SCORE = -5;
 const COLLAPSE_REPORTS = 3;
 const VOTE_WINDOW = 30_000;
@@ -287,14 +287,14 @@ function card(p) {
 
 // ---- events out ----
 
-/** Mine in the shared workers (every core but one, or the device setting); onProgress gets seconds elapsed. */
-const mine = (template, bits, onProgress) => minePow(template, bits, { onProgress: ({ ms }) => onProgress?.(Math.round(ms / 1000)) });
+/** Mine in the shared workers (every core but one, or the device setting); onProgress gets seconds elapsed, signal cancels. */
+const mine = (template, bits, onProgress, signal = null) => minePow(template, bits, { signal, onProgress: ({ ms }) => onProgress?.(Math.round(ms / 1000)) });
 
-async function publishPost(data, { d = randomId(), days = 7, onProgress } = {}) {
+async function publishPost(data, { d = randomId(), days = 7, onProgress, signal = null } = {}) {
   if (!net.pool.online) throw new Error(t('db.compose.needRelay'));
   const created = stamp(`${KINDS.DEVBOARD_POST}:${identity.pk}:${d}`); // strictly increasing per note: an edit in the same second still wins
   const template = { kind: KINDS.DEVBOARD_POST, pubkey: identity.pk, created_at: created, tags: [['d', d], ['expiration', String(created + days * 86_400)], ...data.tags.map((x) => ['t', x.toLowerCase()])], content: JSON.stringify(data) };
-  const mined = await mine(template, POW_POST, onProgress);
+  const mined = await mine(template, POW_POST, onProgress, signal);
   const event = sign(mined, identity.sk);
   await net.sync.publish(event, { wait: 'one' });
   return event;
@@ -343,6 +343,7 @@ function composeDialog(existing = null) {
   const d = existing?.data || { type: dflt.type, title: '', text: '', tags: [], rate: '', contact: dflt.contact };
   const mineLive = visiblePosts().filter((p) => p.pubkey === identity.pk).length;
   if (!existing && mineLive >= LIMITS.perKey) return toast(t('db.limit'), 'error', 5000);
+  const cancel = new AbortController(); // closing the dialog stops the mining
   const m = modal({
     title: existing ? t('db.compose.editTitle') : t('db.compose.title'),
     wide: true,
@@ -362,8 +363,8 @@ function composeDialog(existing = null) {
         <label class="field">${h(t('db.compose.contact'))}<input name="contact" required maxlength="${LIMITS.contact}" value="${h(d.contact)}" placeholder="${h(t('db.compose.contactPlaceholder'))}"></label>
         <p class="hint">${h(t('db.compose.contactHint'))}</p>
         <p class="hint">${h(t('db.compose.powHint'))}</p>
+        <p class="pow" id="pow" hidden><span class="spinner"></span><span id="powText"></span></p>
         <div class="modal-actions">
-          <span class="pow" id="pow" hidden><span class="spinner"></span><span id="powText"></span></span>
           <button type="button" class="btn" data-close>${h(t('common.cancel'))}</button>
           <button class="btn btn-primary">${h(existing ? t('db.compose.save') : t('db.compose.submit'))}</button>
         </div>
@@ -387,10 +388,11 @@ function composeDialog(existing = null) {
         btn.disabled = true;
         $('#pow', el).hidden = false;
         try {
-          await publishPost(data, { d: existing ? existing.address.split(':')[2] : randomId(), days: Number(f.days.value), onProgress: (s) => ($('#powText', el).textContent = t('db.compose.pow', { s })) });
+          await publishPost(data, { d: existing ? existing.address.split(':')[2] : randomId(), days: Number(f.days.value), signal: cancel.signal, onProgress: (s) => ($('#powText', el).textContent = t('db.compose.pow', { s })) });
           close(true);
           toast(t('db.compose.published'), 'success');
         } catch (err) {
+          if (err?.code === 'pow.cancelled') return;
           btn.disabled = false;
           $('#pow', el).hidden = true;
           toast(tErr(err), 'error', 6000);
@@ -398,6 +400,7 @@ function composeDialog(existing = null) {
       });
     },
   });
+  m.done.then(() => cancel.abort());
   return m.done;
 }
 

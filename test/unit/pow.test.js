@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { minePow, mineNonce, hasPow, powOf } from '../../apps/shared/pow.js';
+import { minePow, mineNonce, mineNonceSubtle, pickMiner, hasPow, powOf } from '../../apps/shared/pow.js';
 import { getEventHash, finalizeEvent, generateSecretKey, getPublicKey } from '../../apps/shared/nostr.mjs';
 
 const sk = generateSecretKey();
@@ -39,4 +39,13 @@ test('workers split the nonce space by stride and events without the work are re
   assert.ok(!hasPow(claimsLess, 6), 'a nonce tag targeting less than the bar does not count');
   assert.ok(hasPow(a.event, 0), 'zero bits always pass');
   assert.throws(() => mineNonce({ ...template, pubkey: undefined }, 4), /pubkey/);
+});
+
+test('the native-hash miner finds the same kind of nonce and the picker answers one of the two', async () => {
+  const { event, tried } = await mineNonceSubtle(template, 10, { start: 3, stride: 5 });
+  assert.equal(event.id, getEventHash(event));
+  assert.ok(hasPow(event, 10));
+  assert.equal((Number(event.tags.at(-1)[1]) - 3) % 5, 0, 'stays on its stride');
+  assert.ok(tried >= 1);
+  assert.ok(['subtle', 'sync'].includes(await pickMiner(template)));
 });

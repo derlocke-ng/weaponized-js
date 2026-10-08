@@ -26,11 +26,11 @@ export function hasPow(event, bits) {
 
 export const hardwareCores = () => (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 4;
 
-/** Workers to mine with: the device setting, else every core but one. */
+/** Workers to mine with: the device setting, else every core but one, but at least four — Tor Browser and locked-down phones report two cores whatever they have, and over-subscribing costs nothing here. */
 export function cores() {
   const chosen = Number(store.get(CORES_KEY));
   if (chosen >= 1) return Math.min(16, Math.floor(chosen));
-  return Math.max(1, Math.min(8, hardwareCores() - 1));
+  return Math.max(4, Math.min(8, hardwareCores() - 1));
 }
 
 function zeroBits(hash) {
@@ -47,11 +47,8 @@ function zeroBits(hash) {
   return bits;
 }
 
-/**
- * Mine on this thread, trying nonces start, start+stride, start+2·stride, …
- * Returns { event, tried }: the event with its nonce tag and id.
- */
-export function mineNonce(template, bits, { start = 0, stride = 1, onCount = null, every = 4096 } = {}) {
+/** Serialise once; `bytes(n)` patches nonce n into the buffer, `finish(n)` builds the event with its id. */
+function prepare(template, bits) {
   if (!template.pubkey || !template.created_at) throw new Error('mining needs pubkey and created_at');
   const base = { ...template, tags: (template.tags || []).filter((x) => x[0] !== 'nonce') };
   let parts;
@@ -68,24 +65,81 @@ export function mineNonce(template, bits, { start = 0, stride = 1, onCount = nul
   const buf = new Uint8Array(head.length + 24 + tail.length);
   buf.set(head, 0);
   let len = 0;
-  let tried = 0;
-  for (let n = start; ; n += stride) {
-    const digits = String(n);
-    if (digits.length !== len) {
-      len = digits.length;
-      buf.set(tail, head.length + len);
-    }
-    for (let i = 0; i < len; i++) buf[head.length + i] = digits.charCodeAt(i);
-    const hash = sha256(buf.subarray(0, head.length + len + tail.length));
-    tried++;
-    if (zeroBits(hash) >= bits) {
-      const event = { ...base, tags: [...base.tags, ['nonce', digits, String(bits)]] };
+  return {
+    bytes(n) {
+      const digits = String(n);
+      if (digits.length !== len) {
+        len = digits.length;
+        buf.set(tail, head.length + len);
+      }
+      for (let i = 0; i < len; i++) buf[head.length + i] = digits.charCodeAt(i);
+      return buf.subarray(0, head.length + len + tail.length);
+    },
+    finish(n) {
+      const event = { ...base, tags: [...base.tags, ['nonce', String(n), String(bits)]] };
       event.id = getEventHash(event);
       if (nip13.getPow(event.id) < bits) throw new Error('mining produced a mismatching id');
-      return { event, tried };
-    }
+      return event;
+    },
+  };
+}
+
+/**
+ * Mine on this thread with the bundled SHA-256, trying nonces start,
+ * start+stride, start+2·stride, … Returns { event, tried }.
+ */
+export function mineNonce(template, bits, { start = 0, stride = 1, onCount = null, every = 4096 } = {}) {
+  const p = prepare(template, bits);
+  let tried = 0;
+  for (let n = start; ; n += stride) {
+    tried++;
+    if (zeroBits(sha256(p.bytes(n))) >= bits) return { event: p.finish(n), tried };
     if (onCount && tried % every === 0) onCount(tried);
   }
+}
+
+/**
+ * The same with the browser's native SHA-256 (WebCrypto), a few digests in
+ * flight. A little slower than the bundled one when the JavaScript JIT is
+ * on; dozens of times faster when it is off (Tor Browser's safer levels,
+ * locked-down phones), where pure JavaScript hashing crawls.
+ */
+export async function mineNonceSubtle(template, bits, { start = 0, stride = 1, onCount = null, inflight = 8 } = {}) {
+  const p = prepare(template, bits);
+  let tried = 0;
+  for (let n = start; ; ) {
+    const batch = [];
+    const nonces = [];
+    for (let k = 0; k < inflight; k++, n += stride) {
+      nonces.push(n);
+      batch.push(crypto.subtle.digest('SHA-256', p.bytes(n))); // digest copies the bytes before returning
+    }
+    const hashes = await Promise.all(batch);
+    tried += inflight;
+    for (let k = 0; k < hashes.length; k++) if (zeroBits(new Uint8Array(hashes[k])) >= bits) return { event: p.finish(nonces[k]), tried };
+    if (onCount) onCount(tried);
+  }
+}
+
+/** Which hasher is faster here, measured for a few milliseconds each: 'subtle' or 'sync'. */
+export async function pickMiner(template, ms = 30) {
+  if (typeof crypto === 'undefined' || !crypto.subtle) return 'sync';
+  const p = prepare(template, 1);
+  let js = 0;
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    sha256(p.bytes(js));
+    js++;
+  }
+  const jsRate = js / Math.max(1, Date.now() - t0);
+  let native = 0;
+  const t1 = Date.now();
+  while (Date.now() - t1 < ms) {
+    await Promise.all(Array.from({ length: 8 }, (_, k) => crypto.subtle.digest('SHA-256', p.bytes(native + k))));
+    native += 8;
+  }
+  const nativeRate = native / Math.max(1, Date.now() - t1);
+  return nativeRate > jsRate ? 'subtle' : 'sync';
 }
 
 /**

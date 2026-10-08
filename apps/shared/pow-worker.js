@@ -1,22 +1,22 @@
 // One mining thread: nonces start, start+stride, … until the id meets the
-// target. Reports how many it tried every few hundred milliseconds.
-import { mineNonce } from './pow.js';
+// target. Picks the faster hasher for this browser first (the bundled
+// SHA-256 with a JIT, the native one without), and reports how many it
+// tried every few hundred milliseconds.
+import { mineNonce, mineNonceSubtle, pickMiner } from './pow.js';
 
-self.onmessage = (e) => {
+self.onmessage = async (e) => {
   const { template, bits, start = 0, stride = 1 } = e.data;
   let last = Date.now();
+  const onCount = (tried) => {
+    const t = Date.now();
+    if (t - last < 400) return;
+    last = t;
+    self.postMessage({ tried });
+  };
   try {
-    const { event } = mineNonce(template, bits, {
-      start,
-      stride,
-      onCount: (tried) => {
-        const t = Date.now();
-        if (t - last < 400) return;
-        last = t;
-        self.postMessage({ tried });
-      },
-    });
-    self.postMessage({ event });
+    const how = await pickMiner(template);
+    const { event } = how === 'subtle' ? await mineNonceSubtle(template, bits, { start, stride, onCount }) : mineNonce(template, bits, { start, stride, onCount });
+    self.postMessage({ event, how });
   } catch (err) {
     self.postMessage({ error: String(err?.message || err) });
   }
