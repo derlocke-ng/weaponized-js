@@ -11,6 +11,7 @@ import { theme } from './shared/theme.js';
 import { store } from './shared/util.js';
 import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, APPS, $, $$, h, toast } from './shell.js';
 import { mountAccount, onAccountChange } from './account.js';
+import { mountSwitcher } from './shared/switcher.js';
 
 const LAST_BACKUP = 'wjs.lastBackup';
 const infos = new Map();
@@ -117,6 +118,7 @@ function wipeDevice() {
 
 async function boot() {
   await bootShell();
+  mountSwitcher($('#switcher'), { base: './', current: 'settings', hidden: hiddenApps });
   const redrawAccount = mountAccount($('#accountBody'), { full: true });
   drawLanguage();
   drawApps();

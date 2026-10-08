@@ -141,5 +141,10 @@
     "one": "{n} item terugzetten…",
     "other": "{n} items terugzetten…"
   },
-  "session.syncing": "Synchroniseren…"
+  "session.syncing": "Synchroniseren…",
+  "switcher.title": "Apps",
+  "switcher.home": "Startpagina",
+  "switcher.open": "App-kiezer openen",
+  "hub.settings": "Instellingen",
+  "hub.legacy": "Oud"
 }

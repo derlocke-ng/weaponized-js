@@ -42,8 +42,9 @@ const ICONS = [
   'notebook-pen', 'package', 'user', 'settings', 'copy', 'qr-code', 'grip-vertical', 'chevron-left',
   'cloud', 'cloud-off', 'download', 'upload', 'key-round', 'eye', 'pencil', 'link', 'sun', 'moon',
   'log-out', 'shield', 'refresh-cw', 'external-link', 'pin', 'pin-off', 'search', 'file-text', 'languages',
+  'layout-grid', 'send', 'gamepad-2', 'message-square-lock', 'sticky-note', 'radio-tower',
 ];
-const HUB_ICONS = ['message-square-lock', 'sticky-note', 'send', 'gamepad-2', 'git-branch', 'arrow-up-right', 'radio-tower', 'user', 'key-round', 'log-out', 'languages', 'shield', 'settings', 'copy', 'list-checks'];
+const HUB_ICONS = ['message-square-lock', 'sticky-note', 'send', 'gamepad-2', 'git-branch', 'arrow-up-right', 'radio-tower', 'user', 'key-round', 'log-out', 'languages', 'shield', 'settings', 'copy', 'list-checks', 'layout-grid', 'x', 'chevron-left'];
 const iconCount = sprite('apps/loadout/icons.svg', ICONS) + sprite('hub/icons.svg', HUB_ICONS);
 
 // The nostr bundle: nostr-tools and its noble/scure dependencies in one ESM file.

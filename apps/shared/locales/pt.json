@@ -144,5 +144,10 @@
     "many": "A restaurar {n} entradas…",
     "other": "A restaurar {n} entradas…"
   },
-  "session.syncing": "A sincronizar…"
+  "session.syncing": "A sincronizar…",
+  "switcher.title": "Apps",
+  "switcher.home": "Página inicial",
+  "switcher.open": "Abrir o seletor de apps",
+  "hub.settings": "Definições",
+  "hub.legacy": "Antigo"
 }

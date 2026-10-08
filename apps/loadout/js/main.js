@@ -11,6 +11,7 @@ import { app } from './app.js';
 import { initI18n, setLanguage, shouldAskLanguage, currentLanguage, savedLanguage, LANGUAGES, t } from '../../shared/i18n.js';
 import { theme, setTheme, watchDeviceSettings } from '../../shared/theme.js';
 import { AccountSettings } from '../../shared/settings.js';
+import { mountSwitcher } from '../../shared/switcher.js';
 import { db } from './net.js';
 import { renderHome } from './views/home.js';
 import { renderBoard } from './views/board.js';
@@ -18,6 +19,7 @@ import { renderAccount } from './views/account.js';
 
 let cleanup = null;
 let offStatus = null;
+let hiddenApps = [];
 
 function render() {
   closeMenus();
@@ -56,6 +58,7 @@ function renderShell() {
   offStatus?.();
   $('#app').innerHTML = `
     <header class="topbar">
+      <button type="button" class="icon-btn" id="switcher">${icon('layout-grid')}</button>
       <a class="brand" href="#/" aria-label="${h(t('app.home'))}">
         <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14"/><path class="tick" d="M19 22l4 4 7-8"/><path d="M36 22h10M19 35h27M19 46h17"/></svg>
         <span>Loadout</span>
@@ -71,6 +74,7 @@ function renderShell() {
     <footer class="foot">
       <a href="../">weaponized.js</a> · ${t('app.footer')}
     </footer>`;
+  mountSwitcher($('#switcher'), { base: '../', current: 'loadout', hidden: () => hiddenApps });
   $('#langOk')?.addEventListener('click', async () => {
     await setLanguage($('#langPick').value);
     rerender();
@@ -120,6 +124,7 @@ async function boot() {
   // The account's language and theme (set on any device) apply here too.
   const suite = await new AccountSettings(app.identity, { pool, db, sync }, 'suite').start();
   const applySuite = async () => {
+    hiddenApps = suite.get('hiddenApps', []) || [];
     const lang = suite.get('lang');
     if (lang && LANGUAGES[lang] && lang !== currentLanguage()) {
       await setLanguage(lang);

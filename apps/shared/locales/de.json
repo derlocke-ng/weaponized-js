@@ -141,5 +141,10 @@
     "one": "{n} Eintrag wird wiederhergestellt…",
     "other": "{n} Einträge werden wiederhergestellt…"
   },
-  "session.syncing": "Wird synchronisiert…"
+  "session.syncing": "Wird synchronisiert…",
+  "switcher.title": "Apps",
+  "switcher.home": "Startseite",
+  "switcher.open": "App-Wechsler öffnen",
+  "hub.settings": "Einstellungen",
+  "hub.legacy": "Alt"
 }

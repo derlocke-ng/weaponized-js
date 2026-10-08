@@ -22,7 +22,7 @@ const code = (f) => /\.(m?js|css|html|svg|webmanifest)$/.test(f);
 test('Loadout’s service worker caches every script, style and vendor file', () => {
   const app = path.join(root, 'apps/loadout');
   const shell = shellOf(path.join(app, 'sw.js'));
-  const shared = ['nostr.mjs', 'util.js', 'events.js', 'store.js', 'relays.js', 'account.js', 'sync.js', 'i18n.js', 'theme.js', 'settings.js'].map((f) => `../shared/${f}`);
+  const shared = ['nostr.mjs', 'util.js', 'events.js', 'store.js', 'relays.js', 'account.js', 'sync.js', 'i18n.js', 'theme.js', 'settings.js', 'switcher.js', 'switcher.css'].map((f) => `../shared/${f}`);
   const needed = [...walk(path.join(app, 'js'), code), ...walk(path.join(app, 'css'), code), ...walk(path.join(app, 'vendor'), (f) => /\.m?js$/.test(f))].map((f) => path.relative(app, f)).concat(shared);
   assert.deepEqual(needed.filter((f) => !shell.includes(f)), [], 'add these to SHELL in apps/loadout/sw.js');
   assert.deepEqual(shell.filter((f) => f !== './' && !fs.existsSync(path.join(app, f))), [], 'SHELL lists files that do not exist');

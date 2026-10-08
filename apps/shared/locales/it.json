@@ -144,5 +144,10 @@
     "many": "Ripristino di {n} voci…",
     "other": "Ripristino di {n} voci…"
   },
-  "session.syncing": "Sincronizzazione…"
+  "session.syncing": "Sincronizzazione…",
+  "switcher.title": "App",
+  "switcher.home": "Pagina iniziale",
+  "switcher.open": "Apri il selettore di app",
+  "hub.settings": "Impostazioni",
+  "hub.legacy": "Vecchio"
 }

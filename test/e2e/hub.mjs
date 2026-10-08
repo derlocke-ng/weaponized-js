@@ -95,6 +95,27 @@ await run(
     await A.check('#appToggles input[data-app=pongjs]', { force: true });
     await until(async () => (await B.getAttribute('html', 'lang')) === 'en', 'B back to English', 20000);
 
+    step('the app switcher reaches every page from every page, and the back button closes it');
+    await A.goto(SETTINGS);
+    await A.waitForSelector('#appToggles input[data-app=pongjs]');
+    await A.uncheck('#appToggles input[data-app=pongjs]', { force: true });
+    await A.goto(`${env.base}loadout/`);
+    await A.waitForSelector('.home');
+    await A.click('#switcher');
+    await A.waitForSelector('.switcher.open .switcher-apps a');
+    const links = await texts(A, '.switcher-apps a');
+    assert.ok(links.some((x) => /Start page/.test(x)) && links.some((x) => /Settings/.test(x)) && links.some((x) => /Payload/.test(x)), `switcher lists the pages: ${links.join(', ')}`);
+    assert.ok(!links.some((x) => /pongjs/.test(x)), 'hidden apps stay out of the switcher');
+    await A.goBack();
+    await until(async () => !(await A.$('.switcher.open')), 'the back button closes the sheet');
+    assert.ok(A.url().endsWith('/loadout/') || A.url().includes('/loadout/#'), 'still in Loadout after closing');
+    await A.click('#switcher');
+    await A.waitForSelector('.switcher.open');
+    await A.click('.switcher-apps a[href$="settings.html"]');
+    await A.waitForSelector('#appToggles');
+    assert.ok(A.url().endsWith('settings.html'), 'the switcher opened the settings page');
+    await A.check('#appToggles input[data-app=pongjs]', { force: true });
+
     step('wiping a device forgets the key and the cached data');
     await B.goto(SETTINGS);
     await B.waitForSelector('[data-act=wipe]');

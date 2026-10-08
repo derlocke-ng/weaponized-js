@@ -3,7 +3,7 @@
 // same-site responses are cached as they are fetched. Network first, so an
 // update shows up on the next load. Loadout has its own worker with a narrower
 // scope, which takes precedence for its pages. Bump VERSION on release.
-const VERSION = 'wjs-v4';
+const VERSION = 'wjs-v5';
 const SHELL = [
   './',
   'index.html',
@@ -45,6 +45,8 @@ const SHELL = [
   'shared/i18n.js',
   'shared/theme.js',
   'shared/settings.js',
+  'shared/switcher.js',
+  'shared/switcher.css',
   'shared/backup.js',
   'shared/locales/en.json',
 ];

@@ -147,5 +147,10 @@
     "many": "Przywracanie {n} wpisów…",
     "other": "Przywracanie {n} wpisów…"
   },
-  "session.syncing": "Synchronizowanie…"
+  "session.syncing": "Synchronizowanie…",
+  "switcher.title": "Aplikacje",
+  "switcher.home": "Strona startowa",
+  "switcher.open": "Otwórz przełącznik aplikacji",
+  "hub.settings": "Ustawienia",
+  "hub.legacy": "Starsze"
 }

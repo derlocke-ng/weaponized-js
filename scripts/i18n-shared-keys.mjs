@@ -87,6 +87,8 @@ const SHARED_KEYS = [
   'session.restoring',
   'session.syncing',
 ];
+// Keys the switcher needs on every page; the hub catalog is the source here.
+const HUB_SHARED = ['hub.settings', 'hub.legacy'];
 const DROPPED = ['account.title', 'account.backupText', 'account.backupDialog.done', 'account.deviceTextSignedIn', 'account.deviceTextKey', 'account.wipe', 'account.wipeDialog.title', 'account.wipeDialog.text', 'account.wipeDialog.action', 'session.loadingBoards', 'session.checking', 'session.restored', 'session.offlineLater', 'session.collected'];
 
 const read = (f) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null);
@@ -121,5 +123,20 @@ for (const app of ['loadout']) {
       console.log(`${lang}: moved shared keys out of ${app}`);
     }
   }
+}
+// hub → shared: copy (the hub keeps using them too)
+for (const file of fs.readdirSync(path.join(root, 'hub/locales'))) {
+  const hub = read(path.join(root, 'hub/locales', file));
+  const sharedFile = path.join(root, 'apps/shared/locales', file);
+  const shared = read(sharedFile) || {};
+  let changed = false;
+  for (const key of HUB_SHARED) {
+    if (key in hub && !(key in shared)) {
+      shared[key] = hub[key];
+      changed = true;
+      moved++;
+    }
+  }
+  if (changed) write(sharedFile, shared);
 }
 console.log(`${moved} keys moved`);

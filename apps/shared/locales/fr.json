@@ -144,5 +144,10 @@
     "many": "Restauration de {n} entrées…",
     "other": "Restauration de {n} entrées…"
   },
-  "session.syncing": "Synchronisation…"
+  "session.syncing": "Synchronisation…",
+  "switcher.title": "Applications",
+  "switcher.home": "Page d’accueil",
+  "switcher.open": "Ouvrir le sélecteur d’applications",
+  "hub.settings": "Paramètres",
+  "hub.legacy": "Ancien"
 }

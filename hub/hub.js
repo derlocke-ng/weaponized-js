@@ -5,6 +5,7 @@ import { savedRelays } from './shared/relays.js';
 import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, $$, h, icon } from './shell.js';
 import { mountAccount, onAccountChange } from './account.js';
+import { mountSwitcher } from './shared/switcher.js';
 
 const infos = new Map();
 
@@ -44,6 +45,7 @@ function drawRelays() {
 
 async function boot() {
   await bootShell();
+  mountSwitcher($('#switcher'), { base: './', current: 'hub', hidden: hiddenApps });
   const redrawAccount = mountAccount($('#accountBody'));
   languageBanner();
   drawHeader();

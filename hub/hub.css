@@ -832,3 +832,16 @@ select:focus-visible {
 .foot-links a {
   color: var(--muted);
 }
+
+.switcher-btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.45rem;
+  margin-right: 0.25rem;
+}
+
+.switcher-btn .icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}

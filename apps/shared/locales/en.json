@@ -141,5 +141,10 @@
     "one": "Restoring {n} entry…",
     "other": "Restoring {n} entries…"
   },
-  "session.syncing": "Syncing…"
+  "session.syncing": "Syncing…",
+  "switcher.title": "Apps",
+  "switcher.home": "Start page",
+  "switcher.open": "Open app switcher",
+  "hub.settings": "Settings",
+  "hub.legacy": "Legacy"
 }
