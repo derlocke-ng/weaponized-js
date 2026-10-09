@@ -1,5 +1,7 @@
 # weaponized.js
 
+> **Moved.** weaponized.js became two repositories: [kiwi-framework](https://github.com/derlocke-ng/kiwi-framework) (the engine, the hub pages and the app kit) and [Armory](https://github.com/derlocke-ng/armory) (this hub and its apps, the template to fork). Development continues there; this repository stays as it is.
+
 Peer-to-peer webtools over [nostr](https://nostr.com). Every tool runs entirely in the browser and syncs over relays you choose: no sign-up needed, no server of ours, no tracking, and everything is encrypted before it leaves your device. Install it as a web app from the landing page.
 
 **Live:** <https://derlocke-ng.github.io/weaponized-js/>
