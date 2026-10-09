@@ -6,7 +6,7 @@
 
 import { t } from './i18n.js';
 
-import { APPS } from './apps.js';
+import { MOUNTS } from './apps.js';
 
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -24,7 +24,7 @@ function render() {
   const { base, current, hidden, sprite } = opts;
   const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="${sprite}#${name}"></use></svg>`;
   const skip = new Set(hidden?.() || []);
-  const apps = APPS.filter((a) => !skip.has(a.id));
+  const apps = MOUNTS.filter((a) => !skip.has(a.id));
   sheet.innerHTML = `
     <div class="switcher-backdrop" data-close></div>
     <nav class="switcher-sheet" role="dialog" aria-modal="true" aria-label="${h(t('switcher.title'))}">

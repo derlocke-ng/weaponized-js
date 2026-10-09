@@ -63,6 +63,10 @@ In Loadout, add `ws://localhost:7777` under *Account → Relays* to work against
 
 GitHub Pages, built by `.github/workflows/deploy.yml` on every push to `main` (pull requests only run the tests and the build). In the repository settings set **Pages → Source** to **GitHub Actions**.
 
+## Framework and distribution
+
+The framework (engine, design kit, core apps) and this distribution (name, relays, the apps it mounts) are separated by one file: `apps/shared/distribution.js`. A fork changes that file and nothing else; the framework never names a distribution. The model, with spaces and mounts, is in `docs/architecture.md`.
+
 ## Adding an app
 
 ```sh

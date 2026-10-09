@@ -4,7 +4,7 @@
 import { t } from './i18n.js';
 import { h, modal, toast } from './ui.js';
 import { fingerprint } from './events.js';
-import { appById } from './apps.js';
+import { appById, mountsOf } from './apps.js';
 import { store } from './util.js';
 
 const NOTIFIED = 'wjs.people.notified';
@@ -30,7 +30,7 @@ export function peopleNotices(people, { base = '../', current = null } = {}) {
       const app = appById(s.app);
       toast(t('people.shareNotice', { name: s.name, app: app?.name || s.app }), 'info', 12000, {
         label: t('people.open'),
-        href: typeof s.payload.url === 'string' ? s.payload.url : `${base}${s.app}/`,
+        href: typeof s.payload.url === 'string' ? s.payload.url : `${base}${mountsOf(s.app)[0]?.id || s.app}/`,
         onClick: () => people.consume(s.id),
       });
     }

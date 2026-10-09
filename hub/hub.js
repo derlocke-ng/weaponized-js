@@ -6,7 +6,8 @@ import { loadIdentity } from './shared/account.js';
 import { bootShell, net, onLanguage, onSuite, chooseLanguage, hiddenApps, $, h, icon } from './shell.js';
 import { mountTopbar, accountLink } from './shared/topbar.js';
 import { statusPill, mountStatus } from './shared/status.js';
-import { APPS } from './shared/apps.js';
+import { MOUNTS } from './shared/apps.js';
+import { DISTRIBUTION } from './shared/distribution.js';
 
 const infos = new Map();
 
@@ -26,18 +27,18 @@ function drawHeader() {
     base: './',
     current: 'hub',
     hidden: hiddenApps,
-    brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
+    brand: { href: './', html: DISTRIBUTION.brandHtml, label: DISTRIBUTION.name },
     right: statusPill() + accountLink({ href: 'settings.html#account', identity: id, label: t('hub.signIn') }),
   });
   $('#accountCta').hidden = Boolean(id.alias);
   mountStatus($('#sync'), net);
 }
 
-/** The cards come from the registry (shared/apps.js): one place for every app's name, icon, tags and flags. */
+/** The cards are the distribution's mounts (shared/distribution.js): apps on spaces, with their names, icons, tags and flags. */
 function drawApps() {
   const hidden = hiddenApps();
-  const feature = APPS.find((a) => a.featured);
-  const tools = APPS.filter((a) => a !== feature);
+  const feature = MOUNTS.find((a) => a.featured);
+  const tools = MOUNTS.filter((a) => a !== feature);
   const tags = (a) => `<ul class="tags">${a.tags.map((x) => `<li>${h(x)}</li>`).join('')}</ul>`;
   const badge = (a) => (a.isNew ? ` <span class="badge">${h(t('hub.new'))}</span>` : '') + (a.legacy ? ` <small class="legacy">${h(t('hub.legacy'))}</small>` : '');
   $('#apps').innerHTML = `

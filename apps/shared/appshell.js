@@ -9,7 +9,7 @@ import { applyTheme, setTheme, theme, watchDeviceSettings } from './theme.js';
 import { loadIdentity } from './account.js';
 import { AccountSettings } from './settings.js';
 import { mountTopbar, accountLink } from './topbar.js';
-import { appById, appMark } from './apps.js';
+import { appById, mountById, appMark } from './apps.js';
 import { mountStatus } from './status.js';
 import { BlockList } from './moderation.js';
 import { People } from './people.js';
@@ -21,8 +21,8 @@ import { setSprite } from './ui.js';
  *   base: path to the site root ('../' for an app); dirs: catalog dirs (shared + the app's own `locales/`)
  */
 export async function initAppShell({ app = null, current = app, brand = {}, right = '', account = null, base = '../', header = '#top', dirs = [`${base}shared/locales/`, 'locales/'], sprite = `${base}icons.svg`, net = null }) {
-  // `app` is an id from the registry: its name and mark are the top bar's brand unless overridden.
-  const entry = app ? appById(app) : null;
+  // `app` is a mount id (or an app id): its name and mark are the top bar's brand unless overridden.
+  const entry = app ? mountById(app) || appById(app) : null;
   const brandOpts = { href: './', name: entry?.name || current, ...(entry ? { mark: appMark(entry, sprite) } : {}), ...brand };
   // The header is looked up on every draw: apps that re-render their shell get a fresh element.
   const headerEl = () => (typeof header === 'string' ? document.querySelector(header) : header);

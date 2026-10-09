@@ -168,11 +168,16 @@ write('README.md', `# ${name}\n\nPart of [weaponized.js](../../README.md). Say w
 // registry
 const reg = path.join(root, 'apps/shared/apps.js');
 let src = fs.readFileSync(reg, 'utf8');
-const entry = `  { id: '${id}', name: ${JSON.stringify(name)}, icon: '${icon}', tags: ['nostr'], isNew: true },\n`;
+const entry = `  { id: '${id}', name: ${JSON.stringify(name)}, icon: '${icon}', tags: ['nostr'] },\n`;
 const legacyAt = src.search(/\n  \{[^\n]*legacy: true/);
 src = legacyAt >= 0 ? src.slice(0, legacyAt + 1) + entry + src.slice(legacyAt + 1) : src.replace(/\n\];/, `\n${entry}];`);
 fs.writeFileSync(reg, src);
 console.log('apps/shared/apps.js: entry added');
+const dist = path.join(root, 'apps/shared/distribution.js');
+let distSrc = fs.readFileSync(dist, 'utf8');
+distSrc = distSrc.replace(/(  mounts: \[\n[\s\S]*?)(  \],)/, `$1    { id: '${id}', app: '${id}', space: null, isNew: true },\n$2`);
+fs.writeFileSync(dist, distSrc);
+console.log('apps/shared/distribution.js: mounted');
 
 // the hub card's text, in every language (English until translated)
 for (const lang of Object.keys(LANGUAGES)) {

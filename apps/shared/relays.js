@@ -4,13 +4,14 @@
 // relays, per-relay publishing for the outbox, and NIP-11 info with caching.
 
 import { Relay, fetchRelayInformation } from './nostr.mjs';
+import { DISTRIBUTION } from './distribution.js';
 import { store, timeout } from './util.js';
 
 export const RELAYS_KEY = 'wjs.relays';
 
 // Public relays that accept application data; replace the first entries with
 // kiwi-network relays once the module runs. Users can edit the list.
-export const DEFAULT_RELAYS = ['wss://nos.lol', 'wss://relay.damus.io', 'wss://nostr.mom', 'wss://relay.primal.net'];
+export const DEFAULT_RELAYS = DISTRIBUTION.relays; // the distribution's choice (shared/distribution.js)
 
 const RETRY_EVERY = 15_000;
 const CONNECT_TIMEOUT = 8000;

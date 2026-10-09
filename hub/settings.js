@@ -13,7 +13,8 @@ import { fingerprint } from './shared/events.js';
 import { store } from './shared/util.js';
 import { bootShell, net, suite, onSuite, onLanguage, chooseLanguage, chooseTheme, hiddenApps, setAppHidden, startPeople, blocks, people, $, $$, h, icon, toast } from './shell.js';
 import { copyText } from './shared/ui.js';
-import { APPS } from './shared/apps.js';
+import { MOUNTS } from './shared/apps.js';
+import { DISTRIBUTION } from './shared/distribution.js';
 import { cores, hardwareCores, CORES_KEY } from './shared/pow.js';
 import { mountAccount, onAccountChange } from './account.js';
 import { mountTopbar } from './shared/topbar.js';
@@ -34,7 +35,7 @@ function drawLanguage() {
 
 function drawApps() {
   const hidden = hiddenApps();
-  $('#appToggles').innerHTML = APPS.map(
+  $('#appToggles').innerHTML = MOUNTS.map(
     (app) => `<li><label class="check-row"><input type="checkbox" data-app="${app.id}" ${hidden.includes(app.id) ? '' : 'checked'}><span>${h(app.name)}</span></label></li>`,
   ).join('');
 }
@@ -184,7 +185,7 @@ async function boot() {
       base: './',
       current: 'settings',
       hidden: hiddenApps,
-      brand: { href: './', html: 'weaponized<span class="wjs-brand-ext">.js</span>', label: 'weaponized.js' },
+      brand: { href: './', html: DISTRIBUTION.brandHtml, label: DISTRIBUTION.name },
       right: `${statusPill({ href: '#relays' })}<a class="wjs-pill" href="./">${icon('chevron-left')}<span>${h(t('settings.back'))}</span></a>`,
     });
     mountStatus($('#sync'), net);

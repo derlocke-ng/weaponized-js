@@ -2,6 +2,42 @@
 
 How weaponized.js moves and stores data, why it stopped using gun, and where it is going. This is the record of the decisions made in October 2026; update it when a decision changes.
 
+## Framework, distributions, apps
+
+Three layers, decided in October 2026:
+
+- **The framework** (`kiwi-framework`, today still inside this repository as `apps/shared/` plus the hub pages) is the engine and the parts: identity and accounts, relays, store and sync, settings, People, moderation, the design kit, widgets and feature modules, the app shell, notices, proof of work, backup, the registries, the scaffolder and the test harness. It ships nothing a user can open. Core apps live in it too: settings, chat, notifications and the backend pieces every hub needs. A fork cannot remove them.
+- **A distribution** is a hub built on the framework: a name and look, default relays, and a chosen set of apps on chosen spaces. weaponized.js is one; others fork it, change `apps/shared/distribution.js` and run their own community. Everything a fork would change lives in that one file; code and docs never name the distribution elsewhere.
+- **An app** is a folder with a manifest that plugs into any distribution. Apps are installed at fork time: the operator copies the folder (or pulls it from a catalog) and mounts it. Apps talk to the framework only through its public API and never touch storage or keys directly, so that a later sandboxed, user-installed mode stays possible without rewriting them.
+
+**Core, default, optional.** Core apps are what the framework depends on and no fork may remove: settings (with People and relays), chat, notifications, the backend. Default apps ship with the template and a fork may drop them: Loadout, Outpost, the market, DevBoard. Everything else is optional (pong, a blog).
+
+**Federation.** Two users on different distributions are friends, share and chat exactly as on one, because identity and data are nostr events, not the hub's. What must stay stable is the wire protocol: the kinds, tags and content formats the framework defines, versioned, with the framework shipping the code that implements them. Instances announce themselves with a signed manifest event (name, URL, apps, spaces, relays), so any hub can show other communities and their apps without a pull request anywhere; a separate catalog repository seeds that discovery with a curated, reviewed list. The framework repository stays code only.
+
+### Spaces
+
+A space is a named, owned community: an id, an owner key, a name, moderators, its own relays, an adult flag, and the app code that renders it. Nostr's moderated communities (NIP-72) are the fitting standard: a community definition event, posts that point at it, approval events from its moderators; other nostr clients can read our spaces, and operators get moderation. Every post and listing belongs to exactly one space, as a required part of the event; a post without a space is shown nowhere. Spaces are federated: two hubs can serve the same space, and a space's relays carry only its content, so a cannabis relay never carries gem listings. A space may be used by several apps (one community with a feed and a market) or one app only (a market of its own next to a feed space); both shapes are ordinary.
+
+### Mounts
+
+What a hub shows is a list of **mounts**: app code plus a space, with its own id, name and icon. "Seedbank" is the market code mounted on a seed space; "Tiny Tina's Gem Store" is the same code mounted on her gem space, with her branding, moderators and relays; both are separate tiles, switcher entries and routes on one hub. A distribution ships as many mounts of an app as it wants (several markets, several feeds); the start page and the switcher group mounts of one app under a heading once there are more than two, and users hide mounts one by one. Apps without a space (Loadout, Payload, pong) are mounted once, without one. Importing another community's store is one mount line; if it needs different code, one catalog line more. Mounting is the operator's, through the config; a per-hub flag may let users follow a foreign space themselves, which then appears as a mount for them alone. Hubs are closed by default: nothing arrives unasked, and nothing is ever blended into a space's feed.
+
+### Links across hubs
+
+A shared link names the app, the space and the item, never the host. A hub resolves it to the mount serving that app and space; without one it says whose space this is and offers to open the link on the hub it came from, or to add the mount if the operator allows that. Content inside a link is a nostr address with relay hints, so a board or post from another instance is fetched from the relays it lives on. Loadout's `/loadout/#/b/…` links already have the shape; the host part becomes irrelevant and the hints get added.
+
+### Relays: lists, not sameness
+
+Two hubs need not share relays. Each user publishes a relay list (kind 10002: where they write, where they read) and a list for private wraps (kind 10050). To reach someone the framework fetches their lists and publishes to their read relays; to follow someone it subscribes to their write relays. The lists are found on a few directory relays and travel inside the first contact: a friend request and a share carry the sender's lists in the wrap, so the reply needs no lookup. A kiwi relay per instance then simply appears in that instance's users' lists. This goes in before the first fork.
+
+### Catalogs and kiwi
+
+An app is a git repository with a manifest (id, name, icon, version, tags, license, the framework version it needs, the event kinds it speaks, core or not) and a catalog is a repository listing app repositories: the same convention kiwi-updater uses for desktop apps (`kiwi.manifest`, `apps.list`), so the web catalog is a kiwi catalog and `kiwi` can install a hub onto a node. On the node, kiwi-server gets modules for a hub, a nostr relay and media storage, so a kiwi-node is a complete instance: the relay in its users' relay lists, the hub behind its reverse proxy. Kiwi Blog sites (derlocke-blog, Apex Genetics) join by publishing every post as a nostr long-form article signed by the site's key; a Blog app in the hub is then a framework feed of those articles, and other hubs can follow it.
+
+### Gun
+
+Gun stays for what it is best at: live, ephemeral sync, where latency matters and persistence and identity do not. It lives in one framework module for live channels (presence, signaling, game state) with a gun backend and a nostr ephemeral-event backend behind one interface, chosen per distribution; Payload and pong use the module and never gun directly. Nothing persistent, identity-bound or federated goes through it.
+
 ## Decision: nostr + Blossom, not gun
 
 The first versions of every tool here ran on [gun.js](https://gun.eco). It worked, but:
@@ -187,6 +223,9 @@ The freelancer noticeboard is public by nature, so its defence is not encryption
 - **Contact** is whatever the poster wrote (mail, handle, npub), shown only on request, with a reminder to check who you are talking to; Uplink becomes the in-app path once it exists.
 
 ## Roadmap
+
+Next, in this order: the rename of the distribution; the repository split with `distribution.js` as the config and the catalog manifest; relay lists per user and relay hints in links; spaces and mounts in the event design; the widget and module extraction (markdown and lists out of Loadout first, then collections with pinning, then the feed for Outpost and DevBoard); the chat on the same parts.
+
 
 1. ~~Shared core; Loadout on nostr~~ (done — `test/e2e/loadout.mjs` runs 17 multi-device scenarios against the dev relay, including two relay wipes).
 2. **Payload and pongjs on nostr**: presence and signaling as ephemeral events 21700–21702 (encrypted to the room secret), data frames over 21702 when WebRTC fails, TURN servers from the picker; Payload gets a **drop** mode — encrypted chunks on a Blossom server with an expiry — for receivers who are not online right now. Then gun, `apps/shared/gun.js` and `scripts/relay.cjs` go.
